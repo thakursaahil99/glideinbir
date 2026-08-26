@@ -1,0 +1,824 @@
+// Glideinbir — Central Database Schema
+// One Postgres database, one Prisma client, shared by Paragliding, School, Hotels,
+// Bookings, Payments, Customers, Content and Admin.
+//
+// Design notes (see ARCHITECTURE.md section 3 for full rationale):
+// - Money fields use Decimal(10,2) — never Float.
+// - Booking is the single central entity. BookingItemParagliding / BookingItemSchool /
+//   BookingItemHotel each reference Booking, so ONE booking can carry any combination
+//   (paragliding-only, school-only, hotel-only, paragliding+hotel, school+hotel, and any
+//   future item type added the same way).
+// - Availability is modeled with explicit counters (bookedSeats / bookedRooms) that are
+//   only ever mutated inside a serializable DB transaction with a row lock, never derived
+//   client-side. See ARCHITECTURE.md section 7.
+// - CHECK constraints (e.g. bookedSeats <= capacity) are added via a follow-up raw-SQL
+//   migration since Prisma's schema DSL has no native CHECK syntax yet.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================================
+// AUTH / USERS / RBAC
+// ============================================================================
+
+enum UserRole {
+  SUPER_ADMIN
+  BOOKING_MANAGER
+  PARAGLIDING_MANAGER
+  SCHOOL_MANAGER
+  HOTEL_MANAGER
+  FINANCE_MANAGER
+  CONTENT_MANAGER
+  CUSTOMER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  role         UserRole @default(CUSTOMER)
+  isActive     Boolean  @default(true)
+  emailVerifiedAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
+  bookings            Booking[]
+  reviews             Review[]
+  couponUsages        CouponUsage[]
+  notifications       Notification[]
+  auditLogs           AuditLog[]
+  rolePermissions     UserPermission[]
+
+  @@index([role])
+}
+
+// Fine-grained permission overrides layered on top of the coarse UserRole enum.
+// Phase 1-2 only need the enum; this table exists so future roles (e.g. a
+// "Booking Manager" who also needs read-only Finance access) don't require a
+// schema migration — just new rows.
+model Permission {
+  id          String @id @default(cuid())
+  key         String @unique // e.g. "bookings.refund", "content.publish"
+  description String
+
+  users UserPermission[]
+}
+
+model UserPermission {
+  id           String @id @default(cuid())
+  userId       String
+  permissionId String
+  grantedAt    DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  userAgent String?
+  ipAddress String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================================================================
+// PARAGLIDING
+// ============================================================================
+
+enum FlightType {
+  TANDEM
+  SOLO
+  CROSS_COUNTRY
+}
+
+model ParaglidingCategory {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  isActive    Boolean @default(true)
+  order       Int     @default(0)
+
+  packages ParaglidingPackage[]
+}
+
+model ParaglidingPackage {
+  id               String     @id @default(cuid())
+  categoryId       String
+  title            String
+  slug             String     @unique
+  shortDescription String?
+  description      String
+  flightType       FlightType
+  price            Decimal    @db.Decimal(10, 2)
+  durationMinutes  Int
+  includes         String[]
+  excludes         String[]
+  requirements     String[]
+  minAge           Int?
+  maxAge           Int?
+  minWeightKg      Int?
+  maxWeightKg      Int?
+  safetyInfo       String?
+  location         String
+  pickupAvailable  Boolean    @default(false)
+  pickupInfo       String?
+  isActive         Boolean    @default(true)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  category ParaglidingCategory     @relation(fields: [categoryId], references: [id])
+  media    ParaglidingMedia[]
+  slots    ParaglidingSlot[]
+  bookingItems BookingItemParagliding[]
+  reviews  Review[]                @relation("ParaglidingReviews")
+  faqs     FAQ[]
+
+  @@index([categoryId])
+  @@index([isActive])
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+model ParaglidingMedia {
+  id        String    @id @default(cuid())
+  packageId String
+  url       String
+  type      MediaType @default(IMAGE)
+  order     Int       @default(0)
+
+  package ParaglidingPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@index([packageId])
+}
+
+enum SlotStatus {
+  ACTIVE
+  CANCELLED
+}
+
+// One row per bookable date+time for a package. bookedSeats is the single
+// source of truth for remaining capacity and is only mutated inside a
+// transaction that locks this row (SELECT ... FOR UPDATE) — see
+// ARCHITECTURE.md section 7.
+model ParaglidingSlot {
+  id          String     @id @default(cuid())
+  packageId   String
+  date        DateTime   @db.Date
+  startTime   String     // "HH:mm", kept as string to avoid timezone drift
+  capacity    Int
+  bookedSeats Int        @default(0)
+  status      SlotStatus @default(ACTIVE)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  package      ParaglidingPackage       @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  bookingItems BookingItemParagliding[]
+
+  @@unique([packageId, date, startTime])
+  @@index([packageId, date])
+}
+
+// ============================================================================
+// PARAGLIDING SCHOOL
+// ============================================================================
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  CERTIFICATION
+}
+
+model SchoolCourse {
+  id              String      @id @default(cuid())
+  title           String
+  slug            String      @unique
+  description     String
+  level           CourseLevel
+  durationDays    Int
+  fee             Decimal     @db.Decimal(10, 2)
+  location        String
+  requirements    String[]
+  minAge          Int?
+  syllabus        Json        // ordered array of {title, description}
+  includes        String[]
+  excludes        String[]
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  media        CourseMedia[]
+  batches      TrainingBatch[]
+  bookingItems BookingItemSchool[]
+  reviews      Review[]            @relation("SchoolReviews")
+  faqs         FAQ[]
+
+  @@index([isActive])
+}
+
+model CourseMedia {
+  id       String    @id @default(cuid())
+  courseId String
+  url      String
+  type     MediaType @default(IMAGE)
+  order    Int       @default(0)
+
+  course SchoolCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+}
+
+model Instructor {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  photoUrl        String?
+  bio             String?
+  experienceYears Int?
+  certifications  String[]
+  contactEmail    String?
+  contactPhone    String?
+  isActive        Boolean  @default(true)
+
+  batches TrainingBatch[]
+}
+
+enum BatchStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+// One row per training batch. bookedSeats mirrors ParaglidingSlot's pattern —
+// mutated only inside a locked transaction.
+model TrainingBatch {
+  id            String      @id @default(cuid())
+  courseId      String
+  instructorId  String
+  startDate     DateTime    @db.Date
+  endDate       DateTime    @db.Date
+  dailySchedule Json        // [{day: "Mon", startTime: "07:00", endTime: "11:00"}, ...]
+  location      String
+  maxStudents   Int
+  bookedSeats   Int         @default(0)
+  status        BatchStatus @default(UPCOMING)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  course       SchoolCourse         @relation(fields: [courseId], references: [id])
+  instructor   Instructor           @relation(fields: [instructorId], references: [id])
+  bookingItems BookingItemSchool[]
+
+  @@index([courseId, startDate])
+  @@index([instructorId])
+}
+
+// ============================================================================
+// HOTELS
+// ============================================================================
+
+model Hotel {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  description   String
+  address       String
+  city          String
+  latitude      Decimal? @db.Decimal(9, 6)
+  longitude     Decimal? @db.Decimal(9, 6)
+  checkInTime   String   // "HH:mm"
+  checkOutTime  String
+  policies      String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  media        HotelMedia[]
+  amenities    HotelAmenityOnHotel[]
+  rooms        Room[]
+  bookingItems BookingItemHotel[]
+  reviews      Review[]              @relation("HotelReviews")
+  faqs         FAQ[]
+
+  @@index([isActive])
+  @@index([city])
+}
+
+model HotelMedia {
+  id      String    @id @default(cuid())
+  hotelId String
+  url     String
+  type    MediaType @default(IMAGE)
+  order   Int       @default(0)
+
+  hotel Hotel @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@index([hotelId])
+}
+
+model Amenity {
+  id   String @id @default(cuid())
+  name String @unique
+  icon String?
+
+  hotels HotelAmenityOnHotel[]
+  rooms  RoomAmenityOnRoom[]
+}
+
+model HotelAmenityOnHotel {
+  hotelId   String
+  amenityId String
+
+  hotel   Hotel   @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  amenity Amenity @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@id([hotelId, amenityId])
+}
+
+model Room {
+  id              String   @id @default(cuid())
+  hotelId         String
+  name            String
+  type            String   // e.g. "Deluxe", "Suite", free text set by admin
+  description     String
+  occupancyAdults Int
+  occupancyChildren Int    @default(0)
+  pricePerNight   Decimal  @db.Decimal(10, 2)
+  totalRooms      Int
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  hotel        Hotel                @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  media        RoomMedia[]
+  amenities    RoomAmenityOnRoom[]
+  availability RoomAvailability[]
+  bookingItems BookingItemHotel[]
+
+  @@index([hotelId])
+}
+
+model RoomMedia {
+  id     String @id @default(cuid())
+  roomId String
+  url    String
+  order  Int    @default(0)
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+}
+
+model RoomAmenityOnRoom {
+  roomId    String
+  amenityId String
+
+  room    Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  amenity Amenity @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, amenityId])
+}
+
+// One row per room-per-calendar-date. Generated ahead on a rolling window
+// (e.g. 12 months) by a scheduled job when a Room is created/edited.
+// Booking a date range locks every date row in the range (ORDER BY date to
+// prevent deadlocks) and checks bookedRooms + qty <= totalRooms per date
+// before incrementing all of them in one transaction. See ARCHITECTURE.md
+// section 7.
+model RoomAvailability {
+  id          String   @id @default(cuid())
+  roomId      String
+  date        DateTime @db.Date
+  totalRooms  Int      // snapshot of Room.totalRooms at generation time; admin can override per-date
+  bookedRooms Int      @default(0)
+  isBlocked   Boolean  @default(false)
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, date])
+  @@index([roomId, date])
+}
+
+// ============================================================================
+// CENTRAL BOOKING
+// ============================================================================
+
+enum BookingType {
+  PARAGLIDING
+  SCHOOL
+  HOTEL
+  COMBINED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  REFUND_PENDING
+  REFUNDED
+  FAILED
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  bookingNumber String        @unique // human-readable e.g. GLB-2026-000123
+  userId        String
+  type          BookingType
+  status        BookingStatus @default(PENDING)
+
+  customerName  String
+  customerEmail String
+  customerPhone String
+
+  subtotal      Decimal @db.Decimal(10, 2)
+  discountAmount Decimal @default(0) @db.Decimal(10, 2)
+  taxAmount     Decimal @default(0) @db.Decimal(10, 2)
+  totalAmount   Decimal @db.Decimal(10, 2)
+
+  couponId String?
+  notes    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User    @relation(fields: [userId], references: [id])
+  coupon Coupon? @relation(fields: [couponId], references: [id])
+
+  paraglidingItems BookingItemParagliding[]
+  schoolItems      BookingItemSchool[]
+  hotelItems       BookingItemHotel[]
+  payments         Payment[]
+  couponUsage      CouponUsage[]
+  reviews          Review[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+}
+
+model BookingItemParagliding {
+  id         String  @id @default(cuid())
+  bookingId  String
+  packageId  String
+  slotId     String
+  passengers Int
+  unitPrice  Decimal @db.Decimal(10, 2)
+  lineTotal  Decimal @db.Decimal(10, 2)
+
+  booking Booking            @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  package ParaglidingPackage @relation(fields: [packageId], references: [id])
+  slot    ParaglidingSlot    @relation(fields: [slotId], references: [id])
+
+  @@index([bookingId])
+  @@index([slotId])
+}
+
+model BookingItemSchool {
+  id        String  @id @default(cuid())
+  bookingId String
+  courseId  String
+  batchId   String
+  students  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  lineTotal Decimal @db.Decimal(10, 2)
+
+  booking Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  course  SchoolCourse  @relation(fields: [courseId], references: [id])
+  batch   TrainingBatch @relation(fields: [batchId], references: [id])
+
+  @@index([bookingId])
+  @@index([batchId])
+}
+
+model BookingItemHotel {
+  id        String   @id @default(cuid())
+  bookingId String
+  hotelId   String
+  roomId    String
+  checkIn   DateTime @db.Date
+  checkOut  DateTime @db.Date
+  nights    Int
+  rooms     Int
+  guests    Int
+  unitPrice Decimal  @db.Decimal(10, 2) // per night
+  lineTotal Decimal  @db.Decimal(10, 2)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  hotel   Hotel   @relation(fields: [hotelId], references: [id])
+  room    Room    @relation(fields: [roomId], references: [id])
+
+  @@index([bookingId])
+  @@index([roomId, checkIn, checkOut])
+}
+
+// ============================================================================
+// PAYMENTS / REFUNDS
+// ============================================================================
+
+enum PaymentStatus {
+  CREATED
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  bookingId         String
+  razorpayOrderId   String        @unique
+  razorpayPaymentId String?
+  razorpaySignature String?
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("INR")
+  status            PaymentStatus @default(CREATED)
+  method            String?
+  rawResponse       Json?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  booking Booking  @relation(fields: [bookingId], references: [id])
+  refunds Refund[]
+
+  @@index([bookingId])
+  @@index([razorpayPaymentId])
+}
+
+enum RefundStatus {
+  INITIATED
+  PROCESSED
+  FAILED
+}
+
+model Refund {
+  id               String       @id @default(cuid())
+  paymentId        String
+  razorpayRefundId String?      @unique
+  amount           Decimal      @db.Decimal(10, 2)
+  status           RefundStatus @default(INITIATED)
+  reason           String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  payment Payment @relation(fields: [paymentId], references: [id])
+
+  @@index([paymentId])
+}
+
+// Every inbound Razorpay webhook is recorded by its unique event id BEFORE
+// processing, so a redelivered webhook is a no-op. See ARCHITECTURE.md
+// section 9 (payment flow).
+model WebhookEvent {
+  id              String   @id @default(cuid())
+  razorpayEventId String   @unique
+  eventType       String
+  payload         Json
+  processedAt     DateTime?
+  createdAt       DateTime @default(now())
+}
+
+// ============================================================================
+// COUPONS
+// ============================================================================
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
+model Coupon {
+  id             String     @id @default(cuid())
+  code           String     @unique
+  type           CouponType
+  value          Decimal    @db.Decimal(10, 2)
+  minAmount      Decimal?   @db.Decimal(10, 2)
+  maxDiscount    Decimal?   @db.Decimal(10, 2)
+  startDate      DateTime
+  endDate        DateTime
+  usageLimit     Int?
+  perUserLimit   Int?
+  isActive       Boolean    @default(true)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  bookings Booking[]
+  usages   CouponUsage[]
+
+  @@index([isActive])
+}
+
+model CouponUsage {
+  id        String   @id @default(cuid())
+  couponId  String
+  userId    String
+  bookingId String
+  createdAt DateTime @default(now())
+
+  coupon  Coupon  @relation(fields: [couponId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@unique([couponId, bookingId])
+  @@index([couponId, userId])
+}
+
+// ============================================================================
+// REVIEWS
+// ============================================================================
+
+enum ReviewTargetType {
+  PARAGLIDING
+  SCHOOL
+  HOTEL
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  HIDDEN
+}
+
+// A review must reference the completed Booking that earned it, so a customer
+// can only review something they actually booked and it was COMPLETED.
+model Review {
+  id         String           @id @default(cuid())
+  userId     String
+  bookingId  String
+  targetType ReviewTargetType
+  rating     Int              // 1-5, validated in application layer
+  comment    String?
+  status     ReviewStatus     @default(PENDING)
+  createdAt  DateTime         @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  paraglidingPackageId String?
+  schoolCourseId        String?
+  hotelId                String?
+
+  paraglidingPackage ParaglidingPackage? @relation("ParaglidingReviews", fields: [paraglidingPackageId], references: [id])
+  schoolCourse       SchoolCourse?       @relation("SchoolReviews", fields: [schoolCourseId], references: [id])
+  hotel              Hotel?              @relation("HotelReviews", fields: [hotelId], references: [id])
+
+  @@unique([bookingId, targetType])
+  @@index([targetType, status])
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+enum NotificationChannel {
+  EMAIL
+  WHATSAPP
+  SMS
+  PUSH
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+// A log/queue of every notification attempt. Phase 1 implements the EMAIL
+// channel only; WHATSAPP/SMS/PUSH are already valid enum values so adding a
+// provider later needs no schema change.
+model Notification {
+  id        String              @id @default(cuid())
+  userId    String?
+  type      String              // e.g. "BOOKING_CONFIRMED", "PAYMENT_SUCCESS"
+  channel   NotificationChannel @default(EMAIL)
+  recipient String
+  subject   String?
+  body      String
+  status    NotificationStatus  @default(PENDING)
+  sentAt    DateTime?
+  createdAt DateTime            @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+// ============================================================================
+// CMS / CONTENT
+// ============================================================================
+
+enum MediaCategory {
+  HOMEPAGE_BANNER
+  GALLERY
+  ABOUT
+  OTHER
+}
+
+model SiteMedia {
+  id       String        @id @default(cuid())
+  url      String
+  type     MediaType     @default(IMAGE)
+  category MediaCategory @default(OTHER)
+  title    String?
+  order    Int           @default(0)
+  isActive Boolean       @default(true)
+}
+
+enum FaqCategory {
+  GENERAL
+  PARAGLIDING
+  SCHOOL
+  HOTEL
+}
+
+model FAQ {
+  id       String      @id @default(cuid())
+  question String
+  answer   String
+  category FaqCategory @default(GENERAL)
+  order    Int         @default(0)
+  isActive Boolean     @default(true)
+
+  paraglidingPackageId String?
+  schoolCourseId        String?
+  hotelId                String?
+
+  paraglidingPackage ParaglidingPackage? @relation(fields: [paraglidingPackageId], references: [id])
+  schoolCourse       SchoolCourse?       @relation(fields: [schoolCourseId], references: [id])
+  hotel              Hotel?              @relation(fields: [hotelId], references: [id])
+
+  @@index([category])
+}
+
+// Freeform CMS pages: About, Terms, Privacy, Cancellation & Refund Policy, etc.
+model PageContent {
+  id        String   @id @default(cuid())
+  key       String   @unique // "about", "terms", "privacy", "cancellation-policy"
+  title     String
+  body      String
+  updatedAt DateTime @updatedAt
+}
+
+// Global key-value settings: tax rate, service fee, business info, toggles.
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================================
+// AUDIT LOG
+// ============================================================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String   // e.g. "BOOKING_CANCELLED", "PACKAGE_UPDATED"
+  entityType String
+  entityId   String
+  oldValue   Json?
+  newValue   Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType, entityId])
+}
