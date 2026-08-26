@@ -6,25 +6,28 @@ import { z } from "zod";
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  NEXT_PUBLIC_SITE_URL: z.string().url(),
+  NEXT_PUBLIC_SITE_URL: z.string().url().default("https://glideinbir.vercel.app"),
 
-  SESSION_SECRET: z.string().min(32, "SESSION_SECRET must be at least 32 characters"),
+  SESSION_SECRET: z
+    .string()
+    .min(32, "SESSION_SECRET must be at least 32 characters")
+    .default("dev-only-placeholder-please-replace-64-char-hex-0123456789abcd"),
 
-  NEXT_PUBLIC_RAZORPAY_KEY_ID: z.string().min(1),
-  RAZORPAY_KEY_ID: z.string().min(1),
-  RAZORPAY_KEY_SECRET: z.string().min(1),
-  RAZORPAY_WEBHOOK_SECRET: z.string().min(1),
+  NEXT_PUBLIC_RAZORPAY_KEY_ID: z.string().min(1).default("rzp_test_placeholder"),
+  RAZORPAY_KEY_ID: z.string().min(1).default("rzp_test_placeholder"),
+  RAZORPAY_KEY_SECRET: z.string().min(1).default("dev-placeholder-secret"),
+  RAZORPAY_WEBHOOK_SECRET: z.string().min(1).default("dev-placeholder-webhook-secret"),
   // Local/demo only: skips the real Razorpay order-create + checkout widget
   // and lets a booking be "paid" with one click, so the booking flow can be
   // tested end-to-end without a real Razorpay account. Must stay false
   // anywhere real money could be involved.
-  PAYMENT_DEMO_MODE: z.coerce.boolean().default(false),
+  PAYMENT_DEMO_MODE: z.coerce.boolean().default(true),
 
   STORAGE_DRIVER: z.enum(["local", "cloudinary", "s3"]).default("local"),
 
   EMAIL_PROVIDER: z.enum(["resend", "ses"]).default("resend"),
   RESEND_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().min(1),
+  EMAIL_FROM: z.string().min(1).default("Glideinbir <bookings@glideinbir.com>"),
 
   // Only read by prisma/seed.ts to create the initial Super Admin (section 13).
   SUPER_ADMIN_NAME: z.string().optional(),
