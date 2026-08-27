@@ -201,7 +201,7 @@ export default async function HomePage() {
         </Container>
       )}
 
-      <section className="relative overflow-hidden bg-ink py-28 text-white">
+      <section className="relative overflow-hidden bg-ink py-32 text-white">
         <AuroraBackground />
         <NoiseOverlay opacity={0.05} />
         <Container className="relative z-10 grid items-center gap-16 md:grid-cols-2">
@@ -224,17 +224,23 @@ export default async function HomePage() {
                 </span>
               ))}
             </div>
+            <p className="mt-6 max-w-md text-sm text-white/50">
+              Make it yours, too — grab a color off the palette on the cube and the whole
+              site retunes to it. It's saved to your browser, so it stays picked wherever you go.
+            </p>
             <MagneticButton className="mt-8 inline-block">
               <LinkButton href="/paragliding" size="lg">
                 Explore everything
               </LinkButton>
             </MagneticButton>
           </ScrollReveal>
-          <div className="relative h-80 md:h-[28rem]">
-            <RubiksCubeLazy />
-            <div className="pointer-events-none absolute inset-x-0 bottom-2 flex flex-col items-center gap-2">
+          <div>
+            <div className="h-[26rem] md:h-[34rem]">
+              <RubiksCubeLazy />
+            </div>
+            <div className="flex flex-col items-center gap-2">
               <p className="text-center text-xs text-white/40">
-                Drag to spin · click a color to theme the site
+                Drag to spin the cube · grab a color below to theme the site
               </p>
               <ThemeResetButton />
             </div>
