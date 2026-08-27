@@ -15,6 +15,8 @@ import {
   CalendarCheck,
   CreditCard,
   Ticket,
+  Tent,
+  Bus,
 } from "lucide-react";
 
 const SECTIONS = [
@@ -44,6 +46,19 @@ const SECTIONS = [
     links: [
       { href: "/admin/hotels/list", label: "Hotels", icon: Hotel },
       { href: "/admin/hotels/amenities", label: "Amenities", icon: Sparkles },
+    ],
+  },
+  {
+    title: "Adventure",
+    links: [
+      { href: "/admin/adventure/categories", label: "Categories", icon: Tags },
+      { href: "/admin/adventure/items", label: "Items", icon: Tent },
+    ],
+  },
+  {
+    title: "Travel",
+    links: [
+      { href: "/admin/travel/routes", label: "Routes", icon: Bus },
     ],
   },
   {

@@ -17,7 +17,13 @@ export async function confirmBookingAvailability(bookingId: string): Promise<Con
     async (tx) => {
       const booking = await tx.booking.findUnique({
         where: { id: bookingId },
-        include: { paraglidingItems: true, schoolItems: true, hotelItems: true },
+        include: {
+          paraglidingItems: true,
+          schoolItems: true,
+          hotelItems: true,
+          adventureItems: true,
+          travelItems: true,
+        },
       });
       if (!booking) return { confirmed: false, reason: "Booking not found" };
       if (booking.status !== "PENDING") {
@@ -31,6 +37,10 @@ export async function confirmBookingAvailability(bookingId: string): Promise<Con
       );
       const schoolItems = [...booking.schoolItems].sort((a, b) => a.batchId.localeCompare(b.batchId));
       const hotelItems = [...booking.hotelItems].sort((a, b) => a.roomId.localeCompare(b.roomId));
+      const adventureItems = [...booking.adventureItems].sort((a, b) =>
+        a.slotId.localeCompare(b.slotId),
+      );
+      const travelItems = [...booking.travelItems].sort((a, b) => a.slotId.localeCompare(b.slotId));
 
       for (const item of paraglidingItems) {
         const rows = await tx.$queryRaw<{ bookedSeats: number; capacity: number }[]>`
@@ -71,6 +81,26 @@ export async function confirmBookingAvailability(bookingId: string): Promise<Con
         }
       }
 
+      for (const item of adventureItems) {
+        const rows = await tx.$queryRaw<{ bookedUnits: number; capacity: number }[]>`
+          SELECT "bookedUnits", capacity FROM "AdventureSlot" WHERE id = ${item.slotId} FOR UPDATE
+        `;
+        const slot = rows[0];
+        if (!slot || slot.bookedUnits + item.quantity > slot.capacity) {
+          return { confirmed: false, reason: "An adventure slot is no longer available" };
+        }
+      }
+
+      for (const item of travelItems) {
+        const rows = await tx.$queryRaw<{ bookedSeats: number; capacity: number }[]>`
+          SELECT "bookedSeats", capacity FROM "TravelSlot" WHERE id = ${item.slotId} FOR UPDATE
+        `;
+        const slot = rows[0];
+        if (!slot || slot.bookedSeats + item.passengers > slot.capacity) {
+          return { confirmed: false, reason: "A travel departure is no longer available" };
+        }
+      }
+
       // All checks passed inside the same locked transaction — commit the increments.
       for (const item of paraglidingItems) {
         await tx.paraglidingSlot.update({
@@ -90,6 +120,18 @@ export async function confirmBookingAvailability(bookingId: string): Promise<Con
           data: { bookedRooms: { increment: item.rooms } },
         });
       }
+      for (const item of adventureItems) {
+        await tx.adventureSlot.update({
+          where: { id: item.slotId },
+          data: { bookedUnits: { increment: item.quantity } },
+        });
+      }
+      for (const item of travelItems) {
+        await tx.travelSlot.update({
+          where: { id: item.slotId },
+          data: { bookedSeats: { increment: item.passengers } },
+        });
+      }
 
       await tx.booking.update({ where: { id: bookingId }, data: { status: "CONFIRMED" } });
       return { confirmed: true };
@@ -106,7 +148,13 @@ export async function releaseBookingAvailability(bookingId: string): Promise<voi
   await prisma.$transaction(async (tx) => {
     const booking = await tx.booking.findUnique({
       where: { id: bookingId },
-      include: { paraglidingItems: true, schoolItems: true, hotelItems: true },
+      include: {
+        paraglidingItems: true,
+        schoolItems: true,
+        hotelItems: true,
+        adventureItems: true,
+        travelItems: true,
+      },
     });
     if (!booking || booking.status !== "CONFIRMED") return;
 
@@ -126,6 +174,18 @@ export async function releaseBookingAvailability(bookingId: string): Promise<voi
       await tx.roomAvailability.updateMany({
         where: { roomId: item.roomId, date: { gte: item.checkIn, lt: item.checkOut } },
         data: { bookedRooms: { decrement: item.rooms } },
+      });
+    }
+    for (const item of booking.adventureItems) {
+      await tx.adventureSlot.update({
+        where: { id: item.slotId },
+        data: { bookedUnits: { decrement: item.quantity } },
+      });
+    }
+    for (const item of booking.travelItems) {
+      await tx.travelSlot.update({
+        where: { id: item.slotId },
+        data: { bookedSeats: { decrement: item.passengers } },
       });
     }
 

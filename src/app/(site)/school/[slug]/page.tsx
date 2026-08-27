@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { courseService, batchService } from "@/server/modules/school/service";
 import { getCurrentUser } from "@/server/auth/guards";
-import { Card, Container, Badge } from "@/components/ui/card";
+import { Card, Badge } from "@/components/ui/card";
 import { BookSchoolWidget } from "@/components/site/book-school-widget";
+import { DetailSplit } from "@/components/site/detail-split";
 import { formatINR } from "@/lib/format";
-import { ScrollReveal, StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
+import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { GradientText } from "@/components/effects/gradient-text";
 
 export async function generateMetadata({
@@ -39,57 +39,17 @@ export default async function SchoolDetailPage({
   const batches = await batchService.listForCourseSlug(slug);
   const syllabus = course.syllabus as { title: string; description: string }[];
 
-  const coverImage = course.media[0]?.url ?? `https://picsum.photos/seed/${course.slug}/1600/900`;
+  const coverImage = course.media[0]?.url ?? `https://picsum.photos/seed/${course.slug}/1600/1200`;
 
   return (
-    <Container className="py-16">
-      <div className="relative h-72 w-full overflow-hidden rounded-2xl md:h-96">
-        <Image src={coverImage} alt={course.title} fill priority className="object-cover" />
-      </div>
-
-      <div className="mt-10 grid gap-10 lg:grid-cols-[1.6fr_1fr]">
-      <ScrollReveal>
-        <Badge>{course.level}</Badge>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight">{course.title}</h1>
-        <p className="mt-1 text-sm text-muted">
-          {course.location} · {course.durationDays} days
-        </p>
-
-        <p className="mt-6 whitespace-pre-line text-ink">{course.description}</p>
-
-        {syllabus.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold">Syllabus</h2>
-            <StaggerGroup className="mt-3 space-y-3" staggerDelay={0.12}>
-              {syllabus.map((item, index) => (
-                <StaggerItem key={item.title} className="flex gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface text-xs font-semibold">
-                    {index + 1}
-                  </span>
-                  <div>
-                    <p className="font-medium">{item.title}</p>
-                    <p className="text-sm text-muted">{item.description}</p>
-                  </div>
-                </StaggerItem>
-              ))}
-            </StaggerGroup>
-          </div>
-        )}
-
-        {course.requirements.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold">Requirements</h2>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-muted">
-              {course.requirements.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </ScrollReveal>
-
-      <div>
-        <Card className="sticky top-24 p-6">
+    <DetailSplit
+      image={coverImage}
+      imageAlt={course.title}
+      badge={<Badge>{course.level}</Badge>}
+      title={course.title}
+      subtitle={`${course.location} · ${course.durationDays} days`}
+      sidebar={
+        <Card className="p-6">
           <div className="text-2xl font-bold">
             <GradientText>{formatINR(course.fee.toString())}</GradientText>
           </div>
@@ -111,8 +71,29 @@ export default async function SchoolDetailPage({
             />
           </div>
         </Card>
-      </div>
-      </div>
-    </Container>
+      }
+    >
+      <p className="whitespace-pre-line text-ink">{course.description}</p>
+
+      {syllabus.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold">Syllabus</h2>
+          <StaggerGroup className="relative mt-4 space-y-6" staggerDelay={0.12}>
+            <div className="absolute bottom-2 left-[15px] top-2 w-px bg-border" aria-hidden />
+            {syllabus.map((item, index) => (
+              <StaggerItem key={item.title} className="relative flex gap-4">
+                <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-brand bg-paper text-xs font-bold text-brand">
+                  {index + 1}
+                </span>
+                <div className="pt-0.5">
+                  <p className="font-medium">{item.title}</p>
+                  <p className="text-sm text-muted">{item.description}</p>
+                </div>
+              </StaggerItem>
+            ))}
+          </StaggerGroup>
+        </div>
+      )}
+    </DetailSplit>
   );
 }

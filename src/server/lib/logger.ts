@@ -4,11 +4,15 @@
 type LogFields = Record<string, unknown>;
 
 function write(level: "info" | "warn" | "error", message: string, fields?: LogFields) {
+  // level/time/message always win over a same-named key in `fields` — spread
+  // fields first, not last, or a caller passing e.g. { message: "..." } (as
+  // the underlying error's own message) would silently overwrite the actual
+  // log message instead of just adding a field.
   const entry = {
+    ...fields,
     level,
     time: new Date().toISOString(),
     message,
-    ...fields,
   };
   const line = JSON.stringify(entry);
   if (level === "error") console.error(line);

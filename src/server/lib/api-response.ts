@@ -29,6 +29,20 @@ function zodIssuesToFieldMap(error: ZodError): Record<string, string[]> {
   return issues;
 }
 
+// Not every thrown value is an Error instance — the Razorpay Node SDK, for
+// one, rejects with a plain { statusCode, error: {...} } object on API
+// failures. String(plainObject) is just "[object Object]", which is how a
+// real Razorpay error (bad key, invalid amount, etc.) was showing up in logs
+// with zero useful detail. Fall back to JSON.stringify for anything else.
+function describeError(error: unknown): { errorDetail: string; stack?: string } {
+  if (error instanceof Error) return { errorDetail: error.message, stack: error.stack };
+  try {
+    return { errorDetail: JSON.stringify(error) };
+  } catch {
+    return { errorDetail: String(error) };
+  }
+}
+
 // Wraps a route handler so every thrown AppError (or ZodError from a raw
 // `schema.parse(...)` call) becomes the standard { success, error } envelope
 // instead of an unhandled 500, and every unexpected error is logged with
@@ -52,10 +66,7 @@ export function withErrorHandling<Args extends unknown[]>(
       if (error instanceof SyntaxError) {
         return apiFailure("Malformed JSON body", "VALIDATION_ERROR", 400);
       }
-      logger.error("Unhandled route error", {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
+      logger.error("Unhandled route error", describeError(error));
       return apiFailure("Something went wrong", "INTERNAL_ERROR", 500);
     }
   };

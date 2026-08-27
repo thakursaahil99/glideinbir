@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+// z.coerce.boolean() just runs Boolean(value) under the hood — for a string
+// env var that means Boolean("false") === true, since any non-empty string
+// is truthy. This actually parses "false"/"0"/"no" (case-insensitive) as
+// false, only treating an already-boolean input as a pass-through.
+const booleanString = z
+  .union([z.boolean(), z.string()])
+  .transform((val) => (typeof val === "boolean" ? val : !["false", "0", "no", ""].includes(val.toLowerCase())));
+
 // Validated once at startup. Import `env` anywhere on the server instead of
 // touching `process.env` directly, so a missing/invalid variable fails fast
 // with a clear message rather than surfacing as a runtime bug later.
@@ -21,7 +29,7 @@ const envSchema = z.object({
   // and lets a booking be "paid" with one click, so the booking flow can be
   // tested end-to-end without a real Razorpay account. Must stay false
   // anywhere real money could be involved.
-  PAYMENT_DEMO_MODE: z.coerce.boolean().default(true),
+  PAYMENT_DEMO_MODE: booleanString.default(true),
 
   STORAGE_DRIVER: z.enum(["local", "cloudinary", "s3"]).default("local"),
 
@@ -36,7 +44,15 @@ const envSchema = z.object({
 });
 
 function loadEnv() {
-  const parsed = envSchema.safeParse(process.env);
+  // Vercel (and other dashboards) can persist a variable with an empty
+  // string value instead of leaving it unset. Zod's `.default()` and
+  // `.optional()` only trigger on `undefined`, so an empty string would
+  // otherwise fail validation (e.g. EMAIL_FROM min-length, SUPER_ADMIN_EMAIL
+  // email format) instead of falling back. Treat "" as unset.
+  const source = Object.fromEntries(
+    Object.entries(process.env).filter(([, value]) => value !== "")
+  );
+  const parsed = envSchema.safeParse(source);
   if (!parsed.success) {
     const issues = parsed.error.issues
       .map((issue) => `  - ${issue.path.join(".")}: ${issue.message}`)

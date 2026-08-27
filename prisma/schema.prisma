@@ -32,6 +32,8 @@ enum UserRole {
   PARAGLIDING_MANAGER
   SCHOOL_MANAGER
   HOTEL_MANAGER
+  ADVENTURE_MANAGER
+  TRAVEL_MANAGER
   FINANCE_MANAGER
   CONTENT_MANAGER
   CUSTOMER
@@ -436,6 +438,167 @@ model RoomAvailability {
 }
 
 // ============================================================================
+// ADVENTURE (camping, trekking, cottages/stays, other adventure activities)
+// ============================================================================
+//
+// Deliberately lighter-weight than Hotels: one bookable calendar date per
+// AdventureSlot (like ParaglidingSlot), not a per-night date-range. A
+// multi-day trek/camp's length is descriptive (durationLabel) — the slot
+// date is just the start date. See ARCHITECTURE.md-style rationale in the
+// Paragliding section above; this mirrors that model exactly.
+
+enum AdventurePricingUnit {
+  PER_PERSON
+  PER_NIGHT
+  PER_GROUP
+  FIXED
+}
+
+model AdventureCategory {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  isActive    Boolean @default(true)
+  order       Int     @default(0)
+
+  items AdventureItem[]
+}
+
+model AdventureItem {
+  id               String               @id @default(cuid())
+  categoryId       String
+  title            String
+  slug             String               @unique
+  shortDescription String?
+  description      String
+  pricingUnit      AdventurePricingUnit
+  price            Decimal              @db.Decimal(10, 2)
+  durationLabel    String // free text, e.g. "2D/1N", "12 Days", "Half day"
+  location         String
+  minCapacity      Int?
+  maxCapacity      Int?
+  includes         String[]
+  excludes         String[]
+  requirements     String[]
+  isActive         Boolean              @default(true)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  category     AdventureCategory         @relation(fields: [categoryId], references: [id])
+  media        AdventureMedia[]
+  slots        AdventureSlot[]
+  bookingItems BookingItemAdventure[]
+
+  @@index([categoryId])
+  @@index([isActive])
+}
+
+model AdventureMedia {
+  id     String    @id @default(cuid())
+  itemId String
+  url    String
+  type   MediaType @default(IMAGE)
+  order  Int       @default(0)
+
+  item AdventureItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId])
+}
+
+// One row per bookable date for an item. bookedUnits is the single source of
+// truth for remaining capacity, mutated only inside a locked transaction —
+// same pattern as ParaglidingSlot.bookedSeats.
+model AdventureSlot {
+  id          String     @id @default(cuid())
+  itemId      String
+  date        DateTime   @db.Date
+  capacity    Int
+  bookedUnits Int        @default(0)
+  status      SlotStatus @default(ACTIVE)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  item         AdventureItem          @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  bookingItems BookingItemAdventure[]
+
+  @@unique([itemId, date])
+  @@index([itemId, date])
+}
+
+// ============================================================================
+// TRAVEL (Volvo bus + taxi transport)
+// ============================================================================
+
+enum TravelMode {
+  BUS
+  TAXI
+}
+
+enum TravelPricingUnit {
+  PER_SEAT
+  PER_TRIP
+}
+
+model TravelRoute {
+  id            String            @id @default(cuid())
+  mode          TravelMode
+  title         String
+  slug          String            @unique
+  fromLocation  String
+  toLocation    String
+  vehicleType   String // e.g. "Volvo AC Sleeper", "Sedan", "SUV"
+  description   String
+  pricingUnit   TravelPricingUnit
+  price         Decimal           @db.Decimal(10, 2)
+  durationLabel String // free text, e.g. "10-11 hrs", "3.5 hrs"
+  capacity      Int // seats per departure (bus) or vehicles available (taxi)
+  includes      String[]
+  excludes      String[]
+  isActive      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  media        TravelMedia[]
+  slots        TravelSlot[]
+  bookingItems BookingItemTravel[]
+
+  @@index([mode])
+  @@index([isActive])
+}
+
+model TravelMedia {
+  id      String    @id @default(cuid())
+  routeId String
+  url     String
+  type    MediaType @default(IMAGE)
+  order   Int       @default(0)
+
+  route TravelRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  @@index([routeId])
+}
+
+// One row per bookable departure. bookedSeats mirrors ParaglidingSlot exactly.
+model TravelSlot {
+  id            String     @id @default(cuid())
+  routeId       String
+  date          DateTime   @db.Date
+  departureTime String // "HH:mm", kept as string to avoid timezone drift
+  capacity      Int
+  bookedSeats   Int        @default(0)
+  status        SlotStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  route        TravelRoute         @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  bookingItems BookingItemTravel[]
+
+  @@unique([routeId, date, departureTime])
+  @@index([routeId, date])
+}
+
+// ============================================================================
 // CENTRAL BOOKING
 // ============================================================================
 
@@ -443,6 +606,8 @@ enum BookingType {
   PARAGLIDING
   SCHOOL
   HOTEL
+  ADVENTURE
+  TRAVEL
   COMBINED
 }
 
@@ -484,6 +649,8 @@ model Booking {
   paraglidingItems BookingItemParagliding[]
   schoolItems      BookingItemSchool[]
   hotelItems       BookingItemHotel[]
+  adventureItems   BookingItemAdventure[]
+  travelItems      BookingItemTravel[]
   payments         Payment[]
   couponUsage      CouponUsage[]
   reviews          Review[]
@@ -546,6 +713,40 @@ model BookingItemHotel {
 
   @@index([bookingId])
   @@index([roomId, checkIn, checkOut])
+}
+
+model BookingItemAdventure {
+  id        String  @id @default(cuid())
+  bookingId String
+  itemId    String
+  slotId    String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  lineTotal Decimal @db.Decimal(10, 2)
+
+  booking Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  item    AdventureItem @relation(fields: [itemId], references: [id])
+  slot    AdventureSlot @relation(fields: [slotId], references: [id])
+
+  @@index([bookingId])
+  @@index([slotId])
+}
+
+model BookingItemTravel {
+  id         String  @id @default(cuid())
+  bookingId  String
+  routeId    String
+  slotId     String
+  passengers Int
+  unitPrice  Decimal @db.Decimal(10, 2)
+  lineTotal  Decimal @db.Decimal(10, 2)
+
+  booking Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  route   TravelRoute @relation(fields: [routeId], references: [id])
+  slot    TravelSlot  @relation(fields: [slotId], references: [id])
+
+  @@index([bookingId])
+  @@index([slotId])
 }
 
 // ============================================================================

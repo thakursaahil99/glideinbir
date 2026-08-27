@@ -22,7 +22,22 @@ export async function createRazorpayOrder(amountRupees: number, receipt: string)
     amount: toPaise(amountRupees),
     currency: "INR",
     receipt,
-    payment: { capture: "manual" },
+    payment: {
+      capture: "manual",
+      // Required by Razorpay whenever capture is "manual" — how long an
+      // authorized-but-uncaptured payment is held before Razorpay
+      // auto-refunds it. Our own capture normally happens within seconds
+      // (right after /api/payments/verify), so this is just a generous
+      // safety window, not the expected wait — max allowed value (5 days).
+      // automatic_expiry_period is required by the SDK's TS type but only
+      // actually used when capture is "automatic" (per Razorpay's own docs
+      // comment on the field) — harmless placeholder here.
+      capture_options: {
+        manual_expiry_period: 7200,
+        automatic_expiry_period: 60,
+        refund_speed: "normal",
+      },
+    },
   });
 }
 

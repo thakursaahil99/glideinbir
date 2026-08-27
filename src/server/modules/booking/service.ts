@@ -7,9 +7,13 @@ import { releaseBookingAvailability } from "./availability";
 import type { CreateBookingInput } from "./validation";
 
 const bookingInclude = {
-  paraglidingItems: { include: { package: true, slot: true } },
-  schoolItems: { include: { course: true, batch: true } },
-  hotelItems: { include: { hotel: true, room: true } },
+  paraglidingItems: { include: { package: { include: { media: true } }, slot: true } },
+  schoolItems: { include: { course: { include: { media: true } }, batch: true } },
+  hotelItems: {
+    include: { hotel: { include: { media: true } }, room: { include: { media: true } } },
+  },
+  adventureItems: { include: { item: { include: { media: true } }, slot: true } },
+  travelItems: { include: { route: { include: { media: true } }, slot: true } },
   payments: true,
   coupon: true,
 } satisfies Prisma.BookingInclude;
@@ -93,7 +97,7 @@ export const bookingService = {
                   lineTotal: item.lineTotal,
                 },
               });
-            } else {
+            } else if (item.itemType === "HOTEL") {
               await tx.bookingItemHotel.create({
                 data: {
                   bookingId: created.id,
@@ -104,6 +108,28 @@ export const bookingService = {
                   nights: item.nights,
                   rooms: item.rooms,
                   guests: item.guests,
+                  unitPrice: item.unitPrice,
+                  lineTotal: item.lineTotal,
+                },
+              });
+            } else if (item.itemType === "ADVENTURE") {
+              await tx.bookingItemAdventure.create({
+                data: {
+                  bookingId: created.id,
+                  itemId: item.itemId,
+                  slotId: item.slotId,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                  lineTotal: item.lineTotal,
+                },
+              });
+            } else {
+              await tx.bookingItemTravel.create({
+                data: {
+                  bookingId: created.id,
+                  routeId: item.routeId,
+                  slotId: item.slotId,
+                  passengers: item.passengers,
                   unitPrice: item.unitPrice,
                   lineTotal: item.lineTotal,
                 },

@@ -4,8 +4,9 @@ import type { Metadata } from "next";
 import { courseService } from "@/server/modules/school/service";
 import { Card, Container, Badge } from "@/components/ui/card";
 import { formatINR } from "@/lib/format";
-import { TextReveal } from "@/components/effects/text-reveal";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
+import { ModuleHero } from "@/components/site/module-hero";
+import { CardArrow } from "@/components/site/card-arrow";
 
 export const metadata: Metadata = { title: "Paragliding School" };
 
@@ -14,19 +15,16 @@ export default async function SchoolListPage() {
 
   return (
     <>
-      <div className="dot-grid-bg border-b border-border bg-surface py-20">
-        <Container>
-          <TextReveal
-            as="h1"
-            text="Paragliding School"
-            className="text-3xl font-bold tracking-tight md:text-4xl"
-          />
-          <p className="mt-3 max-w-xl text-muted">
-            From your first solo flight to full certification — learn from experienced
-            instructors.
-          </p>
-        </Container>
-      </div>
+      <ModuleHero
+        image="https://images.unsplash.com/photo-1506976697767-6c29c943ecbf?q=80&w=1920&h=1080&auto=format&fit=crop"
+        imageAlt="A paraglider soaring over a forested mountain ridge at golden hour"
+        eyebrow="Learn to fly"
+        title="Paragliding School"
+        subtitle="From your first solo flight to full certification — learn from experienced, BPA-certified instructors on real Bir Billing terrain."
+        highlights={["P1 to P4 certification", "8-14 day courses", "Small batch sizes"]}
+        effect="dust"
+        shape={{ variant: "octahedron", color: "#22d3ee", emissive: "#0e7490" }}
+      />
 
       <Container className="py-16">
         {items.length === 0 ? (
@@ -35,7 +33,7 @@ export default async function SchoolListPage() {
           <StaggerGroup className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {items.map((course) => (
               <StaggerItem key={course.id}>
-                <Link href={`/school/${course.slug}`}>
+                <Link href={`/school/${course.slug}`} className="group">
                   <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
                     <div className="relative h-44 w-full">
                       <Image
@@ -44,6 +42,7 @@ export default async function SchoolListPage() {
                         fill
                         className="object-cover"
                       />
+                      <CardArrow />
                     </div>
                     <div className="p-6">
                       <Badge>{course.level}</Badge>

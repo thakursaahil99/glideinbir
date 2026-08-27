@@ -10,6 +10,14 @@ import {
   roomRepository,
   roomAvailabilityRepository,
 } from "@/server/modules/hotel/repository";
+import {
+  itemRepository as adventureItemRepository,
+  slotRepository as adventureSlotRepository,
+} from "@/server/modules/adventure/repository";
+import {
+  routeRepository as travelRouteRepository,
+  slotRepository as travelSlotRepository,
+} from "@/server/modules/travel/repository";
 import type { BookingItemInput } from "./validation";
 
 export type PricedItem =
@@ -38,6 +46,22 @@ export type PricedItem =
       nights: number;
       rooms: number;
       guests: number;
+      unitPrice: number;
+      lineTotal: number;
+    }
+  | {
+      itemType: "ADVENTURE";
+      itemId: string;
+      slotId: string;
+      quantity: number;
+      unitPrice: number;
+      lineTotal: number;
+    }
+  | {
+      itemType: "TRAVEL";
+      routeId: string;
+      slotId: string;
+      passengers: number;
       unitPrice: number;
       lineTotal: number;
     };
@@ -139,6 +163,58 @@ async function priceHotel(
   };
 }
 
+async function priceAdventure(
+  item: Extract<BookingItemInput, { itemType: "ADVENTURE" }>,
+): Promise<PricedItem> {
+  const adventureItem = await adventureItemRepository.findById(item.itemId);
+  if (!adventureItem || !adventureItem.isActive) throw new NotFoundError("Adventure item not found");
+
+  const slot = await adventureSlotRepository.findById(item.slotId);
+  if (!slot || slot.itemId !== item.itemId || slot.status !== "ACTIVE") {
+    throw new NotFoundError("Adventure slot not found");
+  }
+  // Fast, non-locking pre-check for a clear error message. The real
+  // guarantee comes from the row-locked transaction in availability.ts.
+  if (slot.bookedUnits + item.quantity > slot.capacity) {
+    throw new ValidationError("Not enough capacity left in this slot");
+  }
+
+  const unitPrice = adventureItem.price.toNumber();
+  return {
+    itemType: "ADVENTURE",
+    itemId: item.itemId,
+    slotId: item.slotId,
+    quantity: item.quantity,
+    unitPrice,
+    lineTotal: unitPrice * item.quantity,
+  };
+}
+
+async function priceTravel(
+  item: Extract<BookingItemInput, { itemType: "TRAVEL" }>,
+): Promise<PricedItem> {
+  const route = await travelRouteRepository.findById(item.routeId);
+  if (!route || !route.isActive) throw new NotFoundError("Travel route not found");
+
+  const slot = await travelSlotRepository.findById(item.slotId);
+  if (!slot || slot.routeId !== item.routeId || slot.status !== "ACTIVE") {
+    throw new NotFoundError("Travel slot not found");
+  }
+  if (slot.bookedSeats + item.passengers > slot.capacity) {
+    throw new ValidationError("Not enough seats left in this departure");
+  }
+
+  const unitPrice = route.price.toNumber();
+  return {
+    itemType: "TRAVEL",
+    routeId: item.routeId,
+    slotId: item.slotId,
+    passengers: item.passengers,
+    unitPrice,
+    lineTotal: unitPrice * item.passengers,
+  };
+}
+
 export async function priceItem(item: BookingItemInput): Promise<PricedItem> {
   switch (item.itemType) {
     case "PARAGLIDING":
@@ -147,6 +223,10 @@ export async function priceItem(item: BookingItemInput): Promise<PricedItem> {
       return priceSchool(item);
     case "HOTEL":
       return priceHotel(item);
+    case "ADVENTURE":
+      return priceAdventure(item);
+    case "TRAVEL":
+      return priceTravel(item);
   }
 }
 

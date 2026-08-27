@@ -1,47 +1,78 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { clsx } from "clsx";
 import { packageService } from "@/server/modules/paragliding/service";
 import { Card, Container, Badge } from "@/components/ui/card";
 import { formatINR } from "@/lib/format";
-import { ParticleField } from "@/components/effects/particle-field";
-import { ShootingStars } from "@/components/effects/shooting-stars";
-import { TextReveal } from "@/components/effects/text-reveal";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { TiltCard } from "@/components/effects/tilt-card";
+import { ModuleHero } from "@/components/site/module-hero";
+import { CardArrow } from "@/components/site/card-arrow";
 
 export const metadata: Metadata = { title: "Paragliding" };
 
-export default async function ParaglidingListPage() {
-  const { items } = await packageService.listPublic({ page: 1, pageSize: 50 });
+const FLIGHT_TYPES = [
+  { value: undefined, label: "All flights" },
+  { value: "TANDEM", label: "Tandem" },
+  { value: "SOLO", label: "Solo" },
+  { value: "CROSS_COUNTRY", label: "Cross country" },
+] as const;
+
+export default async function ParaglidingListPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ flightType?: string }>;
+}) {
+  const { flightType } = await searchParams;
+  const { items } = await packageService.listPublic({
+    page: 1,
+    pageSize: 50,
+    ...(flightType ? { flightType: flightType as "TANDEM" | "SOLO" | "CROSS_COUNTRY" } : {}),
+  });
 
   return (
     <>
-      <div className="relative overflow-hidden bg-ink py-20 text-white">
-        <ParticleField variant="stars" density={70} />
-        <ShootingStars />
-        <Container className="relative z-10">
-          <TextReveal
-            as="h1"
-            text="Tandem Paragliding"
-            className="text-3xl font-bold tracking-tight md:text-4xl"
-          />
-          <p className="mt-3 max-w-xl text-white/70">
-            Fly over the Bir Billing valley with a certified pilot. Pick a package and an
-            available slot.
-          </p>
-        </Container>
-      </div>
+      <ModuleHero
+        image="https://images.unsplash.com/photo-1722253991955-7359db2e7e5e?q=80&w=1920&h=1080&auto=format&fit=crop"
+        imageAlt="A paraglider flying over misty Himalayan peaks"
+        eyebrow="Bir Billing, Himachal Pradesh"
+        title="Tandem Paragliding"
+        subtitle="Fly over the Bir Billing valley with a certified pilot — from a 15-minute joy ride to a full cross-country flight. Pick a package and an available slot."
+        highlights={["8,000 ft launch to landing", "15 min to full-day flights", "BPA-certified pilots"]}
+        effect="stars"
+        shape={{ variant: "icosahedron" }}
+      />
 
       <Container className="py-16">
+        <div className="flex flex-wrap gap-2">
+          {FLIGHT_TYPES.map((type) => {
+            const active = (flightType ?? undefined) === type.value;
+            return (
+              <Link
+                key={type.label}
+                href={type.value ? `?flightType=${type.value}` : "?"}
+                className={clsx(
+                  "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                  active
+                    ? "border-brand bg-brand text-white"
+                    : "border-border text-muted hover:border-ink hover:text-ink",
+                )}
+              >
+                {type.label}
+              </Link>
+            );
+          })}
+        </div>
+
         {items.length === 0 ? (
-          <p className="text-muted">No packages are available right now.</p>
+          <p className="mt-12 text-muted">No packages are available right now.</p>
         ) : (
-          <StaggerGroup className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <StaggerGroup className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {items.map((pkg) => (
               <StaggerItem key={pkg.id}>
                 <TiltCard maxTilt={5} className="h-full">
-                  <Link href={`/paragliding/${pkg.slug}`}>
+                  <Link href={`/paragliding/${pkg.slug}`} className="group">
                     <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
                       <div className="relative h-44 w-full">
                         <Image
@@ -50,6 +81,7 @@ export default async function ParaglidingListPage() {
                           fill
                           className="object-cover"
                         />
+                        <CardArrow />
                       </div>
                       <div className="p-6">
                         <Badge>{pkg.flightType.replace("_", " ")}</Badge>

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { packageService } from "@/server/modules/paragliding/service";
 import { courseService } from "@/server/modules/school/service";
 import { hotelService } from "@/server/modules/hotel/service";
+import { itemService } from "@/server/modules/adventure/service";
+import { routeService } from "@/server/modules/travel/service";
 import { LinkButton } from "@/components/ui/button";
 import { Container, Card, Badge } from "@/components/ui/card";
 import { formatINR } from "@/lib/format";
@@ -16,7 +18,19 @@ import { GradientText } from "@/components/effects/gradient-text";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { TiltCard } from "@/components/effects/tilt-card";
 import { GradientOrb } from "@/components/effects/gradient-orb";
-import { HeroSceneLazy } from "@/components/effects/hero-scene-lazy";
+import { RubiksCubeLazy } from "@/components/effects/rubiks-cube-lazy";
+import { ThemeResetButton } from "@/components/site/theme-reset-button";
+import { Wind, GraduationCap, Hotel, Tent, Bus, ShieldCheck, Plane } from "lucide-react";
+import { SectionHeader } from "@/components/site/section-header";
+import { CardArrow } from "@/components/site/card-arrow";
+
+const MODULES = [
+  { icon: Wind, label: "Paragliding" },
+  { icon: GraduationCap, label: "School" },
+  { icon: Hotel, label: "Hotels" },
+  { icon: Tent, label: "Adventure" },
+  { icon: Bus, label: "Travel" },
+];
 
 const STATS = [
   { value: "10,000+", label: "Flights flown" },
@@ -52,10 +66,12 @@ const WHY_US = [
 ];
 
 export default async function HomePage() {
-  const [flights, courses, hotels] = await Promise.all([
+  const [flights, courses, hotels, adventures, routes] = await Promise.all([
     packageService.listPublic({ page: 1, pageSize: 3 }),
     courseService.listPublic({ page: 1, pageSize: 3 }),
     hotelService.listPublic({ page: 1, pageSize: 1 }),
+    itemService.listPublic({ page: 1, pageSize: 3 }),
+    routeService.listPublic({ page: 1, pageSize: 3 }),
   ]);
 
   const hotel = hotels.items[0];
@@ -73,6 +89,23 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
         <ParticleField variant="dust" density={50} />
         <SpotlightCursor color="255,255,255" />
+
+        <div className="absolute right-6 top-24 z-10 hidden flex-col gap-3 md:flex lg:right-16">
+          <div className="glass flex items-center gap-2 rounded-2xl px-4 py-3 text-white">
+            <ShieldCheck className="h-5 w-5 text-brand" />
+            <div className="leading-tight">
+              <p className="text-sm font-semibold">BPA-certified pilots</p>
+              <p className="text-xs text-white/60">Every flight, every time</p>
+            </div>
+          </div>
+          <div className="glass ml-8 flex items-center gap-2 rounded-2xl px-4 py-3 text-white">
+            <Plane className="h-5 w-5 text-brand" />
+            <div className="leading-tight">
+              <p className="text-sm font-semibold">10,000+ flights flown</p>
+              <p className="text-xs text-white/60">Since day one</p>
+            </div>
+          </div>
+        </div>
 
         <Container className="relative z-10 py-24 text-white">
           <p className="text-sm font-semibold uppercase tracking-widest text-white/70">
@@ -120,14 +153,7 @@ export default async function HomePage() {
         <Container className="py-24">
           <ScrollReveal>
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-widest text-brand">
-                  Tandem paragliding
-                </p>
-                <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
-                  Popular flights
-                </h2>
-              </div>
+              <SectionHeader eyebrow="Tandem paragliding" icon={Wind} title="Popular flights" />
               <Link href="/paragliding" className="text-sm font-medium text-brand hover:underline">
                 View all flights →
               </Link>
@@ -138,7 +164,7 @@ export default async function HomePage() {
             {flights.items.map((pkg) => (
               <StaggerItem key={pkg.id}>
                 <TiltCard maxTilt={6} className="h-full">
-                  <Link href={`/paragliding/${pkg.slug}`}>
+                  <Link href={`/paragliding/${pkg.slug}`} className="group">
                     <Card className="card-glow-hover h-full overflow-hidden">
                       <div className="relative h-64 w-full">
                         <Image
@@ -147,6 +173,7 @@ export default async function HomePage() {
                           fill
                           className="object-cover"
                         />
+                        <CardArrow />
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5">
                           <Badge className="bg-white/20 text-white backdrop-blur">
                             {pkg.flightType.replace("_", " ")}
@@ -182,16 +209,35 @@ export default async function HomePage() {
             <p className="text-sm font-semibold uppercase tracking-widest text-white/60">
               One platform
             </p>
-            <h2 className="mt-3 text-4xl font-bold tracking-tight md:text-5xl">
-              Flights, courses, and stays — <GradientText>booked together</GradientText>
+            <h2 className="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl">
+              Five modules, booked together
             </h2>
             <p className="mt-5 max-w-md text-lg text-white/70">
-              No juggling three separate bookings. Pick your flight, your course, and your
-              room, then check out once — one confirmation, one payment.
+              No juggling five separate operators. Pick your flight, your course, your room,
+              your adventure, your ride — then check out once. One confirmation, one payment.
             </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {MODULES.map(({ icon: Icon, label }) => (
+                <span key={label} className="glass flex items-center gap-2 rounded-full px-4 py-2 text-sm">
+                  <Icon className="h-4 w-4 text-brand" strokeWidth={2} />
+                  {label}
+                </span>
+              ))}
+            </div>
+            <MagneticButton className="mt-8 inline-block">
+              <LinkButton href="/paragliding" size="lg">
+                Explore everything
+              </LinkButton>
+            </MagneticButton>
           </ScrollReveal>
           <div className="relative h-80 md:h-[28rem]">
-            <HeroSceneLazy />
+            <RubiksCubeLazy />
+            <div className="pointer-events-none absolute inset-x-0 bottom-2 flex flex-col items-center gap-2">
+              <p className="text-center text-xs text-white/40">
+                Drag to spin · click a color to theme the site
+              </p>
+              <ThemeResetButton />
+            </div>
           </div>
         </Container>
       </section>
@@ -201,14 +247,7 @@ export default async function HomePage() {
           <Container>
             <ScrollReveal>
               <div className="flex flex-wrap items-end justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-widest text-brand">
-                    Paragliding school
-                  </p>
-                  <h2 className="mt-2 text-3xl font-bold tracking-tight md:text-4xl">
-                    Learn to fly
-                  </h2>
-                </div>
+                <SectionHeader eyebrow="Paragliding school" icon={GraduationCap} title="Learn to fly" />
                 <Link href="/school" className="text-sm font-medium text-brand hover:underline">
                   View all courses →
                 </Link>
@@ -218,7 +257,7 @@ export default async function HomePage() {
             <StaggerGroup className="mt-10 grid gap-8 md:grid-cols-3">
               {courses.items.map((course) => (
                 <StaggerItem key={course.id}>
-                  <Link href={`/school/${course.slug}`}>
+                  <Link href={`/school/${course.slug}`} className="group">
                     <Card className="card-glow-hover h-full overflow-hidden bg-paper">
                       <div className="relative h-56 w-full">
                         <Image
@@ -227,6 +266,7 @@ export default async function HomePage() {
                           fill
                           className="object-cover"
                         />
+                        <CardArrow />
                       </div>
                       <div className="p-6">
                         <Badge>{course.level}</Badge>
@@ -249,9 +289,7 @@ export default async function HomePage() {
       {hotel && (
         <Container className="py-24">
           <ScrollReveal>
-            <p className="text-sm font-semibold uppercase tracking-widest text-brand">
-              Where to stay
-            </p>
+            <SectionHeader eyebrow="Where to stay" icon={Hotel} title="Rest easy near the launch" />
             <div className="mt-8 grid items-center gap-10 overflow-hidden rounded-3xl border border-border md:grid-cols-2">
               <div className="relative h-72 md:h-full md:min-h-[24rem]">
                 <Image
@@ -279,12 +317,109 @@ export default async function HomePage() {
         </Container>
       )}
 
+      {adventures.items.length > 0 && (
+        <div className="dot-grid-bg border-y border-border bg-surface py-24">
+          <Container>
+            <ScrollReveal>
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <SectionHeader eyebrow="Beyond the flight" icon={Tent} title="Adventure" />
+                <Link href="/adventure" className="text-sm font-medium text-brand hover:underline">
+                  View all adventures →
+                </Link>
+              </div>
+            </ScrollReveal>
+
+            <StaggerGroup className="mt-10 grid gap-8 md:grid-cols-3">
+              {adventures.items.map((item) => (
+                <StaggerItem key={item.id}>
+                  <Link href={`/adventure/${item.slug}`} className="group">
+                    <Card className="card-glow-hover h-full overflow-hidden">
+                      <div className="relative h-56 w-full">
+                        <Image
+                          src={item.media[0]?.url ?? `https://picsum.photos/seed/${item.slug}/900/700`}
+                          alt=""
+                          fill
+                          className="object-cover"
+                        />
+                        <CardArrow />
+                      </div>
+                      <div className="p-6">
+                        <Badge>{item.category.name}</Badge>
+                        <h3 className="mt-3 text-lg font-semibold">{item.title}</h3>
+                        <p className="mt-2 line-clamp-2 text-sm text-muted">
+                          {item.shortDescription ?? item.description}
+                        </p>
+                        <div className="mt-5 flex items-baseline justify-between border-t border-border pt-4">
+                          <span className="text-xl font-bold">{formatINR(item.price.toString())}</span>
+                          <span className="text-sm text-muted">{item.durationLabel}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                </StaggerItem>
+              ))}
+            </StaggerGroup>
+          </Container>
+        </div>
+      )}
+
+      {routes.items.length > 0 && (
+        <Container className="py-24">
+          <ScrollReveal>
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <SectionHeader eyebrow="Getting there" icon={Bus} title="Travel" />
+              <Link href="/travel" className="text-sm font-medium text-brand hover:underline">
+                View all routes →
+              </Link>
+            </div>
+          </ScrollReveal>
+
+          <StaggerGroup className="mt-10 grid gap-8 md:grid-cols-3">
+            {routes.items.map((route) => (
+              <StaggerItem key={route.id}>
+                <Link href={`/travel/${route.slug}`} className="group">
+                  <Card className="card-glow-hover h-full overflow-hidden">
+                    <div className="relative h-56 w-full">
+                      <Image
+                        src={route.media[0]?.url ?? `https://picsum.photos/seed/${route.slug}/900/700`}
+                        alt=""
+                        fill
+                        className="object-cover"
+                      />
+                      <CardArrow />
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5">
+                        <Badge className="bg-white/20 text-white backdrop-blur">{route.mode}</Badge>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <h3 className="text-lg font-semibold">{route.title}</h3>
+                      <p className="mt-1 text-sm text-muted">
+                        {route.fromLocation} → {route.toLocation}
+                      </p>
+                      <div className="mt-5 flex items-baseline justify-between border-t border-border pt-4">
+                        <span className="text-xl font-bold">{formatINR(route.price.toString())}</span>
+                        <span className="text-sm text-muted">{route.durationLabel}</span>
+                      </div>
+                    </div>
+                  </Card>
+                </Link>
+              </StaggerItem>
+            ))}
+          </StaggerGroup>
+        </Container>
+      )}
+
       <section className="relative overflow-hidden py-24">
         <GradientOrb className="-top-10 -right-10" color="var(--color-brand)" size={340} />
         <GradientOrb className="bottom-0 -left-20" color="#6366f1" size={300} />
         <Container className="relative z-10">
           <ScrollReveal>
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Why Glideinbir</h2>
+            <SectionHeader
+              eyebrow="Why book with us"
+              icon={ShieldCheck}
+              title="Why Glideinbir"
+              align="center"
+            />
           </ScrollReveal>
           <StaggerGroup className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {WHY_US.map((item) => (

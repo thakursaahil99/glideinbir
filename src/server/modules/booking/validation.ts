@@ -29,10 +29,26 @@ const hotelItemSchema = z
     path: ["checkOut"],
   });
 
+const adventureItemSchema = z.object({
+  itemType: z.literal("ADVENTURE"),
+  itemId: z.string().min(1),
+  slotId: z.string().min(1),
+  quantity: z.number().int().positive(),
+});
+
+const travelItemSchema = z.object({
+  itemType: z.literal("TRAVEL"),
+  routeId: z.string().min(1),
+  slotId: z.string().min(1),
+  passengers: z.number().int().positive(),
+});
+
 export const bookingItemSchema = z.discriminatedUnion("itemType", [
   paraglidingItemSchema,
   schoolItemSchema,
   hotelItemSchema,
+  adventureItemSchema,
+  travelItemSchema,
 ]);
 
 export const createBookingSchema = z.object({

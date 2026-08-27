@@ -1,0 +1,76 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { routeService, slotService } from "@/server/modules/travel/service";
+import { getCurrentUser } from "@/server/auth/guards";
+import { Card, Badge } from "@/components/ui/card";
+import { BookTravelWidget } from "@/components/site/book-travel-widget";
+import { DetailSplit } from "@/components/site/detail-split";
+import { formatINR } from "@/lib/format";
+import { GradientText } from "@/components/effects/gradient-text";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const route = await routeService.getBySlug(slug);
+    return { title: route.title };
+  } catch {
+    return { title: "Travel" };
+  }
+}
+
+export default async function TravelDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+
+  const [route, user] = await Promise.all([
+    routeService.getBySlug(slug).catch(() => null),
+    getCurrentUser(),
+  ]);
+  if (!route) notFound();
+
+  const slots = await slotService.listForRouteSlug(slug);
+
+  const coverImage = route.media[0]?.url ?? `https://picsum.photos/seed/${route.slug}/1600/1200`;
+
+  return (
+    <DetailSplit
+      image={coverImage}
+      imageAlt={route.title}
+      badge={<Badge>{route.mode}</Badge>}
+      title={route.title}
+      subtitle={`${route.fromLocation} → ${route.toLocation} · ${route.vehicleType} · ${route.durationLabel}`}
+      sidebar={
+        <Card className="p-6">
+          <div className="text-2xl font-bold">
+            <GradientText>{formatINR(route.price.toString())}</GradientText>
+          </div>
+          <p className="text-sm text-muted">{route.pricingUnit.replace("_", " ").toLowerCase()}</p>
+          <div className="mt-6">
+            <BookTravelWidget
+              routeId={route.id}
+              unitPrice={route.price.toNumber()}
+              isLoggedIn={Boolean(user)}
+              customer={user ? { name: user.name, email: user.email, phone: user.phone } : undefined}
+              slots={slots.map((slot) => ({
+                id: slot.id,
+                date: slot.date.toISOString(),
+                departureTime: slot.departureTime,
+                capacity: slot.capacity,
+                bookedSeats: slot.bookedSeats,
+              }))}
+            />
+          </div>
+        </Card>
+      }
+    >
+      <p className="whitespace-pre-line text-ink">{route.description}</p>
+    </DetailSplit>
+  );
+}

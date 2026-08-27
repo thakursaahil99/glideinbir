@@ -18,11 +18,19 @@
   --color-paper: var(--color-paper);
   --color-surface: var(--color-surface);
   --color-border: var(--color-border);
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
   color: var(--color-ink);
   background: var(--color-paper);
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
 }
 
 /* --- Effects: aurora blobs, gradient text, shimmer, shooting stars --- */
@@ -130,4 +138,22 @@ body {
 .card-glow-hover:hover {
   box-shadow: 0 0 0 1px var(--color-brand), 0 20px 40px -15px rgba(255, 106, 0, 0.35);
   transform: translateY(-4px);
+}
+
+/* --- Glassmorphism --- */
+/* Use over an image or colored background, never over a flat page bg —
+   the frosted effect only reads as "glass" when something shows through. */
+.glass {
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.25);
+}
+.glass-light {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px -8px rgba(16, 20, 24, 0.12);
 }
