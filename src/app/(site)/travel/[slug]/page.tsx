@@ -16,7 +16,11 @@ export async function generateMetadata({
   const { slug } = await params;
   try {
     const route = await routeService.getBySlug(slug);
-    return { title: route.title };
+    return {
+      title: `${route.title} — Travel to Bir Billing`,
+      description: `${route.title}: ${route.fromLocation} to ${route.toLocation}. ${route.description.slice(0, 140)}`,
+      alternates: { canonical: `/travel/${slug}` },
+    };
   } catch {
     return { title: "Travel" };
   }

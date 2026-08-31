@@ -9,7 +9,12 @@ import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
 import { CardArrow } from "@/components/site/card-arrow";
 
-export const metadata: Metadata = { title: "Adventure" };
+export const metadata: Metadata = {
+  title: "Adventure in Bir Billing — Camping, Trekking & Cottages",
+  description:
+    "Camping, trekking, and cottage stays in Bir Billing, Himachal Pradesh — from a machaan tent for two to a 12-day expedition trek. Book adventures alongside your paragliding trip.",
+  alternates: { canonical: "/adventure" },
+};
 
 export default async function AdventureListPage({
   searchParams,
@@ -77,7 +82,7 @@ export default async function AdventureListPage({
                     <div className="relative h-44 w-full">
                       <Image
                         src={item.media[0]?.url ?? "/placeholder.svg"}
-                        alt=""
+                        alt={item.title}
                         fill
                         className="object-cover"
                       />

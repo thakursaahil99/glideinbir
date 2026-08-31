@@ -187,7 +187,7 @@ export function BookHotelWidget({
           return (
             <Card key={room.id} className="card-glow-hover overflow-hidden">
               <div className="relative h-40 w-full">
-                <Image src={room.image} alt="" fill className="object-cover" />
+                <Image src={room.image} alt={room.name} fill className="object-cover" />
               </div>
               <div className="p-5">
               <div className="flex items-start justify-between">

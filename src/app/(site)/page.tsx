@@ -169,7 +169,7 @@ export default async function HomePage() {
                       <div className="relative h-64 w-full">
                         <Image
                           src={pkg.media[0]?.url ?? "/placeholder.svg"}
-                          alt=""
+                          alt={pkg.title}
                           fill
                           className="object-cover"
                         />
@@ -268,7 +268,7 @@ export default async function HomePage() {
                       <div className="relative h-56 w-full">
                         <Image
                           src={course.media[0]?.url ?? "/placeholder.svg"}
-                          alt=""
+                          alt={course.title}
                           fill
                           className="object-cover"
                         />
@@ -343,7 +343,7 @@ export default async function HomePage() {
                       <div className="relative h-56 w-full">
                         <Image
                           src={item.media[0]?.url ?? "/placeholder.svg"}
-                          alt=""
+                          alt={item.title}
                           fill
                           className="object-cover"
                         />
@@ -388,7 +388,7 @@ export default async function HomePage() {
                     <div className="relative h-56 w-full">
                       <Image
                         src={route.media[0]?.url ?? "/placeholder.svg"}
-                        alt=""
+                        alt={route.title}
                         fill
                         className="object-cover"
                       />

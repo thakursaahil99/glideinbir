@@ -7,7 +7,12 @@ import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
 import { CardArrow } from "@/components/site/card-arrow";
 
-export const metadata: Metadata = { title: "Hotels" };
+export const metadata: Metadata = {
+  title: "Hotels in Bir Billing — Stay Near the Landing Site",
+  description:
+    "Comfortable hotels and stays in Bir Billing, Himachal Pradesh — from budget bunks to deluxe rooms, minutes from the paragliding landing site. Book alongside your flight or course.",
+  alternates: { canonical: "/hotels" },
+};
 
 export default async function HotelsListPage() {
   const { items } = await hotelService.listPublic({ page: 1, pageSize: 50 });
@@ -36,7 +41,7 @@ export default async function HotelsListPage() {
                     <div className="relative h-44 w-full">
                       <Image
                         src={hotel.media[0]?.url ?? "/placeholder.svg"}
-                        alt=""
+                        alt={hotel.name}
                         fill
                         className="object-cover"
                       />

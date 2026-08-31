@@ -16,7 +16,11 @@ export async function generateMetadata({
   const { slug } = await params;
   try {
     const hotel = await hotelService.getBySlug(slug);
-    return { title: hotel.name };
+    return {
+      title: `${hotel.name} — Hotel in Bir Billing`,
+      description: `${hotel.name} in ${hotel.city}, Bir Billing. ${hotel.description.slice(0, 140)}`,
+      alternates: { canonical: `/hotels/${slug}` },
+    };
   } catch {
     return { title: "Hotels" };
   }

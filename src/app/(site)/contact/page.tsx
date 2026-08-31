@@ -5,7 +5,12 @@ import { ModuleHero } from "@/components/site/module-hero";
 import { ContactForm } from "@/components/site/contact-form";
 import { ScrollReveal } from "@/components/effects/scroll-reveal";
 
-export const metadata: Metadata = { title: "Contact" };
+export const metadata: Metadata = {
+  title: "Contact Glideinbir — Bir Billing, Himachal Pradesh",
+  description:
+    "Questions about a paragliding flight, course, stay, adventure, or travel booking in Bir Billing? Call, WhatsApp, or message Glideinbir — we're based in Bir, Himachal Pradesh.",
+  alternates: { canonical: "/contact" },
+};
 
 const CONTACT_INFO = [
   {

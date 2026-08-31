@@ -7,7 +7,12 @@ import { SectionHeader } from "@/components/site/section-header";
 import { Heart } from "lucide-react";
 import { ScrollReveal, StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 
-export const metadata: Metadata = { title: "About" };
+export const metadata: Metadata = {
+  title: "About Glideinbir — Bir Billing Paragliding Platform",
+  description:
+    "Glideinbir is a Bir Billing-based platform for booking paragliding flights, courses, hotels, adventures, and travel in Himachal Pradesh — built and run by people who work out of Bir.",
+  alternates: { canonical: "/about" },
+};
 
 const STATS = [
   { value: "5", label: "Modules, one checkout" },

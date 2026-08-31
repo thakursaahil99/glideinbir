@@ -8,7 +8,12 @@ import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
 import { CardArrow } from "@/components/site/card-arrow";
 
-export const metadata: Metadata = { title: "Paragliding School" };
+export const metadata: Metadata = {
+  title: "Paragliding School in Bir Billing — P1 to P4 Certification",
+  description:
+    "Learn to fly at Bir Billing's paragliding school — P1 to P4 certification courses with experienced, BPA-certified instructors on real Himalayan terrain.",
+  alternates: { canonical: "/school" },
+};
 
 export default async function SchoolListPage() {
   const { items } = await courseService.listPublic({ page: 1, pageSize: 50 });
@@ -37,7 +42,7 @@ export default async function SchoolListPage() {
                     <div className="relative h-44 w-full">
                       <Image
                         src={course.media[0]?.url ?? "/placeholder.svg"}
-                        alt=""
+                        alt={course.title}
                         fill
                         className="object-cover"
                       />

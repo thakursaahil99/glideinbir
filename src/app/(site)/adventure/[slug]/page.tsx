@@ -16,7 +16,12 @@ export async function generateMetadata({
   const { slug } = await params;
   try {
     const item = await itemService.getBySlug(slug);
-    return { title: item.title, description: item.shortDescription ?? undefined };
+    return {
+      title: `${item.title} — Bir Billing Adventure`,
+      description:
+        item.shortDescription ?? `${item.title} in ${item.location}, Bir Billing. ${item.description.slice(0, 140)}`,
+      alternates: { canonical: `/adventure/${slug}` },
+    };
   } catch {
     return { title: "Adventure" };
   }

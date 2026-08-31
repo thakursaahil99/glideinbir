@@ -10,7 +10,12 @@ import { TiltCard } from "@/components/effects/tilt-card";
 import { ModuleHero } from "@/components/site/module-hero";
 import { CardArrow } from "@/components/site/card-arrow";
 
-export const metadata: Metadata = { title: "Paragliding" };
+export const metadata: Metadata = {
+  title: "Tandem Paragliding in Bir Billing",
+  description:
+    "Book tandem paragliding flights in Bir Billing, Himachal Pradesh — from a 15-minute joy ride to a full cross-country flight with BPA-certified pilots. Real-time slot availability, instant booking.",
+  alternates: { canonical: "/paragliding" },
+};
 
 const FLIGHT_TYPES = [
   { value: undefined, label: "All flights" },
@@ -76,7 +81,7 @@ export default async function ParaglidingListPage({
                       <div className="relative h-44 w-full">
                         <Image
                           src={pkg.media[0]?.url ?? "/placeholder.svg"}
-                          alt=""
+                          alt={pkg.title}
                           fill
                           className="object-cover"
                         />

@@ -17,7 +17,11 @@ export async function generateMetadata({
   const { slug } = await params;
   try {
     const course = await courseService.getBySlug(slug);
-    return { title: course.title };
+    return {
+      title: `${course.title} — Paragliding School, Bir Billing`,
+      description: `${course.title} at Bir Billing's paragliding school. ${course.description.slice(0, 140)}`,
+      alternates: { canonical: `/school/${slug}` },
+    };
   } catch {
     return { title: "Paragliding School" };
   }

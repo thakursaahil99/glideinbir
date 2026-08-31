@@ -16,7 +16,12 @@ export async function generateMetadata({
   const { slug } = await params;
   try {
     const pkg = await packageService.getBySlug(slug);
-    return { title: pkg.title, description: pkg.shortDescription ?? undefined };
+    return {
+      title: `${pkg.title} — Bir Billing Paragliding`,
+      description:
+        pkg.shortDescription ?? `${pkg.title} in Bir Billing, Himachal Pradesh. ${pkg.description.slice(0, 140)}`,
+      alternates: { canonical: `/paragliding/${slug}` },
+    };
   } catch {
     return { title: "Paragliding" };
   }

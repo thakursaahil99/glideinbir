@@ -9,7 +9,12 @@ import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
 import { CardArrow } from "@/components/site/card-arrow";
 
-export const metadata: Metadata = { title: "Travel" };
+export const metadata: Metadata = {
+  title: "Travel to Bir Billing — Volvo Bus & Taxi from Delhi",
+  description:
+    "Volvo AC sleeper buses and door-to-door taxis to and from Bir Billing, Himachal Pradesh — including Delhi to Bir Billing routes. Book transport alongside your flight, course, or stay.",
+  alternates: { canonical: "/travel" },
+};
 
 const MODES = [
   { value: undefined, label: "All routes" },
@@ -73,7 +78,7 @@ export default async function TravelListPage({
                     <div className="relative h-44 w-full">
                       <Image
                         src={route.media[0]?.url ?? "/placeholder.svg"}
-                        alt=""
+                        alt={route.title}
                         fill
                         className="object-cover"
                       />
