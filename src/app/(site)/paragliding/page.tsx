@@ -41,7 +41,6 @@ export default async function ParaglidingListPage({
         subtitle="Fly over the Bir Billing valley with a certified pilot — from a 15-minute joy ride to a full cross-country flight. Pick a package and an available slot."
         highlights={["8,000 ft launch to landing", "15 min to full-day flights", "BPA-certified pilots"]}
         effect="stars"
-        shape={{ variant: "icosahedron" }}
       />
 
       <Container className="py-16">
@@ -76,7 +75,7 @@ export default async function ParaglidingListPage({
                     <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
                       <div className="relative h-44 w-full">
                         <Image
-                          src={pkg.media[0]?.url ?? `https://picsum.photos/seed/${pkg.slug}/800/600`}
+                          src={pkg.media[0]?.url ?? "/placeholder.svg"}
                           alt=""
                           fill
                           className="object-cover"

@@ -80,7 +80,7 @@ export default async function HomePage() {
     <>
       <section className="relative flex min-h-[90vh] items-center overflow-hidden">
         <Image
-          src="https://picsum.photos/seed/glideinbir-hero/1920/1080"
+          src="https://images.unsplash.com/photo-1722253991955-7359db2e7e5e?q=80&w=1920&h=1080&auto=format&fit=crop"
           alt="Misty mountain ridge over Bir Billing"
           fill
           priority
@@ -168,7 +168,7 @@ export default async function HomePage() {
                     <Card className="card-glow-hover h-full overflow-hidden">
                       <div className="relative h-64 w-full">
                         <Image
-                          src={pkg.media[0]?.url ?? `https://picsum.photos/seed/${pkg.slug}/900/700`}
+                          src={pkg.media[0]?.url ?? "/placeholder.svg"}
                           alt=""
                           fill
                           className="object-cover"
@@ -267,7 +267,7 @@ export default async function HomePage() {
                     <Card className="card-glow-hover h-full overflow-hidden bg-paper">
                       <div className="relative h-56 w-full">
                         <Image
-                          src={course.media[0]?.url ?? `https://picsum.photos/seed/${course.slug}/900/700`}
+                          src={course.media[0]?.url ?? "/placeholder.svg"}
                           alt=""
                           fill
                           className="object-cover"
@@ -299,7 +299,7 @@ export default async function HomePage() {
             <div className="mt-8 grid items-center gap-10 overflow-hidden rounded-3xl border border-border md:grid-cols-2">
               <div className="relative h-72 md:h-full md:min-h-[24rem]">
                 <Image
-                  src={hotel.media[0]?.url ?? `https://picsum.photos/seed/${hotel.slug}/1000/800`}
+                  src={hotel.media[0]?.url ?? "/placeholder.svg"}
                   alt={hotel.name}
                   fill
                   className="object-cover"
@@ -342,7 +342,7 @@ export default async function HomePage() {
                     <Card className="card-glow-hover h-full overflow-hidden">
                       <div className="relative h-56 w-full">
                         <Image
-                          src={item.media[0]?.url ?? `https://picsum.photos/seed/${item.slug}/900/700`}
+                          src={item.media[0]?.url ?? "/placeholder.svg"}
                           alt=""
                           fill
                           className="object-cover"
@@ -387,7 +387,7 @@ export default async function HomePage() {
                   <Card className="card-glow-hover h-full overflow-hidden">
                     <div className="relative h-56 w-full">
                       <Image
-                        src={route.media[0]?.url ?? `https://picsum.photos/seed/${route.slug}/900/700`}
+                        src={route.media[0]?.url ?? "/placeholder.svg"}
                         alt=""
                         fill
                         className="object-cover"

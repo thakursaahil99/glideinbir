@@ -22,7 +22,6 @@ export default async function HotelsListPage() {
         subtitle="Comfortable stays near the takeoff site — from budget bunks to deluxe rooms, bookable alongside your flight or course in the same checkout."
         highlights={["Steps from the landing site", "Bunk to deluxe rooms", "Flexible cancellation"]}
         effect="orbs"
-        shape={{ variant: "sphere", color: "#f59e0b", emissive: "#b45309" }}
       />
 
       <Container className="relative z-10 py-16">
@@ -36,7 +35,7 @@ export default async function HotelsListPage() {
                   <Card className="card-glow-hover h-full overflow-hidden">
                     <div className="relative h-44 w-full">
                       <Image
-                        src={hotel.media[0]?.url ?? `https://picsum.photos/seed/${hotel.slug}/800/600`}
+                        src={hotel.media[0]?.url ?? "/placeholder.svg"}
                         alt=""
                         fill
                         className="object-cover"

@@ -39,7 +39,7 @@ export default async function SchoolDetailPage({
   const batches = await batchService.listForCourseSlug(slug);
   const syllabus = course.syllabus as { title: string; description: string }[];
 
-  const coverImage = course.media[0]?.url ?? `https://picsum.photos/seed/${course.slug}/1600/1200`;
+  const coverImage = course.media[0]?.url ?? "/placeholder.svg";
 
   return (
     <DetailSplit

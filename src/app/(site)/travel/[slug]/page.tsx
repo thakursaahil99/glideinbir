@@ -37,7 +37,7 @@ export default async function TravelDetailPage({
 
   const slots = await slotService.listForRouteSlug(slug);
 
-  const coverImage = route.media[0]?.url ?? `https://picsum.photos/seed/${route.slug}/1600/1200`;
+  const coverImage = route.media[0]?.url ?? "/placeholder.svg";
 
   return (
     <DetailSplit

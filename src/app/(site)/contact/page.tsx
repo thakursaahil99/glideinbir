@@ -43,7 +43,6 @@ export default function ContactPage() {
         subtitle="Questions about a flight, course, stay, adventure, or a booking already made — reach out and we'll get back to you."
         highlights={["+91 98053 38877", "Bir, Himachal Pradesh", "Daily 9 AM – 7 PM"]}
         effect="dust"
-        shape={{ variant: "octahedron", color: "#22d3ee", emissive: "#0e7490" }}
       />
 
       <Container className="py-20">

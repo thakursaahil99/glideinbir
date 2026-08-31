@@ -39,7 +39,6 @@ export default async function TravelListPage({
         subtitle="Volvo AC sleeper buses and door-to-door taxis to and from Bir Billing — booked alongside your flight, course, or stay."
         highlights={["Volvo AC Sleeper & taxi", "Delhi ↔ Bir Billing", "Door-to-door transfers"]}
         effect="none"
-        shape={{ variant: "torus", color: "#6366f1", emissive: "#4338ca" }}
       />
 
       <Container className="py-16">
@@ -73,7 +72,7 @@ export default async function TravelListPage({
                   <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
                     <div className="relative h-44 w-full">
                       <Image
-                        src={route.media[0]?.url ?? `https://picsum.photos/seed/${route.slug}/800/600`}
+                        src={route.media[0]?.url ?? "/placeholder.svg"}
                         alt=""
                         fill
                         className="object-cover"

@@ -32,7 +32,6 @@ export default async function AdventureListPage({
         subtitle="Camping, trekking, cottages, and more — Bir Billing's adventures beyond the flight, from a machaan tent for two to a 12-day expedition trek."
         highlights={["Camping to cottages", "Half-day to 12-day treks", "Bir Billing & beyond"]}
         effect="sparkles"
-        shape={{ variant: "dodecahedron", color: "#22c55e", emissive: "#15803d" }}
       />
 
       <Container className="py-16">
@@ -77,7 +76,7 @@ export default async function AdventureListPage({
                   <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
                     <div className="relative h-44 w-full">
                       <Image
-                        src={item.media[0]?.url ?? `https://picsum.photos/seed/${item.slug}/800/600`}
+                        src={item.media[0]?.url ?? "/placeholder.svg"}
                         alt=""
                         fill
                         className="object-cover"

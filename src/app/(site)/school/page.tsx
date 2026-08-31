@@ -23,7 +23,6 @@ export default async function SchoolListPage() {
         subtitle="From your first solo flight to full certification — learn from experienced, BPA-certified instructors on real Bir Billing terrain."
         highlights={["P1 to P4 certification", "8-14 day courses", "Small batch sizes"]}
         effect="dust"
-        shape={{ variant: "octahedron", color: "#22d3ee", emissive: "#0e7490" }}
       />
 
       <Container className="py-16">
@@ -37,7 +36,7 @@ export default async function SchoolListPage() {
                   <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
                     <div className="relative h-44 w-full">
                       <Image
-                        src={course.media[0]?.url ?? `https://picsum.photos/seed/${course.slug}/800/600`}
+                        src={course.media[0]?.url ?? "/placeholder.svg"}
                         alt=""
                         fill
                         className="object-cover"

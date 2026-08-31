@@ -45,7 +45,6 @@ export default function AboutPage() {
         title="About Glideinbir"
         subtitle="A single home for everything a Bir Billing trip needs — flights, courses, stays, adventures, and travel — built by people who actually work out of Bir."
         effect="dust"
-        shape={{ variant: "icosahedron" }}
       />
 
       <Container className="py-20">

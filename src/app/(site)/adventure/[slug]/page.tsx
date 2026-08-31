@@ -37,7 +37,7 @@ export default async function AdventureDetailPage({
 
   const slots = await slotService.listForItemSlug(slug);
 
-  const coverImage = item.media[0]?.url ?? `https://picsum.photos/seed/${item.slug}/1600/1200`;
+  const coverImage = item.media[0]?.url ?? "/placeholder.svg";
 
   return (
     <DetailSplit

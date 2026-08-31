@@ -35,7 +35,7 @@ export default async function HotelDetailPage({
   ]);
   if (!hotel) notFound();
 
-  const coverImage = hotel.media[0]?.url ?? `https://picsum.photos/seed/${hotel.slug}/1600/1200`;
+  const coverImage = hotel.media[0]?.url ?? "/placeholder.svg";
 
   return (
     <>
@@ -93,7 +93,7 @@ export default async function HotelDetailPage({
                   occupancyChildren: room.occupancyChildren,
                   pricePerNight: room.pricePerNight.toNumber(),
                   totalRooms: room.totalRooms,
-                  image: room.media[0]?.url ?? `https://picsum.photos/seed/${room.id}/800/600`,
+                  image: room.media[0]?.url ?? "/placeholder.svg",
                 }))}
               />
             )}

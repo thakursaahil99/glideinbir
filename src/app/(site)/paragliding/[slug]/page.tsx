@@ -37,7 +37,7 @@ export default async function ParaglidingDetailPage({
 
   const slots = await slotService.listForPackageSlug(slug);
 
-  const coverImage = pkg.media[0]?.url ?? `https://picsum.photos/seed/${pkg.slug}/1600/1200`;
+  const coverImage = pkg.media[0]?.url ?? "/placeholder.svg";
 
   return (
     <DetailSplit
