@@ -42,11 +42,11 @@ export default async function AdventureDetailPage({
 
   const slots = await slotService.listForItemSlug(slug);
 
-  const coverImage = item.media[0]?.url ?? "/placeholder.svg";
+  const galleryImages = item.media.length > 0 ? item.media.map((m) => m.url) : ["/placeholder.svg"];
 
   return (
     <DetailSplit
-      image={coverImage}
+      images={galleryImages}
       imageAlt={item.title}
       badge={<Badge>{item.category.name}</Badge>}
       title={item.title}

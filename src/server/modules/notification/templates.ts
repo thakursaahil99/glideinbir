@@ -68,6 +68,17 @@ export function bookingConfirmedEmail(params: {
   return { subject: `Booking confirmed — ${params.bookingNumber}`, html };
 }
 
+export function bookingReminderEmail(params: { name: string; bookingNumber: string; bookingUrl: string }) {
+  const html = shell(
+    "See you tomorrow! ⛰️",
+    `<p>Hi ${params.name},</p>
+     <p>Just a reminder — your booking <strong>${params.bookingNumber}</strong> is scheduled for tomorrow.</p>
+     ${button(params.bookingUrl, "View booking details")}
+     <p style="margin-top:24px;color:#78716c;">Questions or need to reschedule? Call +91 98053 38877.</p>`,
+  );
+  return { subject: `Reminder — your booking is tomorrow (${params.bookingNumber})`, html };
+}
+
 export function contactAdminNotificationEmail(params: {
   name: string;
   email: string;

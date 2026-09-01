@@ -41,11 +41,11 @@ export default async function TravelDetailPage({
 
   const slots = await slotService.listForRouteSlug(slug);
 
-  const coverImage = route.media[0]?.url ?? "/placeholder.svg";
+  const galleryImages = route.media.length > 0 ? route.media.map((m) => m.url) : ["/placeholder.svg"];
 
   return (
     <DetailSplit
-      image={coverImage}
+      images={galleryImages}
       imageAlt={route.title}
       badge={<Badge>{route.mode}</Badge>}
       title={route.title}

@@ -41,6 +41,12 @@ const envSchema = z.object({
   SUPER_ADMIN_NAME: z.string().optional(),
   SUPER_ADMIN_EMAIL: z.string().email().optional(),
   SUPER_ADMIN_PASSWORD: z.string().min(8).optional(),
+
+  // Checked against the `Authorization: Bearer` header Vercel Cron sends
+  // automatically when this env var is set on the project — see
+  // /api/cron/booking-reminders. Unset locally is fine (that route just
+  // 401s), no impact on the rest of the app.
+  CRON_SECRET: z.string().optional(),
 });
 
 function loadEnv() {

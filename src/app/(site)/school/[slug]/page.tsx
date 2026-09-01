@@ -45,11 +45,11 @@ export default async function SchoolDetailPage({
   const batches = await batchService.listForCourseSlug(slug);
   const syllabus = course.syllabus as { title: string; description: string }[];
 
-  const coverImage = course.media[0]?.url ?? "/placeholder.svg";
+  const galleryImages = course.media.length > 0 ? course.media.map((m) => m.url) : ["/placeholder.svg"];
 
   return (
     <DetailSplit
-      image={coverImage}
+      images={galleryImages}
       imageAlt={course.title}
       badge={<Badge>{course.level}</Badge>}
       title={course.title}

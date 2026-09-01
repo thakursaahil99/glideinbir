@@ -44,11 +44,11 @@ export default async function ParaglidingDetailPage({
 
   const slots = await slotService.listForPackageSlug(slug);
 
-  const coverImage = pkg.media[0]?.url ?? "/placeholder.svg";
+  const galleryImages = pkg.media.length > 0 ? pkg.media.map((m) => m.url) : ["/placeholder.svg"];
 
   return (
     <DetailSplit
-      image={coverImage}
+      images={galleryImages}
       imageAlt={pkg.title}
       badge={<Badge>{pkg.flightType.replace("_", " ")}</Badge>}
       title={pkg.title}

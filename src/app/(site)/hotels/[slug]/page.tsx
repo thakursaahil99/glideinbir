@@ -41,12 +41,12 @@ export default async function HotelDetailPage({
   ]);
   if (!hotel) notFound();
 
-  const coverImage = hotel.media[0]?.url ?? "/placeholder.svg";
+  const galleryImages = hotel.media.length > 0 ? hotel.media.map((m) => m.url) : ["/placeholder.svg"];
 
   return (
     <>
       <DetailSplit
-        image={coverImage}
+        images={galleryImages}
         imageAlt={hotel.name}
         title={hotel.name}
         subtitle={`${hotel.address}, ${hotel.city}`}
