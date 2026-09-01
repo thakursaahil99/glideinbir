@@ -21,6 +21,7 @@ import {
   Mail,
   HelpCircle,
   MessageSquareText,
+  FileText,
 } from "lucide-react";
 
 const SECTIONS = [
@@ -79,6 +80,7 @@ const SECTIONS = [
       { href: "/admin/contact", label: "Contact messages", icon: Mail },
       { href: "/admin/reviews", label: "Reviews", icon: MessageSquareText },
       { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
+      { href: "/admin/pages", label: "Site pages", icon: FileText },
     ],
   },
 ];

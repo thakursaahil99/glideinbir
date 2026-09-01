@@ -25,6 +25,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/travel`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${siteUrl}/about`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${siteUrl}/contact`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${siteUrl}/faq`, changeFrequency: "monthly", priority: 0.4 },
+    { url: `${siteUrl}/terms`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${siteUrl}/privacy`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${siteUrl}/cancellation-policy`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
   const dynamicPages: MetadataRoute.Sitemap = [
