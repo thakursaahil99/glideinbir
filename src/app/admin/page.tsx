@@ -3,6 +3,8 @@ import { Package, GraduationCap, Hotel, CalendarCheck, Wallet } from "lucide-rea
 import { prisma } from "@/server/db/prisma";
 import { Card, Badge } from "@/components/ui/card";
 import { formatDate, formatINR } from "@/lib/format";
+import { getCurrentUser } from "@/server/auth/guards";
+import { IndexNowButton } from "@/components/admin/indexnow-button";
 
 async function getStats() {
   const [packages, courses, hotels, bookings, revenue, recentBookings] = await Promise.all([
@@ -35,7 +37,7 @@ async function getStats() {
 }
 
 export default async function AdminDashboardPage() {
-  const stats = await getStats();
+  const [stats, user] = await Promise.all([getStats(), getCurrentUser()]);
 
   const cards = [
     { label: "Active packages", value: stats.packages, icon: Package, color: "text-orange-600 bg-orange-50" },
@@ -47,8 +49,13 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-      <p className="mt-1 text-sm text-muted">A snapshot of everything happening on Glideinbir.</p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="mt-1 text-sm text-muted">A snapshot of everything happening on Glideinbir.</p>
+        </div>
+        {user?.role === "SUPER_ADMIN" && <IndexNowButton />}
+      </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {cards.map((card) => (
