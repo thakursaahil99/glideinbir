@@ -6,6 +6,7 @@ import { bookingService } from "@/server/modules/booking/service";
 import { Card, Container, Badge } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/button";
 import { PaymentPanel } from "@/components/site/payment-panel";
+import { LeaveReviewForm } from "@/components/site/leave-review-form";
 import { formatDate, formatINR } from "@/lib/format";
 import { ParticleField } from "@/components/effects/particle-field";
 import { HeroSceneLazy } from "@/components/effects/hero-scene-lazy";
@@ -112,6 +113,31 @@ export default async function BookingPage({
       amount: formatINR(item.lineTotal.toString()),
     })),
   ];
+
+  // Review is scoped to (bookingId, targetType) — one review covers every
+  // item of that type in this booking, so at most one prompt per type.
+  const reviewableTargets: { targetType: "PARAGLIDING" | "SCHOOL" | "HOTEL"; targetId: string; title: string }[] = [];
+  if (booking.paraglidingItems[0]) {
+    reviewableTargets.push({
+      targetType: "PARAGLIDING",
+      targetId: booking.paraglidingItems[0].packageId,
+      title: booking.paraglidingItems[0].package.title,
+    });
+  }
+  if (booking.schoolItems[0]) {
+    reviewableTargets.push({
+      targetType: "SCHOOL",
+      targetId: booking.schoolItems[0].courseId,
+      title: booking.schoolItems[0].course.title,
+    });
+  }
+  if (booking.hotelItems[0]) {
+    reviewableTargets.push({
+      targetType: "HOTEL",
+      targetId: booking.hotelItems[0].hotelId,
+      title: booking.hotelItems[0].hotel.name,
+    });
+  }
 
   const taxableAmount = Number(booking.subtotal) - Number(booking.discountAmount);
   const gstPercent =
@@ -244,6 +270,23 @@ export default async function BookingPage({
             </Card>
           </ScrollReveal>
         </div>
+
+        {booking.status === "COMPLETED" && reviewableTargets.length > 0 && (
+          <ScrollReveal className="mt-10">
+            <h2 className="text-lg font-semibold">Leave a review</h2>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {reviewableTargets.map((target) => (
+                <LeaveReviewForm
+                  key={target.targetType}
+                  bookingId={booking.id}
+                  targetType={target.targetType}
+                  title={target.title}
+                  existingReview={booking.reviews.find((r) => r.targetType === target.targetType)}
+                />
+              ))}
+            </div>
+          </ScrollReveal>
+        )}
       </Container>
     </>
   );

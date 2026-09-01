@@ -58,6 +58,7 @@ model User {
   couponUsages        CouponUsage[]
   notifications       Notification[]
   auditLogs           AuditLog[]
+  auditLogsRestored   AuditLog[]            @relation("AuditLogRestoredBy")
   rolePermissions     UserPermission[]
 
   @@index([role])
@@ -1003,23 +1004,44 @@ model SiteSetting {
   updatedAt DateTime @updatedAt
 }
 
+// Submissions from the public Contact page. Notified to the Super Admin by
+// email (and to the sender, as an auto-reply) at submission time via the
+// Notification service — this row is the durable copy either way.
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([isRead])
+}
+
 // ============================================================================
 // AUDIT LOG
 // ============================================================================
 
 model AuditLog {
-  id         String   @id @default(cuid())
-  userId     String
-  action     String   // e.g. "BOOKING_CANCELLED", "PACKAGE_UPDATED"
-  entityType String
-  entityId   String
-  oldValue   Json?
-  newValue   Json?
-  ipAddress  String?
-  createdAt  DateTime @default(now())
+  id           String    @id @default(cuid())
+  userId       String
+  action       String    // e.g. "BOOKING_CANCELLED", "PARAGLIDING_PACKAGE_DELETED"
+  entityType   String
+  entityId     String
+  oldValue     Json?
+  newValue     Json?
+  ipAddress    String?
+  createdAt    DateTime  @default(now())
+  // Set once a "*_DELETED" entry's data has been recreated via the Deleted
+  // data admin screen (Super Admin only) — see src/server/lib/audit.ts.
+  restoredAt   DateTime?
+  restoredById String?
 
-  user User @relation(fields: [userId], references: [id])
+  user       User  @relation(fields: [userId], references: [id])
+  restoredBy User? @relation("AuditLogRestoredBy", fields: [restoredById], references: [id])
 
   @@index([userId])
   @@index([entityType, entityId])
+  @@index([action, restoredAt])
 }

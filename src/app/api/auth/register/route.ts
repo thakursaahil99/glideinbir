@@ -4,7 +4,8 @@ import { prisma } from "@/server/db/prisma";
 import { hashPassword } from "@/server/auth/password";
 import { createSession, setSessionCookie } from "@/server/auth/session";
 import { withErrorHandling, apiSuccess } from "@/server/lib/api-response";
-import { ConflictError } from "@/server/lib/errors";
+import { ConflictError, RateLimitedError } from "@/server/lib/errors";
+import { checkRateLimit, getClientIp } from "@/server/lib/rate-limit";
 
 const registerSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -14,6 +15,11 @@ const registerSchema = z.object({
 });
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`register:${ip}`, 8, 60 * 60 * 1000)) {
+    throw new RateLimitedError("Too many accounts created from this connection — please try again later.");
+  }
+
   const { name, email, phone, password } = registerSchema.parse(await request.json());
 
   const existing = await prisma.user.findUnique({ where: { email } });

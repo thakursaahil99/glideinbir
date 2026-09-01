@@ -4,8 +4,11 @@ import { z } from "zod";
 import { prisma } from "@/server/db/prisma";
 import { hashToken } from "@/server/auth/session";
 import { withErrorHandling, apiSuccess } from "@/server/lib/api-response";
-import { logger } from "@/server/lib/logger";
+import { RateLimitedError } from "@/server/lib/errors";
+import { checkRateLimit, getClientIp } from "@/server/lib/rate-limit";
 import { env } from "@/config/env";
+import { notificationService } from "@/server/modules/notification/service";
+import { passwordResetEmail } from "@/server/modules/notification/templates";
 
 const forgotPasswordSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -14,6 +17,11 @@ const forgotPasswordSchema = z.object({
 const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
+  const ip = getClientIp(request);
+  if (!checkRateLimit(`forgot-password:${ip}`, 5, 15 * 60 * 1000)) {
+    throw new RateLimitedError("Too many reset requests — please try again in a few minutes.");
+  }
+
   const { email } = forgotPasswordSchema.parse(await request.json());
 
   const user = await prisma.user.findUnique({ where: { email } });
@@ -29,11 +37,14 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       },
     });
 
-    // TODO(Phase 8): dispatch through the Notification service's email
-    // channel instead of logging, once that module exists.
-    logger.info("Password reset link generated", {
+    const resetUrl = `${env.NEXT_PUBLIC_SITE_URL}/reset-password?token=${token}`;
+    const { subject, html } = passwordResetEmail({ name: user.name, resetUrl });
+    await notificationService.sendEmail({
       userId: user.id,
-      resetUrl: `${env.NEXT_PUBLIC_SITE_URL}/reset-password?token=${token}`,
+      type: "PASSWORD_RESET",
+      recipient: user.email,
+      subject,
+      html,
     });
   }
 

@@ -5,6 +5,8 @@ import { getCurrentUser } from "@/server/auth/guards";
 import { Card, Badge } from "@/components/ui/card";
 import { BookSchoolWidget } from "@/components/site/book-school-widget";
 import { DetailSplit } from "@/components/site/detail-split";
+import { ReviewsSection } from "@/components/site/reviews-section";
+import { FaqSection } from "@/components/site/faq-section";
 import { formatINR } from "@/lib/format";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { GradientText } from "@/components/effects/gradient-text";
@@ -98,6 +100,9 @@ export default async function SchoolDetailPage({
           </StaggerGroup>
         </div>
       )}
+
+      <FaqSection category="SCHOOL" targetId={course.id} />
+      <ReviewsSection targetType="SCHOOL" targetId={course.id} />
     </DetailSplit>
   );
 }

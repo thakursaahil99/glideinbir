@@ -5,6 +5,8 @@ import { getCurrentUser } from "@/server/auth/guards";
 import { Card, Badge } from "@/components/ui/card";
 import { BookParaglidingWidget } from "@/components/site/book-paragliding-widget";
 import { DetailSplit } from "@/components/site/detail-split";
+import { ReviewsSection } from "@/components/site/reviews-section";
+import { FaqSection } from "@/components/site/faq-section";
 import { formatINR } from "@/lib/format";
 import { GradientText } from "@/components/effects/gradient-text";
 
@@ -83,6 +85,9 @@ export default async function ParaglidingDetailPage({
           <p className="mt-2 text-sm text-muted">{pkg.safetyInfo}</p>
         </div>
       )}
+
+      <FaqSection category="PARAGLIDING" targetId={pkg.id} />
+      <ReviewsSection targetType="PARAGLIDING" targetId={pkg.id} />
     </DetailSplit>
   );
 }

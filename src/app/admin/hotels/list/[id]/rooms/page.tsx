@@ -93,6 +93,7 @@ export default function AdminHotelRoomsPage({ params }: { params: Promise<{ id: 
   }
 
   function handleDelete(roomId: string) {
+    if (!confirm("Delete this room? You can restore it later from Deleted data (Super Admin only).")) return;
     startTransition(async () => {
       await fetch(`/api/admin/hotels/rooms/${roomId}`, { method: "DELETE" });
       if (editingId === roomId) cancelEdit();
@@ -114,7 +115,7 @@ export default function AdminHotelRoomsPage({ params }: { params: Promise<{ id: 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="border-b border-border bg-surface text-left text-xs uppercase text-muted">
+            <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
               <tr>
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Type</th>
@@ -130,8 +131,8 @@ export default function AdminHotelRoomsPage({ params }: { params: Promise<{ id: 
                   key={room.id}
                   className={
                     room.id === editingId
-                      ? "border-b border-border bg-brand/5 last:border-0"
-                      : "border-b border-border last:border-0"
+                      ? "border-b border-border bg-brand/5 last:border-0 ring-1 ring-inset ring-brand/15"
+                      : "border-b border-border last:border-0 transition-colors hover:bg-black/[0.025]"
                   }
                 >
                   <td className="px-4 py-3 font-medium">{room.name}</td>
@@ -148,7 +149,7 @@ export default function AdminHotelRoomsPage({ params }: { params: Promise<{ id: 
                       type="button"
                       onClick={() => startEdit(room)}
                       disabled={isPending}
-                      className="text-xs font-medium text-brand hover:underline disabled:opacity-50"
+                      className="rounded-md px-2 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand/10 disabled:opacity-50"
                     >
                       Edit
                     </button>
@@ -156,7 +157,7 @@ export default function AdminHotelRoomsPage({ params }: { params: Promise<{ id: 
                       type="button"
                       onClick={() => handleDelete(room.id)}
                       disabled={isPending}
-                      className="text-xs font-medium text-red-600 hover:underline disabled:opacity-50"
+                      className="rounded-md px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
                     >
                       Delete
                     </button>

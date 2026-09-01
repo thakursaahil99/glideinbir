@@ -29,7 +29,7 @@ export default function AdminBookingsPage() {
 
       <Card className="mt-6 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="border-b border-border bg-surface text-left text-xs uppercase text-muted">
+          <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
             <tr>
               <th className="px-4 py-3">Booking</th>
               <th className="px-4 py-3">Customer</th>
@@ -40,7 +40,7 @@ export default function AdminBookingsPage() {
           </thead>
           <tbody>
             {bookings?.map((booking) => (
-              <tr key={booking.id} className="border-b border-border last:border-0">
+              <tr key={booking.id} className="border-b border-border last:border-0 transition-colors hover:bg-black/[0.025]">
                 <td className="px-4 py-3">
                   <Link href={`/admin/bookings/${booking.id}`} className="font-medium text-brand">
                     {booking.bookingNumber}

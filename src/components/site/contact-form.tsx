@@ -1,23 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { User, Mail, Phone, MessageSquare } from "lucide-react";
 import { AuthInput } from "./auth-input";
 import { Button } from "@/components/ui/button";
 
 const EMPTY_FORM = { name: "", email: "", phone: "", message: "" };
 
-// No backend endpoint exists for this yet — submitting just confirms the
-// message locally. Swap in a real POST (e.g. to a notification/email
-// endpoint) once one exists; this is intentionally a demo for now.
 export function ContactForm() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSent(true);
-    setForm(EMPTY_FORM);
+    setError(null);
+    startTransition(async () => {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const body = await res.json();
+      if (!res.ok || !body.success) {
+        setError(body.error?.message ?? "Could not send your message. Please try again.");
+        return;
+      }
+      setSent(true);
+      setForm(EMPTY_FORM);
+    });
   }
 
   if (sent) {
@@ -82,8 +94,9 @@ export function ContactForm() {
           />
         </div>
       </div>
-      <Button type="submit" className="w-full">
-        Send message
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <Button type="submit" className="w-full" disabled={isPending}>
+        {isPending ? "Sending…" : "Send message"}
       </Button>
     </form>
   );

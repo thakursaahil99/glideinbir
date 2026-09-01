@@ -3,6 +3,7 @@ import type { z } from "zod";
 import { categoryRepository, packageRepository, mediaRepository, slotRepository } from "./repository";
 import { slugify } from "@/lib/slugify";
 import { ConflictError, NotFoundError, ValidationError } from "@/server/lib/errors";
+import { recordDeletionAudit, auditSnapshot } from "@/server/lib/audit";
 import type {
   categoryInputSchema,
   categoryUpdateSchema,
@@ -53,7 +54,7 @@ export const categoryService = {
     }
   },
 
-  async remove(id: string) {
+  async remove(id: string, actorId: string) {
     const existing = await categoryRepository.findById(id);
     if (!existing) throw new NotFoundError("Category not found");
     const packageCount = await categoryRepository.countPackages(id);
@@ -61,6 +62,13 @@ export const categoryService = {
       throw new ConflictError("Cannot delete a category that still has packages");
     }
     await categoryRepository.delete(id);
+    await recordDeletionAudit({
+      actorId,
+      entityType: "PARAGLIDING_CATEGORY",
+      entityId: id,
+      label: existing.name,
+      snapshot: existing,
+    });
   },
 };
 
@@ -150,10 +158,18 @@ export const packageService = {
     }
   },
 
-  async remove(id: string) {
+  async remove(id: string, actorId: string) {
     const existing = await packageRepository.findById(id);
     if (!existing) throw new NotFoundError("Package not found");
+    const snapshot = await auditSnapshot.paraglidingPackage(id);
     await packageRepository.delete(id);
+    await recordDeletionAudit({
+      actorId,
+      entityType: "PARAGLIDING_PACKAGE",
+      entityId: id,
+      label: existing.title,
+      snapshot,
+    });
   },
 
   async addMedia(packageId: string, input: MediaInput) {

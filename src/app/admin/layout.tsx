@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-screen bg-surface">
-      <AdminSidebar />
+      <AdminSidebar role={user.role} />
       <div className="flex-1">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-paper/80 px-8 backdrop-blur">
           <span className="text-sm text-muted">Manage Glideinbir</span>

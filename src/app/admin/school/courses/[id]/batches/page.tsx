@@ -93,6 +93,7 @@ export default function AdminCourseBatchesPage({ params }: { params: Promise<{ i
   }
 
   function handleDelete(batchId: string) {
+    if (!confirm("Delete this batch?")) return;
     startTransition(async () => {
       await fetch(`/api/admin/school/batches/${batchId}`, { method: "DELETE" });
       if (editingId === batchId) cancelEdit();
@@ -110,7 +111,7 @@ export default function AdminCourseBatchesPage({ params }: { params: Promise<{ i
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="border-b border-border bg-surface text-left text-xs uppercase text-muted">
+            <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
               <tr>
                 <th className="px-4 py-3">Dates</th>
                 <th className="px-4 py-3">Instructor</th>
@@ -125,8 +126,8 @@ export default function AdminCourseBatchesPage({ params }: { params: Promise<{ i
                   key={batch.id}
                   className={
                     batch.id === editingId
-                      ? "border-b border-border bg-brand/5 last:border-0"
-                      : "border-b border-border last:border-0"
+                      ? "border-b border-border bg-brand/5 last:border-0 ring-1 ring-inset ring-brand/15"
+                      : "border-b border-border last:border-0 transition-colors hover:bg-black/[0.025]"
                   }
                 >
                   <td className="px-4 py-3">
@@ -144,7 +145,7 @@ export default function AdminCourseBatchesPage({ params }: { params: Promise<{ i
                       type="button"
                       onClick={() => startEdit(batch)}
                       disabled={isPending}
-                      className="text-xs font-medium text-brand hover:underline disabled:opacity-50"
+                      className="rounded-md px-2 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand/10 disabled:opacity-50"
                     >
                       Edit
                     </button>
@@ -152,7 +153,7 @@ export default function AdminCourseBatchesPage({ params }: { params: Promise<{ i
                       type="button"
                       onClick={() => handleDelete(batch.id)}
                       disabled={isPending}
-                      className="text-xs font-medium text-red-600 hover:underline disabled:opacity-50"
+                      className="rounded-md px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
                     >
                       Delete
                     </button>

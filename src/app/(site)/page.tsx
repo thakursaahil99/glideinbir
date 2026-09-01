@@ -226,7 +226,7 @@ export default async function HomePage() {
             </div>
             <p className="mt-6 max-w-md text-sm text-white/50">
               Make it yours, too — grab a color off the palette on the cube and the whole
-              site retunes to it. It's saved to your browser, so it stays picked wherever you go.
+              site retunes to it. It&apos;s saved to your browser, so it stays picked wherever you go.
             </p>
             <MagneticButton className="mt-8 inline-block">
               <LinkButton href="/paragliding" size="lg">

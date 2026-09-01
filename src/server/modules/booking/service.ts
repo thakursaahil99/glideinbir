@@ -2,7 +2,7 @@ import { Prisma, type BookingType } from "@prisma/client";
 import { prisma } from "@/server/db/prisma";
 import { ConflictError, ForbiddenError, NotFoundError } from "@/server/lib/errors";
 import { couponService } from "@/server/modules/coupon/service";
-import { priceItems, getTaxRate, getServiceFee } from "./pricing";
+import { priceItems, getTaxRate, getServiceFee, computeBookingTotals } from "./pricing";
 import { releaseBookingAvailability } from "./availability";
 import type { CreateBookingInput } from "./validation";
 
@@ -16,6 +16,7 @@ const bookingInclude = {
   travelItems: { include: { route: { include: { media: true } }, slot: true } },
   payments: true,
   coupon: true,
+  reviews: true,
 } satisfies Prisma.BookingInclude;
 
 function generateBookingNumber(): string {
@@ -44,9 +45,7 @@ export const bookingService = {
     }
 
     const [taxRate, serviceFee] = await Promise.all([getTaxRate(), getServiceFee()]);
-    const taxableAmount = subtotal - discountAmount;
-    const taxAmount = taxableAmount * taxRate;
-    const totalAmount = taxableAmount + taxAmount + serviceFee;
+    const { taxAmount, totalAmount } = computeBookingTotals({ subtotal, discountAmount, taxRate, serviceFee });
 
     const type = resolveBookingType(new Set(pricedItems.map((item) => item.itemType)));
 
@@ -186,6 +185,19 @@ export const bookingService = {
     } else {
       await prisma.booking.update({ where: { id }, data: { status: "CANCELLED" } });
     }
+    return bookingService.getById(id, booking.userId, true);
+  },
+
+  // Marks a booking as delivered (flight flown, course finished, stay
+  // checked out) — the gate that lets its customer leave a Review. There's
+  // no automatic date-based transition yet, so an admin does this by hand.
+  async complete(id: string) {
+    const booking = await prisma.booking.findUnique({ where: { id } });
+    if (!booking) throw new NotFoundError("Booking not found");
+    if (booking.status !== "CONFIRMED") {
+      throw new ConflictError("Only a confirmed booking can be marked completed");
+    }
+    await prisma.booking.update({ where: { id }, data: { status: "COMPLETED" } });
     return bookingService.getById(id, booking.userId, true);
   },
 };

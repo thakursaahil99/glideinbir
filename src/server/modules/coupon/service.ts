@@ -2,6 +2,8 @@ import { Prisma } from "@prisma/client";
 import type { z } from "zod";
 import { prisma } from "@/server/db/prisma";
 import { ConflictError, NotFoundError, ValidationError } from "@/server/lib/errors";
+import { recordDeletionAudit } from "@/server/lib/audit";
+import { computeCouponDiscount } from "./discount";
 import type { couponInputSchema, couponUpdateSchema } from "./validation";
 
 type CouponInput = z.infer<typeof couponInputSchema>;
@@ -41,10 +43,17 @@ export const couponService = {
     }
   },
 
-  async remove(id: string) {
+  async remove(id: string, actorId: string) {
     const existing = await prisma.coupon.findUnique({ where: { id } });
     if (!existing) throw new NotFoundError("Coupon not found");
     await prisma.coupon.delete({ where: { id } });
+    await recordDeletionAudit({
+      actorId,
+      entityType: "COUPON",
+      entityId: id,
+      label: existing.code,
+      snapshot: existing,
+    });
   },
 
   // Server-validated discount, used both by /api/coupons/validate (preview)
@@ -77,11 +86,12 @@ export const couponService = {
       }
     }
 
-    const rawDiscount =
-      coupon.type === "PERCENTAGE" ? subtotal * (coupon.value.toNumber() / 100) : coupon.value.toNumber();
-    const maxDiscount = coupon.maxDiscount?.toNumber();
-    const capped = maxDiscount !== undefined ? Math.min(rawDiscount, maxDiscount) : rawDiscount;
-    const discountAmount = Math.min(capped, subtotal);
+    const discountAmount = computeCouponDiscount({
+      type: coupon.type,
+      value: coupon.value.toNumber(),
+      maxDiscount: coupon.maxDiscount?.toNumber(),
+      subtotal,
+    });
 
     return { coupon, discountAmount };
   },

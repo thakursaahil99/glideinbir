@@ -39,6 +39,19 @@ export function BookingActions({ bookingId, status }: { bookingId: string; statu
     });
   }
 
+  function complete() {
+    setError(null);
+    startTransition(async () => {
+      const res = await fetch(`/api/admin/bookings/${bookingId}/complete`, { method: "POST" });
+      const body = await res.json();
+      if (!res.ok || !body.success) {
+        setError(body.error?.message ?? "Could not mark booking completed.");
+        return;
+      }
+      router.refresh();
+    });
+  }
+
   return (
     <div className="space-y-2">
       <div className="flex gap-2">
@@ -50,6 +63,11 @@ export function BookingActions({ bookingId, status }: { bookingId: string; statu
         {status === "CONFIRMED" && (
           <Button variant="ghost" size="sm" disabled={isPending} onClick={refund}>
             Refund payment
+          </Button>
+        )}
+        {status === "CONFIRMED" && (
+          <Button size="sm" disabled={isPending} onClick={complete}>
+            Mark completed
           </Button>
         )}
       </div>

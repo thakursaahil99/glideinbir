@@ -124,7 +124,7 @@ export default function AdminUsersPage() {
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="border-b border-border bg-surface text-left text-xs uppercase text-muted">
+            <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
               <tr>
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Email</th>
@@ -136,7 +136,7 @@ export default function AdminUsersPage() {
             </thead>
             <tbody>
               {users?.map((user) => (
-                <tr key={user.id} className="border-b border-border last:border-0">
+                <tr key={user.id} className="border-b border-border last:border-0 transition-colors hover:bg-black/[0.025]">
                   <td className="px-4 py-3 font-medium">{user.name}</td>
                   <td className="px-4 py-3">{user.email}</td>
                   <td className="px-4 py-3">
@@ -153,7 +153,7 @@ export default function AdminUsersPage() {
                       type="button"
                       onClick={() => toggleActive(user)}
                       disabled={isPending}
-                      className="text-xs font-medium text-red-600 hover:underline disabled:opacity-50"
+                      className="rounded-md px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
                     >
                       {user.isActive ? "Disable" : "Enable"}
                     </button>

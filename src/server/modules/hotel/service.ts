@@ -10,6 +10,7 @@ import {
 } from "./repository";
 import { slugify } from "@/lib/slugify";
 import { ConflictError, NotFoundError, ValidationError } from "@/server/lib/errors";
+import { recordDeletionAudit, auditSnapshot } from "@/server/lib/audit";
 import type {
   hotelInputSchema,
   hotelUpdateSchema,
@@ -123,10 +124,18 @@ export const hotelService = {
     return hotelRepository.findById(id);
   },
 
-  async remove(id: string) {
+  async remove(id: string, actorId: string) {
     const existing = await hotelRepository.findById(id);
     if (!existing) throw new NotFoundError("Hotel not found");
+    const snapshot = await auditSnapshot.hotel(id);
     await hotelRepository.delete(id);
+    await recordDeletionAudit({
+      actorId,
+      entityType: "HOTEL",
+      entityId: id,
+      label: existing.name,
+      snapshot,
+    });
   },
 
   async addMedia(hotelId: string, input: HotelMediaInput) {
@@ -159,10 +168,18 @@ export const amenityService = {
     }
   },
 
-  async remove(id: string) {
+  async remove(id: string, actorId: string) {
     const existing = await amenityRepository.findById(id);
     if (!existing) throw new NotFoundError("Amenity not found");
+    const snapshot = await auditSnapshot.amenity(id);
     await amenityRepository.delete(id);
+    await recordDeletionAudit({
+      actorId,
+      entityType: "HOTEL_AMENITY",
+      entityId: id,
+      label: existing.name,
+      snapshot,
+    });
   },
 };
 
@@ -221,10 +238,18 @@ export const roomService = {
     return roomRepository.findById(id);
   },
 
-  async remove(id: string) {
+  async remove(id: string, actorId: string) {
     const existing = await roomRepository.findById(id);
     if (!existing) throw new NotFoundError("Room not found");
+    const snapshot = await auditSnapshot.room(id);
     await roomRepository.delete(id);
+    await recordDeletionAudit({
+      actorId,
+      entityType: "HOTEL_ROOM",
+      entityId: id,
+      label: existing.name,
+      snapshot,
+    });
   },
 
   async addMedia(roomId: string, input: RoomMediaInput) {

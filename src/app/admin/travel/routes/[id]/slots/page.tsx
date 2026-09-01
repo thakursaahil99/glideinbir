@@ -62,7 +62,7 @@ function SlotEditCell({ slot, onSaved }: { slot: Slot; onSaved: () => void }) {
           type="button"
           onClick={save}
           disabled={isPending}
-          className="text-xs font-medium text-brand hover:underline disabled:opacity-50"
+          className="rounded-md px-2 py-1 text-xs font-medium text-brand transition-colors hover:bg-brand/10 disabled:opacity-50"
         >
           {isPending ? "Saving…" : "Save"}
         </button>
@@ -107,6 +107,7 @@ export default function AdminTravelRouteSlotsPage({ params }: { params: Promise<
   }
 
   function handleDelete(slotId: string) {
+    if (!confirm("Delete this slot?")) return;
     startTransition(async () => {
       await fetch(`/api/admin/travel/slots/${slotId}`, { method: "DELETE" });
       load();
@@ -124,7 +125,7 @@ export default function AdminTravelRouteSlotsPage({ params }: { params: Promise<
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="border-b border-border bg-surface text-left text-xs uppercase text-muted">
+            <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
               <tr>
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Time</th>
@@ -135,7 +136,7 @@ export default function AdminTravelRouteSlotsPage({ params }: { params: Promise<
             </thead>
             <tbody>
               {slots?.map((slot) => (
-                <tr key={slot.id} className="border-b border-border last:border-0">
+                <tr key={slot.id} className="border-b border-border last:border-0 transition-colors hover:bg-black/[0.025]">
                   <td className="px-4 py-3">{formatDate(slot.date)}</td>
                   <td className="px-4 py-3">{slot.departureTime}</td>
                   <td className="px-4 py-3">{slot.bookedSeats}</td>
@@ -147,7 +148,7 @@ export default function AdminTravelRouteSlotsPage({ params }: { params: Promise<
                       type="button"
                       onClick={() => handleDelete(slot.id)}
                       disabled={isPending}
-                      className="text-xs font-medium text-red-600 hover:underline disabled:opacity-50"
+                      className="rounded-md px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
                     >
                       Delete
                     </button>

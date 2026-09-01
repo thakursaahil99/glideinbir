@@ -3,6 +3,7 @@ import type { z } from "zod";
 import { routeRepository, mediaRepository, slotRepository } from "./repository";
 import { slugify } from "@/lib/slugify";
 import { ConflictError, NotFoundError, ValidationError } from "@/server/lib/errors";
+import { recordDeletionAudit, auditSnapshot } from "@/server/lib/audit";
 import type {
   routeInputSchema,
   routeUpdateSchema,
@@ -85,10 +86,18 @@ export const routeService = {
     }
   },
 
-  async remove(id: string) {
+  async remove(id: string, actorId: string) {
     const existing = await routeRepository.findById(id);
     if (!existing) throw new NotFoundError("Route not found");
+    const snapshot = await auditSnapshot.travelRoute(id);
     await routeRepository.delete(id);
+    await recordDeletionAudit({
+      actorId,
+      entityType: "TRAVEL_ROUTE",
+      entityId: id,
+      label: existing.title,
+      snapshot,
+    });
   },
 
   async addMedia(routeId: string, input: MediaInput) {

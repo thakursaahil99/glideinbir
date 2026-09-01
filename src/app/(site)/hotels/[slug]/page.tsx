@@ -5,6 +5,8 @@ import { getCurrentUser } from "@/server/auth/guards";
 import { Container, Card, Badge } from "@/components/ui/card";
 import { BookHotelWidget } from "@/components/site/book-hotel-widget";
 import { DetailSplit } from "@/components/site/detail-split";
+import { ReviewsSection } from "@/components/site/reviews-section";
+import { FaqSection } from "@/components/site/faq-section";
 import { ScrollReveal } from "@/components/effects/scroll-reveal";
 import { Clock, MapPin, Sparkles } from "lucide-react";
 
@@ -103,6 +105,9 @@ export default async function HotelDetailPage({
             )}
           </div>
         </ScrollReveal>
+
+        <FaqSection category="HOTEL" targetId={hotel.id} />
+        <ReviewsSection targetType="HOTEL" targetId={hotel.id} />
       </Container>
     </>
   );

@@ -28,7 +28,7 @@ export default function AdminPaymentsPage() {
 
       <Card className="mt-6 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="border-b border-border bg-surface text-left text-xs uppercase text-muted">
+          <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
             <tr>
               <th className="px-4 py-3">Booking</th>
               <th className="px-4 py-3">Customer</th>
@@ -39,7 +39,7 @@ export default function AdminPaymentsPage() {
           </thead>
           <tbody>
             {payments?.map((payment) => (
-              <tr key={payment.id} className="border-b border-border last:border-0">
+              <tr key={payment.id} className="border-b border-border last:border-0 transition-colors hover:bg-black/[0.025]">
                 <td className="px-4 py-3 font-medium">{payment.booking.bookingNumber}</td>
                 <td className="px-4 py-3">{payment.booking.customerName}</td>
                 <td className="px-4 py-3">{formatINR(payment.amount)}</td>

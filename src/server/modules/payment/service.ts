@@ -2,6 +2,9 @@ import { prisma } from "@/server/db/prisma";
 import { env } from "@/config/env";
 import { ConflictError, ForbiddenError, NotFoundError, UnauthorizedError } from "@/server/lib/errors";
 import { confirmBookingAvailability } from "@/server/modules/booking/availability";
+import { notificationService } from "@/server/modules/notification/service";
+import { bookingConfirmedEmail } from "@/server/modules/notification/templates";
+import { formatINR } from "@/lib/format";
 import {
   createRazorpayOrder,
   captureRazorpayPayment,
@@ -28,7 +31,26 @@ async function finalizePayment(
       where: { id: paymentId },
       data: { status: "SUCCESS", razorpayPaymentId, razorpaySignature },
     });
-    // TODO(Phase 8): trigger a booking-confirmed email via the Notification service.
+
+    const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+    if (booking) {
+      const { subject, html } = bookingConfirmedEmail({
+        name: booking.customerName,
+        bookingNumber: booking.bookingNumber,
+        totalAmount: formatINR(booking.totalAmount.toString()),
+        bookingUrl: `${env.NEXT_PUBLIC_SITE_URL}/booking/${booking.id}`,
+      });
+      // Don't let a slow/failed email delay the payment response — the
+      // Notification row is written either way so it's never silently lost.
+      void notificationService.sendEmail({
+        userId: booking.userId,
+        type: "BOOKING_CONFIRMED",
+        recipient: booking.customerEmail,
+        subject,
+        html,
+      });
+    }
+
     return { confirmed: true as const };
   }
 

@@ -16,9 +16,9 @@ export const PATCH = withErrorHandling(
 
 export const DELETE = withErrorHandling(
   async (_request: Request, context: { params: Promise<{ id: string }> }) => {
-    await requireRole("SUPER_ADMIN", "HOTEL_MANAGER");
+    const user = await requireRole("SUPER_ADMIN", "HOTEL_MANAGER");
     const { id } = await context.params;
-    await amenityService.remove(id);
+    await amenityService.remove(id, user.id);
     return apiSuccess({ deleted: true });
   },
 );

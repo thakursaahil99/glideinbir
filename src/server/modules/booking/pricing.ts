@@ -241,3 +241,5 @@ async function readNumericSetting(key: string): Promise<number> {
 
 export const getTaxRate = () => readNumericSetting("taxRate");
 export const getServiceFee = () => readNumericSetting("serviceFee");
+
+export { computeBookingTotals } from "./totals";

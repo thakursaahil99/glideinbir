@@ -8,6 +8,7 @@ import {
 } from "./repository";
 import { slugify } from "@/lib/slugify";
 import { ConflictError, NotFoundError, ValidationError } from "@/server/lib/errors";
+import { recordDeletionAudit } from "@/server/lib/audit";
 import type {
   courseInputSchema,
   courseUpdateSchema,
@@ -84,10 +85,17 @@ export const courseService = {
     }
   },
 
-  async remove(id: string) {
+  async remove(id: string, actorId: string) {
     const existing = await courseRepository.findById(id);
     if (!existing) throw new NotFoundError("Course not found");
     await courseRepository.delete(id);
+    await recordDeletionAudit({
+      actorId,
+      entityType: "SCHOOL_COURSE",
+      entityId: id,
+      label: existing.title,
+      snapshot: existing,
+    });
   },
 
   async addMedia(courseId: string, input: CourseMediaInput) {
@@ -122,7 +130,7 @@ export const instructorService = {
     }
   },
 
-  async remove(id: string) {
+  async remove(id: string, actorId: string) {
     const existing = await instructorRepository.findById(id);
     if (!existing) throw new NotFoundError("Instructor not found");
     const batchCount = await instructorRepository.countBatches(id);
@@ -130,6 +138,13 @@ export const instructorService = {
       throw new ConflictError("Cannot delete an instructor who still has training batches");
     }
     await instructorRepository.delete(id);
+    await recordDeletionAudit({
+      actorId,
+      entityType: "SCHOOL_INSTRUCTOR",
+      entityId: id,
+      label: existing.name,
+      snapshot: existing,
+    });
   },
 };
 
@@ -181,12 +196,19 @@ export const batchService = {
     return batchRepository.update(id, data);
   },
 
-  async remove(id: string) {
+  async remove(id: string, actorId: string) {
     const existing = await batchRepository.findById(id);
     if (!existing) throw new NotFoundError("Batch not found");
     if (existing.bookedSeats > 0) {
       throw new ConflictError("Cannot delete a batch that already has bookings — cancel it instead");
     }
     await batchRepository.delete(id);
+    await recordDeletionAudit({
+      actorId,
+      entityType: "SCHOOL_BATCH",
+      entityId: id,
+      label: `Batch starting ${new Date(existing.startDate).toISOString().slice(0, 10)}`,
+      snapshot: existing,
+    });
   },
 };

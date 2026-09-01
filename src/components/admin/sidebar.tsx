@@ -17,6 +17,10 @@ import {
   Ticket,
   Tent,
   Bus,
+  Trash2,
+  Mail,
+  HelpCircle,
+  MessageSquareText,
 } from "lucide-react";
 
 const SECTIONS = [
@@ -69,10 +73,26 @@ const SECTIONS = [
       { href: "/admin/marketing/coupons", label: "Coupons", icon: Ticket },
     ],
   },
+  {
+    title: "Content",
+    links: [
+      { href: "/admin/contact", label: "Contact messages", icon: Mail },
+      { href: "/admin/reviews", label: "Reviews", icon: MessageSquareText },
+      { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
+    ],
+  },
 ];
 
-export function AdminSidebar() {
+// Shown only to Super Admins — everyone else deletes things, only Super
+// Admin gets to see the trail and restore.
+const SUPER_ADMIN_SECTION = {
+  title: "Super Admin",
+  links: [{ href: "/admin/audit", label: "Deleted data", icon: Trash2 }],
+};
+
+export function AdminSidebar({ role }: { role: string }) {
   const pathname = usePathname();
+  const sections = role === "SUPER_ADMIN" ? [...SECTIONS, SUPER_ADMIN_SECTION] : SECTIONS;
 
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-surface">
@@ -86,7 +106,7 @@ export function AdminSidebar() {
       </div>
 
       <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-6">
-        {SECTIONS.map((section) => (
+        {sections.map((section) => (
           <div key={section.title}>
             <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-muted">
               {section.title}
