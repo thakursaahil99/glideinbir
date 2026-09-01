@@ -24,77 +24,88 @@ import {
   FileText,
 } from "lucide-react";
 
-const SECTIONS = [
+// `roles: null` means every admin role can see it (e.g. the Dashboard).
+// Otherwise this must match exactly what that page's API route(s) accept
+// via requireRole(...) — a link a role can't actually use is worse than no
+// link, so keep these two in sync when a route's allowed roles change.
+type Role = string;
+const SECTIONS: { title: string; links: { href: string; label: string; icon: typeof Users; roles: Role[] | null }[] }[] = [
   {
     title: "Overview",
     links: [
-      { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/admin/users", label: "Users & roles", icon: Users },
+      { href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: null },
+      { href: "/admin/users", label: "Users & roles", icon: Users, roles: ["SUPER_ADMIN"] },
     ],
   },
   {
     title: "Paragliding",
     links: [
-      { href: "/admin/paragliding/categories", label: "Categories", icon: Tags },
-      { href: "/admin/paragliding/packages", label: "Packages", icon: Package },
+      { href: "/admin/paragliding/categories", label: "Categories", icon: Tags, roles: ["PARAGLIDING_MANAGER"] },
+      { href: "/admin/paragliding/packages", label: "Packages", icon: Package, roles: ["PARAGLIDING_MANAGER"] },
     ],
   },
   {
     title: "School",
     links: [
-      { href: "/admin/school/instructors", label: "Instructors", icon: UserRound },
-      { href: "/admin/school/courses", label: "Courses", icon: GraduationCap },
+      { href: "/admin/school/instructors", label: "Instructors", icon: UserRound, roles: ["SCHOOL_MANAGER"] },
+      { href: "/admin/school/courses", label: "Courses", icon: GraduationCap, roles: ["SCHOOL_MANAGER"] },
     ],
   },
   {
     title: "Hotels",
     links: [
-      { href: "/admin/hotels/list", label: "Hotels", icon: Hotel },
-      { href: "/admin/hotels/amenities", label: "Amenities", icon: Sparkles },
+      { href: "/admin/hotels/list", label: "Hotels", icon: Hotel, roles: ["HOTEL_MANAGER"] },
+      { href: "/admin/hotels/amenities", label: "Amenities", icon: Sparkles, roles: ["HOTEL_MANAGER"] },
     ],
   },
   {
     title: "Adventure",
     links: [
-      { href: "/admin/adventure/categories", label: "Categories", icon: Tags },
-      { href: "/admin/adventure/items", label: "Items", icon: Tent },
+      { href: "/admin/adventure/categories", label: "Categories", icon: Tags, roles: ["ADVENTURE_MANAGER"] },
+      { href: "/admin/adventure/items", label: "Items", icon: Tent, roles: ["ADVENTURE_MANAGER"] },
     ],
   },
   {
     title: "Travel",
-    links: [
-      { href: "/admin/travel/routes", label: "Routes", icon: Bus },
-    ],
+    links: [{ href: "/admin/travel/routes", label: "Routes", icon: Bus, roles: ["TRAVEL_MANAGER"] }],
   },
   {
     title: "Sales",
     links: [
-      { href: "/admin/bookings", label: "Bookings", icon: CalendarCheck },
-      { href: "/admin/payments", label: "Payments", icon: CreditCard },
-      { href: "/admin/marketing/coupons", label: "Coupons", icon: Ticket },
+      { href: "/admin/bookings", label: "Bookings", icon: CalendarCheck, roles: ["BOOKING_MANAGER", "FINANCE_MANAGER"] },
+      { href: "/admin/payments", label: "Payments", icon: CreditCard, roles: ["FINANCE_MANAGER"] },
+      { href: "/admin/marketing/coupons", label: "Coupons", icon: Ticket, roles: ["BOOKING_MANAGER", "FINANCE_MANAGER"] },
     ],
   },
   {
     title: "Content",
     links: [
-      { href: "/admin/contact", label: "Contact messages", icon: Mail },
-      { href: "/admin/reviews", label: "Reviews", icon: MessageSquareText },
-      { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
-      { href: "/admin/pages", label: "Site pages", icon: FileText },
+      { href: "/admin/contact", label: "Contact messages", icon: Mail, roles: ["CONTENT_MANAGER"] },
+      { href: "/admin/reviews", label: "Reviews", icon: MessageSquareText, roles: ["CONTENT_MANAGER", "BOOKING_MANAGER"] },
+      { href: "/admin/faqs", label: "FAQs", icon: HelpCircle, roles: ["CONTENT_MANAGER"] },
+      { href: "/admin/pages", label: "Site pages", icon: FileText, roles: ["CONTENT_MANAGER"] },
     ],
+  },
+  {
+    title: "Super Admin",
+    links: [{ href: "/admin/audit", label: "Deleted data", icon: Trash2, roles: [] }],
   },
 ];
 
-// Shown only to Super Admins — everyone else deletes things, only Super
-// Admin gets to see the trail and restore.
-const SUPER_ADMIN_SECTION = {
-  title: "Super Admin",
-  links: [{ href: "/admin/audit", label: "Deleted data", icon: Trash2 }],
-};
-
 export function AdminSidebar({ role }: { role: string }) {
   const pathname = usePathname();
-  const sections = role === "SUPER_ADMIN" ? [...SECTIONS, SUPER_ADMIN_SECTION] : SECTIONS;
+
+  // Super Admin sees everything, no filtering. Everyone else sees only the
+  // links their role is actually allowed to use (roles: null = everyone;
+  // roles: [] = nobody but Super Admin) — then any section left with zero
+  // visible links is dropped entirely.
+  const sections =
+    role === "SUPER_ADMIN"
+      ? SECTIONS
+      : SECTIONS.map((section) => ({
+          ...section,
+          links: section.links.filter((link) => link.roles === null || link.roles.includes(role)),
+        })).filter((section) => section.links.length > 0);
 
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-surface">
