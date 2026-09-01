@@ -9,6 +9,8 @@ import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { TiltCard } from "@/components/effects/tilt-card";
 import { ModuleHero } from "@/components/site/module-hero";
 import { CardArrow } from "@/components/site/card-arrow";
+import { RatingBadge } from "@/components/site/rating-badge";
+import { reviewService } from "@/server/modules/review/service";
 
 export const metadata: Metadata = {
   title: "Tandem Paragliding in Bir Billing",
@@ -35,6 +37,10 @@ export default async function ParaglidingListPage({
     pageSize: 50,
     ...(flightType ? { flightType: flightType as "TANDEM" | "SOLO" | "CROSS_COUNTRY" } : {}),
   });
+  const ratings = await reviewService.getRatingSummaries(
+    "PARAGLIDING",
+    items.map((pkg) => pkg.id),
+  );
 
   return (
     <>
@@ -88,7 +94,12 @@ export default async function ParaglidingListPage({
                         <CardArrow />
                       </div>
                       <div className="p-6">
-                        <Badge>{pkg.flightType.replace("_", " ")}</Badge>
+                        <div className="flex items-center justify-between">
+                          <Badge>{pkg.flightType.replace("_", " ")}</Badge>
+                          {ratings.get(pkg.id) && (
+                            <RatingBadge average={ratings.get(pkg.id)!.average} count={ratings.get(pkg.id)!.count} />
+                          )}
+                        </div>
                         <h2 className="mt-3 text-lg font-semibold">{pkg.title}</h2>
                         <p className="mt-1 line-clamp-2 text-sm text-muted">
                           {pkg.shortDescription ?? pkg.description}

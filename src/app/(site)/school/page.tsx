@@ -7,6 +7,8 @@ import { formatINR } from "@/lib/format";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
 import { CardArrow } from "@/components/site/card-arrow";
+import { RatingBadge } from "@/components/site/rating-badge";
+import { reviewService } from "@/server/modules/review/service";
 
 export const metadata: Metadata = {
   title: "Paragliding School in Bir Billing — P1 to P4 Certification",
@@ -17,6 +19,10 @@ export const metadata: Metadata = {
 
 export default async function SchoolListPage() {
   const { items } = await courseService.listPublic({ page: 1, pageSize: 50 });
+  const ratings = await reviewService.getRatingSummaries(
+    "SCHOOL",
+    items.map((course) => course.id),
+  );
 
   return (
     <>
@@ -49,7 +55,12 @@ export default async function SchoolListPage() {
                       <CardArrow />
                     </div>
                     <div className="p-6">
-                      <Badge>{course.level}</Badge>
+                      <div className="flex items-center justify-between">
+                        <Badge>{course.level}</Badge>
+                        {ratings.get(course.id) && (
+                          <RatingBadge average={ratings.get(course.id)!.average} count={ratings.get(course.id)!.count} />
+                        )}
+                      </div>
                       <h2 className="mt-3 text-lg font-semibold">{course.title}</h2>
                       <p className="mt-1 line-clamp-2 text-sm text-muted">{course.description}</p>
                       <div className="mt-4 flex items-baseline justify-between">

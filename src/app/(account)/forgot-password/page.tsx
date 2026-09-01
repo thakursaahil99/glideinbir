@@ -5,20 +5,30 @@ import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthSplit } from "@/components/site/auth-split";
 import { AuthInput } from "@/components/site/auth-input";
+import { useToast } from "@/components/ui/toast";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const toast = useToast();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     startTransition(async () => {
-      await fetch("/api/auth/forgot-password", {
+      const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
+      // Rate-limited (429) is the only real failure case here — the
+      // endpoint always returns success otherwise, on purpose, so it can't
+      // be used to check which emails are registered.
+      if (res.status === 429) {
+        const body = await res.json().catch(() => null);
+        toast.error(body?.error?.message ?? "Too many attempts — please try again shortly.");
+        return;
+      }
       setDone(true);
     });
   }

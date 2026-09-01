@@ -6,6 +6,8 @@ import { Card, Container } from "@/components/ui/card";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
 import { CardArrow } from "@/components/site/card-arrow";
+import { RatingBadge } from "@/components/site/rating-badge";
+import { reviewService } from "@/server/modules/review/service";
 
 export const metadata: Metadata = {
   title: "Hotels in Bir Billing — Stay Near the Landing Site",
@@ -16,6 +18,10 @@ export const metadata: Metadata = {
 
 export default async function HotelsListPage() {
   const { items } = await hotelService.listPublic({ page: 1, pageSize: 50 });
+  const ratings = await reviewService.getRatingSummaries(
+    "HOTEL",
+    items.map((hotel) => hotel.id),
+  );
 
   return (
     <div className="relative overflow-hidden">
@@ -48,7 +54,12 @@ export default async function HotelsListPage() {
                       <CardArrow />
                     </div>
                     <div className="p-6">
-                      <h2 className="text-lg font-semibold">{hotel.name}</h2>
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold">{hotel.name}</h2>
+                        {ratings.get(hotel.id) && (
+                          <RatingBadge average={ratings.get(hotel.id)!.average} count={ratings.get(hotel.id)!.count} />
+                        )}
+                      </div>
                       <p className="mt-1 text-sm text-muted">{hotel.city}</p>
                       <p className="mt-2 line-clamp-2 text-sm text-muted">{hotel.description}</p>
                     </div>

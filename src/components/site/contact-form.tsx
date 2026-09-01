@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { User, Mail, Phone, MessageSquare } from "lucide-react";
 import { AuthInput } from "./auth-input";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 
 const EMPTY_FORM = { name: "", email: "", phone: "", message: "" };
 
@@ -12,6 +13,7 @@ export function ContactForm() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const { error: showError } = useToast();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -24,7 +26,9 @@ export function ContactForm() {
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body.error?.message ?? "Could not send your message. Please try again.");
+        const message = body.error?.message ?? "Could not send your message. Please try again.";
+        setError(message);
+        showError(message);
         return;
       }
       setSent(true);

@@ -31,6 +31,28 @@ export const reviewService = {
     return { reviews, average, count: reviews.length };
   },
 
+  // Batch rating summary (average + count) for a whole list of packages/
+  // courses/hotels at once — used on listing pages so a card can show its
+  // star rating without an N+1 query per card.
+  async getRatingSummaries(targetType: ReviewTargetType, targetIds: string[]) {
+    const field = TARGET_FIELD[targetType];
+    const map = new Map<string, { average: number; count: number }>();
+    if (targetIds.length === 0) return map;
+
+    const groups = await prisma.review.groupBy({
+      by: [field],
+      where: { targetType, status: "APPROVED", [field]: { in: targetIds } },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+    for (const g of groups) {
+      const id = g[field] as string | null;
+      if (!id) continue;
+      map.set(id, { average: g._avg.rating ?? 0, count: g._count.rating });
+    }
+    return map;
+  },
+
   async create(input: ReviewInput, userId: string) {
     const booking = await prisma.booking.findUnique({
       where: { id: input.bookingId },

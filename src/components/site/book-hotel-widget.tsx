@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import { formatINR } from "@/lib/format";
 
 type Room = {
@@ -46,6 +47,7 @@ export function BookHotelWidget({
   const [phone, setPhone] = useState(customer?.phone ?? "");
   const [availability, setAvailability] = useState<AvailabilityState>({});
   const [error, setError] = useState<string | null>(null);
+  const { error: showError } = useToast();
   const [isPending, startTransition] = useTransition();
   const [bookingRoomId, setBookingRoomId] = useState<string | null>(null);
 
@@ -109,7 +111,9 @@ export function BookHotelWidget({
       const body = await res.json();
       setBookingRoomId(null);
       if (!res.ok || !body.success) {
-        setError(body.error?.message ?? "Could not create booking. Please try again.");
+        const message = body.error?.message ?? "Could not create booking. Please try again.";
+        setError(message);
+        showError(message);
         return;
       }
       router.push(`/booking/${body.data.id}`);

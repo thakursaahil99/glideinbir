@@ -7,7 +7,9 @@ import { BookHotelWidget } from "@/components/site/book-hotel-widget";
 import { DetailSplit } from "@/components/site/detail-split";
 import { ReviewsSection } from "@/components/site/reviews-section";
 import { FaqSection } from "@/components/site/faq-section";
+import { MobileBookBar } from "@/components/site/mobile-book-bar";
 import { ScrollReveal } from "@/components/effects/scroll-reveal";
+import { formatINR } from "@/lib/format";
 import { Clock, MapPin, Sparkles } from "lucide-react";
 
 export async function generateMetadata({
@@ -42,11 +44,16 @@ export default async function HotelDetailPage({
   if (!hotel) notFound();
 
   const galleryImages = hotel.media.length > 0 ? hotel.media.map((m) => m.url) : ["/placeholder.svg"];
+  const cheapestRoom =
+    hotel.rooms.length > 0
+      ? hotel.rooms.reduce((min, r) => (r.pricePerNight.lt(min.pricePerNight) ? r : min))
+      : null;
 
   return (
     <>
       <DetailSplit
         images={galleryImages}
+        breadcrumbs={[{ label: "Hotels", href: "/hotels" }, { label: hotel.name }]}
         imageAlt={hotel.name}
         title={hotel.name}
         subtitle={`${hotel.address}, ${hotel.city}`}
@@ -82,7 +89,9 @@ export default async function HotelDetailPage({
 
       <Container className="pb-16">
         <ScrollReveal>
-          <h2 className="text-xl font-semibold">Rooms</h2>
+          <h2 id="rooms" className="scroll-mt-20 text-xl font-semibold">
+            Rooms
+          </h2>
           <div className="mt-4">
             {hotel.rooms.length === 0 ? (
               <p className="text-muted">No rooms are listed for this hotel yet.</p>
@@ -109,6 +118,18 @@ export default async function HotelDetailPage({
         <FaqSection category="HOTEL" targetId={hotel.id} />
         <ReviewsSection targetType="HOTEL" targetId={hotel.id} />
       </Container>
+
+      {cheapestRoom && (
+        <>
+          <div className="h-20 lg:hidden" />
+          <MobileBookBar
+            price={`From ${formatINR(cheapestRoom.pricePerNight.toString())}`}
+            priceUnit="per night"
+            ctaLabel="View rooms"
+            targetId="rooms"
+          />
+        </>
+      )}
     </>
   );
 }

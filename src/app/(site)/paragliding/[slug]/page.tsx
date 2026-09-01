@@ -49,10 +49,13 @@ export default async function ParaglidingDetailPage({
   return (
     <DetailSplit
       images={galleryImages}
+      breadcrumbs={[{ label: "Paragliding", href: "/paragliding" }, { label: pkg.title }]}
       imageAlt={pkg.title}
       badge={<Badge>{pkg.flightType.replace("_", " ")}</Badge>}
       title={pkg.title}
       subtitle={`${pkg.location} · ${pkg.durationMinutes} minutes`}
+      price={formatINR(pkg.price.toString())}
+      priceUnit="per person"
       sidebar={
         <Card className="p-6">
           <div className="text-2xl font-bold">

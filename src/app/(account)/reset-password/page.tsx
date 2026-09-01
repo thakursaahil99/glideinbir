@@ -6,6 +6,7 @@ import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthSplit } from "@/components/site/auth-split";
 import { AuthInput } from "@/components/site/auth-input";
+import { useToast } from "@/components/ui/toast";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -13,6 +14,7 @@ function ResetPasswordForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const toast = useToast();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,9 +27,12 @@ function ResetPasswordForm() {
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body.error?.message ?? "Could not reset password.");
+        const message = body.error?.message ?? "Could not reset password.";
+        setError(message);
+        toast.error(message);
         return;
       }
+      toast.success("Password updated — log in with your new password.");
       router.push("/login");
     });
   }

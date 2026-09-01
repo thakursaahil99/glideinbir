@@ -5,6 +5,7 @@ import { Star } from "lucide-react";
 import { clsx } from "clsx";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 
 type ExistingReview = { rating: number; comment: string | null; status: string };
 
@@ -25,6 +26,7 @@ export function LeaveReviewForm({
   const [submitted, setSubmitted] = useState(Boolean(existingReview));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const toast = useToast();
 
   if (submitted) {
     return (
@@ -60,10 +62,13 @@ export function LeaveReviewForm({
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body.error?.message ?? "Could not submit your review.");
+        const message = body.error?.message ?? "Could not submit your review.";
+        setError(message);
+        toast.error(message);
         return;
       }
       setSubmitted(true);
+      toast.success("Thanks for your review!");
     });
   }
 

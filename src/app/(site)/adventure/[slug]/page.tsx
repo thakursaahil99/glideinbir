@@ -47,10 +47,13 @@ export default async function AdventureDetailPage({
   return (
     <DetailSplit
       images={galleryImages}
+      breadcrumbs={[{ label: "Adventure", href: "/adventure" }, { label: item.title }]}
       imageAlt={item.title}
       badge={<Badge>{item.category.name}</Badge>}
       title={item.title}
       subtitle={`${item.location} · ${item.durationLabel}`}
+      price={formatINR(item.price.toString())}
+      priceUnit={item.pricingUnit.replace("_", " ").toLowerCase()}
       sidebar={
         <Card className="p-6">
           <div className="text-2xl font-bold">

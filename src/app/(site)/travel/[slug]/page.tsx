@@ -46,10 +46,13 @@ export default async function TravelDetailPage({
   return (
     <DetailSplit
       images={galleryImages}
+      breadcrumbs={[{ label: "Travel", href: "/travel" }, { label: route.title }]}
       imageAlt={route.title}
       badge={<Badge>{route.mode}</Badge>}
       title={route.title}
       subtitle={`${route.fromLocation} → ${route.toLocation} · ${route.vehicleType} · ${route.durationLabel}`}
+      price={formatINR(route.price.toString())}
+      priceUnit={route.pricingUnit.replace("_", " ").toLowerCase()}
       sidebar={
         <Card className="p-6">
           <div className="text-2xl font-bold">

@@ -7,6 +7,7 @@ import { User, Mail, Phone, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthSplit } from "@/components/site/auth-split";
 import { AuthInput } from "@/components/site/auth-input";
+import { useToast } from "@/components/ui/toast";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const toast = useToast();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,7 +30,9 @@ export default function RegisterPage() {
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body.error?.message ?? "Registration failed.");
+        const message = body.error?.message ?? "Registration failed.";
+        setError(message);
+        toast.error(message);
         return;
       }
       router.push("/");

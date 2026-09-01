@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import { formatDate, formatINR } from "@/lib/format";
 
 type Batch = {
@@ -32,6 +33,7 @@ export function BookSchoolWidget({
   const [students, setStudents] = useState(1);
   const [phone, setPhone] = useState(customer?.phone ?? "");
   const [error, setError] = useState<string | null>(null);
+  const { error: showError } = useToast();
   const [isPending, startTransition] = useTransition();
 
   const selectedBatch = batches.find((b) => b.id === batchId);
@@ -65,7 +67,9 @@ export function BookSchoolWidget({
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body.error?.message ?? "Could not create booking. Please try again.");
+        const message = body.error?.message ?? "Could not create booking. Please try again.";
+        setError(message);
+        showError(message);
         return;
       }
       router.push(`/booking/${body.data.id}`);
