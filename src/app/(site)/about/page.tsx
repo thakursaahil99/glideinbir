@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 const STATS = [
-  { value: "5", label: "Modules, one checkout" },
+  { value: "5", label: "Trip essentials, one checkout" },
   { value: "10,000+", label: "Flights flown" },
   { value: "500+", label: "Pilots certified" },
   { value: "4.8/5", label: "Average rating" },
@@ -70,7 +70,7 @@ export default function AboutPage() {
                 and Volvo bus or taxi transport — in a single checkout.
               </p>
               <p className="mt-4 text-muted">
-                We&apos;re still growing the platform module by module, but the goal hasn&apos;t
+                We&apos;re still growing, one piece at a time, but the goal hasn&apos;t
                 changed: make planning a Bir Billing trip as simple as it should be.
               </p>
               <div className="mt-8">

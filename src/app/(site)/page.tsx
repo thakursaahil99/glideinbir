@@ -210,7 +210,7 @@ export default async function HomePage() {
               One platform
             </p>
             <h2 className="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl">
-              Five modules, booked together
+              Flights, stays &amp; adventures — one checkout
             </h2>
             <p className="mt-5 max-w-md text-lg text-white/70">
               No juggling five separate operators. Pick your flight, your course, your room,
