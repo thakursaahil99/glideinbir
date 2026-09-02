@@ -157,7 +157,7 @@ export default function AdminTravelRoutesPage() {
                   </td>
                   <td className="px-4 py-3">{route.durationLabel}</td>
                   <td className="px-4 py-3">
-                    <Badge className={route.isActive ? "" : "bg-red-50 text-red-700"}>
+                    <Badge tone={route.isActive ? "success" : "danger"}>
                       {route.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </td>

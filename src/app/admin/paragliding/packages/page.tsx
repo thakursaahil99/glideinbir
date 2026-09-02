@@ -145,7 +145,7 @@ export default function AdminPackagesPage() {
                   <td className="px-4 py-3">{formatINR(pkg.price)}</td>
                   <td className="px-4 py-3">{pkg.durationMinutes} min</td>
                   <td className="px-4 py-3">
-                    <Badge className={pkg.isActive ? "" : "bg-red-50 text-red-700"}>
+                    <Badge tone={pkg.isActive ? "success" : "danger"}>
                       {pkg.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </td>

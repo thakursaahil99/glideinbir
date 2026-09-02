@@ -52,7 +52,7 @@ export default async function ParaglidingDetailPage({
       images={galleryImages}
       breadcrumbs={[{ label: "Paragliding", href: "/paragliding" }, { label: pkg.title }]}
       imageAlt={pkg.title}
-      badge={<Badge>{pkg.flightType.replace("_", " ")}</Badge>}
+      badge={<Badge tone="info">{pkg.flightType.replace("_", " ")}</Badge>}
       title={pkg.title}
       subtitle={`${pkg.location} · ${pkg.durationMinutes} minutes`}
       price={formatINR(pkg.price.toString())}

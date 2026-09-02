@@ -3,6 +3,7 @@ import { requireUserForPage } from "@/server/auth/guards";
 import { bookingService } from "@/server/modules/booking/service";
 import { Container, Card, Badge } from "@/components/ui/card";
 import { formatDate, formatINR } from "@/lib/format";
+import { statusTone } from "@/lib/status-tone";
 
 function itemSummary(booking: Awaited<ReturnType<typeof bookingService.listForUser>>[number]) {
   const parts: string[] = [];
@@ -41,7 +42,7 @@ export default async function AccountBookingsPage() {
                 </div>
                 <div className="text-right">
                   <p className="font-medium">{formatINR(booking.totalAmount.toString())}</p>
-                  <Badge>{booking.status}</Badge>
+                  <Badge tone={statusTone(booking.status)}>{booking.status}</Badge>
                 </div>
               </Card>
             </Link>

@@ -148,7 +148,7 @@ export default function AdminUsersPage() {
                     <RoleCell user={user} onChanged={load} />
                   </td>
                   <td className="px-4 py-3">
-                    <Badge className={user.isActive ? "" : "bg-red-50 text-red-700"}>
+                    <Badge tone={user.isActive ? "success" : "danger"}>
                       {user.isActive ? "Active" : "Disabled"}
                     </Badge>
                   </td>

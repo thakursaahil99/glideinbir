@@ -48,7 +48,7 @@ export default async function AdventureDetailPage({
       images={galleryImages}
       breadcrumbs={[{ label: "Adventure", href: "/adventure" }, { label: item.title }]}
       imageAlt={item.title}
-      badge={<Badge>{item.category.name}</Badge>}
+      badge={<Badge tone="success">{item.category.name}</Badge>}
       title={item.title}
       subtitle={`${item.location} · ${item.durationLabel}`}
       price={formatINR(item.price.toString())}

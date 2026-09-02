@@ -184,7 +184,7 @@ export default function AdminFaqsPage() {
                     {faq.paraglidingPackage?.title ?? faq.schoolCourse?.title ?? faq.hotel?.name ?? "—"}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge className={faq.isActive ? "" : "bg-red-50 text-red-700"}>
+                    <Badge tone={faq.isActive ? "success" : "danger"}>
                       {faq.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </td>

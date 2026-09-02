@@ -10,11 +10,28 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   );
 }
 
-export function Badge({ className, ...props }: HTMLAttributes<HTMLSpanElement>) {
+type BadgeTone = "neutral" | "brand" | "success" | "danger" | "info" | "purple" | "amber";
+
+const TONE_CLASSES: Record<BadgeTone, string> = {
+  neutral: "bg-surface text-muted",
+  brand: "bg-brand/10 text-brand-dark",
+  success: "bg-emerald-50 text-emerald-700",
+  danger: "bg-red-50 text-red-700",
+  info: "bg-sky-50 text-sky-700",
+  purple: "bg-violet-50 text-violet-700",
+  amber: "bg-amber-50 text-amber-700",
+};
+
+export function Badge({
+  tone = "neutral",
+  className,
+  ...props
+}: HTMLAttributes<HTMLSpanElement> & { tone?: BadgeTone }) {
   return (
     <span
       className={clsx(
-        "inline-flex items-center rounded-full bg-surface px-2.5 py-1 text-xs font-medium text-muted",
+        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium",
+        TONE_CLASSES[tone],
         className,
       )}
       {...props}

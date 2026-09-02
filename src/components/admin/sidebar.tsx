@@ -24,15 +24,21 @@ import {
   FileText,
   Newspaper,
 } from "lucide-react";
+import { MODULE_THEME, type ModuleKey } from "@/lib/module-theme";
 
 // `roles: null` means every admin role can see it (e.g. the Dashboard).
 // Otherwise this must match exactly what that page's API route(s) accept
 // via requireRole(...) — a link a role can't actually use is worse than no
 // link, so keep these two in sync when a route's allowed roles change.
 type Role = string;
-const SECTIONS: { title: string; links: { href: string; label: string; icon: typeof Users; roles: Role[] | null }[] }[] = [
+const SECTIONS: {
+  title: string;
+  theme: ModuleKey;
+  links: { href: string; label: string; icon: typeof Users; roles: Role[] | null }[];
+}[] = [
   {
     title: "Overview",
+    theme: "overview",
     links: [
       { href: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: null },
       { href: "/admin/users", label: "Users & roles", icon: Users, roles: ["SUPER_ADMIN"] },
@@ -40,6 +46,7 @@ const SECTIONS: { title: string; links: { href: string; label: string; icon: typ
   },
   {
     title: "Paragliding",
+    theme: "paragliding",
     links: [
       { href: "/admin/paragliding/categories", label: "Categories", icon: Tags, roles: ["PARAGLIDING_MANAGER"] },
       { href: "/admin/paragliding/packages", label: "Packages", icon: Package, roles: ["PARAGLIDING_MANAGER"] },
@@ -47,6 +54,7 @@ const SECTIONS: { title: string; links: { href: string; label: string; icon: typ
   },
   {
     title: "School",
+    theme: "school",
     links: [
       { href: "/admin/school/instructors", label: "Instructors", icon: UserRound, roles: ["SCHOOL_MANAGER"] },
       { href: "/admin/school/courses", label: "Courses", icon: GraduationCap, roles: ["SCHOOL_MANAGER"] },
@@ -54,6 +62,7 @@ const SECTIONS: { title: string; links: { href: string; label: string; icon: typ
   },
   {
     title: "Hotels",
+    theme: "hotels",
     links: [
       { href: "/admin/hotels/list", label: "Hotels", icon: Hotel, roles: ["HOTEL_MANAGER"] },
       { href: "/admin/hotels/amenities", label: "Amenities", icon: Sparkles, roles: ["HOTEL_MANAGER"] },
@@ -61,6 +70,7 @@ const SECTIONS: { title: string; links: { href: string; label: string; icon: typ
   },
   {
     title: "Adventure",
+    theme: "adventure",
     links: [
       { href: "/admin/adventure/categories", label: "Categories", icon: Tags, roles: ["ADVENTURE_MANAGER"] },
       { href: "/admin/adventure/items", label: "Items", icon: Tent, roles: ["ADVENTURE_MANAGER"] },
@@ -68,10 +78,12 @@ const SECTIONS: { title: string; links: { href: string; label: string; icon: typ
   },
   {
     title: "Travel",
+    theme: "travel",
     links: [{ href: "/admin/travel/routes", label: "Routes", icon: Bus, roles: ["TRAVEL_MANAGER"] }],
   },
   {
     title: "Sales",
+    theme: "sales",
     links: [
       { href: "/admin/bookings", label: "Bookings", icon: CalendarCheck, roles: ["BOOKING_MANAGER", "FINANCE_MANAGER"] },
       { href: "/admin/payments", label: "Payments", icon: CreditCard, roles: ["FINANCE_MANAGER"] },
@@ -80,6 +92,7 @@ const SECTIONS: { title: string; links: { href: string; label: string; icon: typ
   },
   {
     title: "Content",
+    theme: "content",
     links: [
       { href: "/admin/contact", label: "Contact messages", icon: Mail, roles: ["CONTENT_MANAGER"] },
       { href: "/admin/reviews", label: "Reviews", icon: MessageSquareText, roles: ["CONTENT_MANAGER", "BOOKING_MANAGER"] },
@@ -90,6 +103,7 @@ const SECTIONS: { title: string; links: { href: string; label: string; icon: typ
   },
   {
     title: "Super Admin",
+    theme: "audit",
     links: [{ href: "/admin/audit", label: "Deleted data", icon: Trash2, roles: [] }],
   },
 ];
@@ -121,39 +135,48 @@ export function AdminSidebar({ role }: { role: string }) {
       </div>
 
       <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-6">
-        {sections.map((section) => (
-          <div key={section.title}>
-            <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-muted">
-              {section.title}
-            </p>
-            <div className="mt-2 space-y-0.5">
-              {section.links.map((link) => {
-                // "/admin" is a prefix of every other admin route, so it
-                // needs an exact match — startsWith would keep Dashboard
-                // highlighted no matter which section you're actually on.
-                const active =
-                  pathname === link.href ||
-                  (link.href !== "/admin" && pathname.startsWith(`${link.href}/`));
-                const Icon = link.icon;
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={clsx(
-                      "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                      active
-                        ? "bg-brand text-white shadow-sm"
-                        : "text-ink/80 hover:bg-black/5 hover:text-ink",
-                    )}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
-                    {link.label}
-                  </Link>
-                );
-              })}
+        {sections.map((section) => {
+          const theme = MODULE_THEME[section.theme];
+          return (
+            <div key={section.title}>
+              <p className="flex items-center gap-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted">
+                <span className={clsx("h-1.5 w-1.5 rounded-full", theme.solid)} />
+                {section.title}
+              </p>
+              <div className="mt-2 space-y-0.5">
+                {section.links.map((link) => {
+                  // "/admin" is a prefix of every other admin route, so it
+                  // needs an exact match — startsWith would keep Dashboard
+                  // highlighted no matter which section you're actually on.
+                  const active =
+                    pathname === link.href ||
+                    (link.href !== "/admin" && pathname.startsWith(`${link.href}/`));
+                  const Icon = link.icon;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={clsx(
+                        "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                        active ? clsx(theme.solid, "text-white shadow-sm") : "text-ink/80 hover:bg-black/5 hover:text-ink",
+                      )}
+                    >
+                      <span
+                        className={clsx(
+                          "flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
+                          active ? "bg-white/20" : clsx(theme.soft, theme.text),
+                        )}
+                      >
+                        <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
+                      </span>
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
     </aside>
   );

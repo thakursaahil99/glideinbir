@@ -123,7 +123,7 @@ export default function AdminHotelsPage() {
                   <td className="px-4 py-3 font-medium">{hotel.name}</td>
                   <td className="px-4 py-3">{hotel.city}</td>
                   <td className="px-4 py-3">
-                    <Badge className={hotel.isActive ? "" : "bg-red-50 text-red-700"}>
+                    <Badge tone={hotel.isActive ? "success" : "danger"}>
                       {hotel.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </td>

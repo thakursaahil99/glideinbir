@@ -89,7 +89,7 @@ export default async function AdventureListPage({
                       <CardArrow />
                     </div>
                     <div className="p-6">
-                      <Badge>{item.category.name}</Badge>
+                      <Badge tone="success">{item.category.name}</Badge>
                       <h2 className="mt-3 text-lg font-semibold">{item.title}</h2>
                       <p className="mt-1 line-clamp-2 text-sm text-muted">
                         {item.shortDescription ?? item.description}

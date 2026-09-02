@@ -19,13 +19,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const initial = user.name.trim().charAt(0).toUpperCase();
 
   return (
-    <div className="flex min-h-screen bg-surface">
+    <div className="flex min-h-screen bg-gradient-to-br from-orange-50/50 via-surface to-indigo-50/40">
       <AdminSidebar role={user.role} />
       <div className="flex-1">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-paper/80 px-8 backdrop-blur">
           <span className="text-sm text-muted">Manage Glideinbir</span>
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-sm font-semibold text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-sm font-semibold text-white">
               {initial}
             </div>
             <div className="leading-tight">

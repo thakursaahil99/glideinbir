@@ -118,7 +118,7 @@ export default function AdminBlogPage() {
                   <td className="px-4 py-3 font-medium">{post.title}</td>
                   <td className="px-4 py-3 text-muted">{formatDate(post.publishedAt)}</td>
                   <td className="px-4 py-3">
-                    <Badge className={post.isActive ? "" : "bg-red-50 text-red-700"}>
+                    <Badge tone={post.isActive ? "success" : "danger"}>
                       {post.isActive ? "Published" : "Draft"}
                     </Badge>
                   </td>

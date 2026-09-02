@@ -135,7 +135,7 @@ export default function AdminCoursesPage() {
                   <td className="px-4 py-3">{formatINR(course.fee)}</td>
                   <td className="px-4 py-3">{course.durationDays} days</td>
                   <td className="px-4 py-3">
-                    <Badge className={course.isActive ? "" : "bg-red-50 text-red-700"}>
+                    <Badge tone={course.isActive ? "success" : "danger"}>
                       {course.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </td>

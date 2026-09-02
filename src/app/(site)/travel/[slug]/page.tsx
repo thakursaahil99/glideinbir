@@ -47,7 +47,7 @@ export default async function TravelDetailPage({
       images={galleryImages}
       breadcrumbs={[{ label: "Travel", href: "/travel" }, { label: route.title }]}
       imageAlt={route.title}
-      badge={<Badge>{route.mode}</Badge>}
+      badge={<Badge tone="amber">{route.mode}</Badge>}
       title={route.title}
       subtitle={`${route.fromLocation} → ${route.toLocation} · ${route.vehicleType} · ${route.durationLabel}`}
       price={formatINR(route.price.toString())}

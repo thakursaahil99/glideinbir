@@ -6,6 +6,7 @@ import { Card, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
 import { TableSearch, matchesSearch } from "@/components/admin/table-search";
+import { statusTone } from "@/lib/status-tone";
 
 type Instructor = { id: string; name: string };
 type Batch = {
@@ -143,7 +144,7 @@ export default function AdminCourseBatchesPage({ params }: { params: Promise<{ i
                     {batch.bookedSeats} / {batch.maxStudents}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge>{batch.status}</Badge>
+                    <Badge tone={statusTone(batch.status)}>{batch.status}</Badge>
                   </td>
                   <td className="px-4 py-3 text-right space-x-3">
                     <button

@@ -119,7 +119,7 @@ export default function AdminCouponsPage() {
                     {formatDate(coupon.startDate)} – {formatDate(coupon.endDate)}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge className={coupon.isActive ? "" : "bg-red-50 text-red-700"}>
+                    <Badge tone={coupon.isActive ? "success" : "danger"}>
                       {coupon.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </td>

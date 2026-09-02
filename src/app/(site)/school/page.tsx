@@ -62,7 +62,7 @@ export default async function SchoolListPage() {
                     </div>
                     <div className="p-6">
                       <div className="flex items-center justify-between">
-                        <Badge>{course.level}</Badge>
+                        <Badge tone="purple">{course.level}</Badge>
                         {ratings.get(course.id) && (
                           <RatingBadge average={ratings.get(course.id)!.average} count={ratings.get(course.id)!.count} />
                         )}

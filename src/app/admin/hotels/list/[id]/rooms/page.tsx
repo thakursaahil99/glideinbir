@@ -145,7 +145,7 @@ export default function AdminHotelRoomsPage({ params }: { params: Promise<{ id: 
                   <td className="px-4 py-3">{formatINR(room.pricePerNight)}</td>
                   <td className="px-4 py-3">{room.totalRooms}</td>
                   <td className="px-4 py-3">
-                    <Badge className={room.isActive ? "" : "bg-red-50 text-red-700"}>
+                    <Badge tone={room.isActive ? "success" : "danger"}>
                       {room.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </td>

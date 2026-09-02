@@ -53,7 +53,7 @@ export default async function SchoolDetailPage({
       images={galleryImages}
       breadcrumbs={[{ label: "School", href: "/school" }, { label: course.title }]}
       imageAlt={course.title}
-      badge={<Badge>{course.level}</Badge>}
+      badge={<Badge tone="purple">{course.level}</Badge>}
       title={course.title}
       subtitle={`${course.location} · ${course.durationDays} days`}
       price={formatINR(course.fee.toString())}

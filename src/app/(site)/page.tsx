@@ -20,7 +20,21 @@ import { TiltCard } from "@/components/effects/tilt-card";
 import { GradientOrb } from "@/components/effects/gradient-orb";
 import { RubiksCubeLazy } from "@/components/effects/rubiks-cube-lazy";
 import { ThemeResetButton } from "@/components/site/theme-reset-button";
-import { Wind, GraduationCap, Hotel, Tent, Bus, ShieldCheck, Plane } from "lucide-react";
+import {
+  Wind,
+  GraduationCap,
+  Hotel,
+  Tent,
+  Bus,
+  ShieldCheck,
+  Plane,
+  Layers,
+  BadgeCheck,
+  CalendarClock,
+  Lock,
+  RefreshCw,
+  MapPin,
+} from "lucide-react";
 import { SectionHeader } from "@/components/site/section-header";
 import { CardArrow } from "@/components/site/card-arrow";
 
@@ -42,26 +56,38 @@ const WHY_US = [
   {
     title: "One booking, everything",
     description: "Flights, courses, and hotel rooms in a single checkout — one payment, one confirmation.",
+    icon: Layers,
+    color: "text-blue-600 bg-blue-50",
   },
   {
     title: "Certified pilots & instructors",
     description: "Every tandem flight and course is run by BPA-certified pilots with years of Bir Billing airtime.",
+    icon: BadgeCheck,
+    color: "text-indigo-600 bg-indigo-50",
   },
   {
     title: "Real-time availability",
     description: "Slots, batches, and rooms are locked the moment you pay — no double-bookings, no surprises.",
+    icon: CalendarClock,
+    color: "text-cyan-600 bg-cyan-50",
   },
   {
     title: "Secure payments",
     description: "Razorpay-backed checkout. Your money is only captured after your booking is confirmed.",
+    icon: Lock,
+    color: "text-emerald-600 bg-emerald-50",
   },
   {
     title: "Flexible cancellation",
     description: "Plans change — cancel or reschedule from your account, no phone calls needed.",
+    icon: RefreshCw,
+    color: "text-violet-600 bg-violet-50",
   },
   {
     title: "Stay where you fly",
     description: "Book a room minutes from the takeoff site, in the same checkout as your flight.",
+    icon: MapPin,
+    color: "text-amber-600 bg-amber-50",
   },
 ];
 
@@ -150,10 +176,10 @@ export default async function HomePage() {
       </section>
 
       {flights.items.length > 0 && (
-        <Container className="py-24">
+        <Container className="bg-gradient-to-b from-blue-50/50 to-transparent py-24">
           <ScrollReveal>
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <SectionHeader eyebrow="Tandem paragliding" icon={Wind} title="Popular flights" />
+              <SectionHeader eyebrow="Tandem paragliding" icon={Wind} title="Popular flights" tone="paragliding" />
               <Link href="/paragliding" className="text-sm font-medium text-brand hover:underline">
                 View all flights →
               </Link>
@@ -253,7 +279,7 @@ export default async function HomePage() {
           <Container>
             <ScrollReveal>
               <div className="flex flex-wrap items-end justify-between gap-4">
-                <SectionHeader eyebrow="Paragliding school" icon={GraduationCap} title="Learn to fly" />
+                <SectionHeader eyebrow="Paragliding school" icon={GraduationCap} title="Learn to fly" tone="school" />
                 <Link href="/school" className="text-sm font-medium text-brand hover:underline">
                   View all courses →
                 </Link>
@@ -275,7 +301,7 @@ export default async function HomePage() {
                         <CardArrow />
                       </div>
                       <div className="p-6">
-                        <Badge>{course.level}</Badge>
+                        <Badge tone="purple">{course.level}</Badge>
                         <h3 className="mt-3 text-lg font-semibold">{course.title}</h3>
                         <p className="mt-2 line-clamp-2 text-sm text-muted">{course.description}</p>
                         <div className="mt-5 flex items-baseline justify-between border-t border-border pt-4">
@@ -295,7 +321,7 @@ export default async function HomePage() {
       {hotel && (
         <Container className="py-24">
           <ScrollReveal>
-            <SectionHeader eyebrow="Where to stay" icon={Hotel} title="Rest easy near the launch" />
+            <SectionHeader eyebrow="Where to stay" icon={Hotel} title="Rest easy near the launch" tone="hotels" />
             <div className="mt-8 grid items-center gap-10 overflow-hidden rounded-3xl border border-border md:grid-cols-2">
               <div className="relative h-72 md:h-full md:min-h-[24rem]">
                 <Image
@@ -328,7 +354,7 @@ export default async function HomePage() {
           <Container>
             <ScrollReveal>
               <div className="flex flex-wrap items-end justify-between gap-4">
-                <SectionHeader eyebrow="Beyond the flight" icon={Tent} title="Adventure" />
+                <SectionHeader eyebrow="Beyond the flight" icon={Tent} title="Adventure" tone="adventure" />
                 <Link href="/adventure" className="text-sm font-medium text-brand hover:underline">
                   View all adventures →
                 </Link>
@@ -350,7 +376,7 @@ export default async function HomePage() {
                         <CardArrow />
                       </div>
                       <div className="p-6">
-                        <Badge>{item.category.name}</Badge>
+                        <Badge tone="success">{item.category.name}</Badge>
                         <h3 className="mt-3 text-lg font-semibold">{item.title}</h3>
                         <p className="mt-2 line-clamp-2 text-sm text-muted">
                           {item.shortDescription ?? item.description}
@@ -370,10 +396,10 @@ export default async function HomePage() {
       )}
 
       {routes.items.length > 0 && (
-        <Container className="py-24">
+        <Container className="bg-gradient-to-b from-violet-50/50 to-transparent py-24">
           <ScrollReveal>
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <SectionHeader eyebrow="Getting there" icon={Bus} title="Travel" />
+              <SectionHeader eyebrow="Getting there" icon={Bus} title="Travel" tone="travel" />
               <Link href="/travel" className="text-sm font-medium text-brand hover:underline">
                 View all routes →
               </Link>
@@ -431,7 +457,10 @@ export default async function HomePage() {
             {WHY_US.map((item) => (
               <StaggerItem key={item.title}>
                 <Card className="card-glow-hover h-full p-6">
-                  <h3 className="font-semibold">{item.title}</h3>
+                  <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${item.color}`}>
+                    <item.icon className="h-5 w-5" strokeWidth={2} />
+                  </div>
+                  <h3 className="mt-4 font-semibold">{item.title}</h3>
                   <p className="mt-2 text-sm text-muted">{item.description}</p>
                 </Card>
               </StaggerItem>

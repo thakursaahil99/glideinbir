@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { formatDate, formatINR } from "@/lib/format";
 import { TableSearch, matchesSearch } from "@/components/admin/table-search";
+import { statusTone } from "@/lib/status-tone";
 
 type Booking = {
   id: string;
@@ -53,7 +54,7 @@ export default function AdminBookingsPage() {
                   </td>
                   <td className="px-4 py-3">{booking.customerName}</td>
                   <td className="px-4 py-3">
-                    <Badge>{booking.status}</Badge>
+                    <Badge tone={statusTone(booking.status)}>{booking.status}</Badge>
                   </td>
                   <td className="px-4 py-3">{formatINR(booking.totalAmount)}</td>
                   <td className="px-4 py-3 text-muted">{formatDate(booking.createdAt)}</td>

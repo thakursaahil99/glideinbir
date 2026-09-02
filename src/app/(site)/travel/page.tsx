@@ -85,7 +85,7 @@ export default async function TravelListPage({
                       <CardArrow />
                     </div>
                     <div className="p-6">
-                      <Badge>{route.mode}</Badge>
+                      <Badge tone="amber">{route.mode}</Badge>
                       <h2 className="mt-3 text-lg font-semibold">{route.title}</h2>
                       <p className="mt-1 text-sm text-muted">
                         {route.fromLocation} → {route.toLocation}

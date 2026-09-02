@@ -4,6 +4,7 @@ import { bookingService } from "@/server/modules/booking/service";
 import { Card, Container, Badge } from "@/components/ui/card";
 import { BookingActions } from "@/components/admin/booking-actions";
 import { formatDate, formatINR } from "@/lib/format";
+import { statusTone } from "@/lib/status-tone";
 
 export default async function AdminBookingDetailPage({
   params,
@@ -30,7 +31,7 @@ export default async function AdminBookingDetailPage({
             {booking.customerEmail} · {booking.customerPhone}
           </p>
         </div>
-        <Badge>{booking.status}</Badge>
+        <Badge tone={statusTone(booking.status)}>{booking.status}</Badge>
       </div>
 
       <Card className="mt-6 divide-y divide-border p-6">
@@ -97,7 +98,7 @@ export default async function AdminBookingDetailPage({
             {booking.payments.map((payment) => (
               <div key={payment.id} className="flex justify-between text-sm">
                 <span className="text-muted">{payment.razorpayOrderId}</span>
-                <Badge>{payment.status}</Badge>
+                <Badge tone={statusTone(payment.status)}>{payment.status}</Badge>
               </div>
             ))}
           </div>

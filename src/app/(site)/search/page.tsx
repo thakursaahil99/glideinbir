@@ -64,7 +64,7 @@ export default async function SearchPage({
                   <CardArrow />
                 </div>
                 <div className="p-5">
-                  <Badge>{result.typeLabel}</Badge>
+                  <Badge tone="brand">{result.typeLabel}</Badge>
                   <h2 className="mt-2 font-semibold">{result.title}</h2>
                   <p className="mt-1 text-sm text-muted">{result.meta}</p>
                 </div>

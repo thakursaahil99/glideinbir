@@ -102,7 +102,7 @@ export default async function ParaglidingListPage({
                       </div>
                       <div className="p-6">
                         <div className="flex items-center justify-between">
-                          <Badge>{pkg.flightType.replace("_", " ")}</Badge>
+                          <Badge tone="info">{pkg.flightType.replace("_", " ")}</Badge>
                           {ratings.get(pkg.id) && (
                             <RatingBadge average={ratings.get(pkg.id)!.average} count={ratings.get(pkg.id)!.count} />
                           )}

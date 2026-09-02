@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { formatDate, formatINR } from "@/lib/format";
 import { TableSearch, matchesSearch } from "@/components/admin/table-search";
+import { statusTone } from "@/lib/status-tone";
 
 type Payment = {
   id: string;
@@ -49,7 +50,7 @@ export default function AdminPaymentsPage() {
                   <td className="px-4 py-3">{payment.booking.customerName}</td>
                   <td className="px-4 py-3">{formatINR(payment.amount)}</td>
                   <td className="px-4 py-3">
-                    <Badge>{payment.status}</Badge>
+                    <Badge tone={statusTone(payment.status)}>{payment.status}</Badge>
                   </td>
                   <td className="px-4 py-3 text-muted">{formatDate(payment.createdAt)}</td>
                 </tr>
