@@ -1,22 +1,26 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { BRAND_COLOR_BOOTSTRAP_SCRIPT } from "@/lib/theme-color";
 import { ToastProvider } from "@/components/ui/toast";
 import "./globals.css";
 
-// Plus Jakarta Sans for headings (distinctive, geometric — replaces the
-// browser default that made every section look the same) and Inter for
-// body copy (proven readability at small sizes for descriptions/forms).
-const headingFont = Plus_Jakarta_Sans({
+// Space Grotesk everywhere — one geometric, wide-letterform, faintly
+// futuristic family for both headings and body (Zoqula itself is a paid
+// display font with no free commercial license, so this is the closest
+// free-for-commercial-use match). Two weight ranges off the same family
+// keep the heading/body visual hierarchy Plus Jakarta Sans + Inter used
+// to provide, without mixing in a second typeface.
+const headingFont = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-heading",
-  weight: ["500", "600", "700", "800"],
+  weight: ["500", "600", "700"],
 });
-const bodyFont = Inter({
+const bodyFont = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-body",
+  weight: ["400", "500"],
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://glideinbir.vercel.app";
