@@ -8,6 +8,11 @@ import { blogService } from "@/server/modules/blog/service";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://glideinbir.vercel.app";
 
+// Without this, Next.js generates sitemap.xml once at build time and
+// serves that same static file until the next deploy — a new package,
+// hotel, or blog post added afterward silently wouldn't appear in it.
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [flights, courses, hotels, adventures, routes, instructors, posts] = await Promise.all([
     packageService.listPublic({ page: 1, pageSize: 50 }),
