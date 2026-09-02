@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { ReactNode } from "react";
 import { Container } from "@/components/ui/card";
 import { ParticleField } from "@/components/effects/particle-field";
 import { ShootingStars } from "@/components/effects/shooting-stars";
@@ -22,6 +23,7 @@ export function ModuleHero({
   highlights,
   effect = "dust",
   shape,
+  extra,
 }: {
   image: string;
   imageAlt: string;
@@ -32,6 +34,8 @@ export function ModuleHero({
   effect?: Effect;
   /** Optional floating 3D accent shape + tint, rendered bottom-right on desktop only. */
   shape?: { variant: ShapeVariant; color?: string; emissive?: string };
+  /** Optional extra content (e.g. a live-conditions widget) below the highlight chips. */
+  extra?: ReactNode;
 }) {
   return (
     <section className="relative flex min-h-[60vh] items-center overflow-hidden md:min-h-[68vh]">
@@ -78,6 +82,7 @@ export function ModuleHero({
             ))}
           </div>
         )}
+        {extra && <div className="mt-6">{extra}</div>}
       </Container>
     </section>
   );

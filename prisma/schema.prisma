@@ -997,6 +997,22 @@ model PageContent {
   updatedAt DateTime @updatedAt
 }
 
+// SEO/content-marketing articles — separate from PageContent since these
+// are a list (many posts, browsable), not one row per fixed key.
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String
+  body        String
+  coverImage  String?
+  isActive    Boolean  @default(true)
+  publishedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, publishedAt])
+}
+
 // Global key-value settings: tax rate, service fee, business info, toggles.
 model SiteSetting {
   key       String   @id

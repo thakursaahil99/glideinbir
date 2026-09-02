@@ -37,6 +37,12 @@ export default async function SchoolListPage() {
       />
 
       <Container className="py-16">
+        <div className="flex justify-end">
+          <Link href="/school/instructors" className="text-sm font-medium text-brand hover:underline">
+            Meet our instructors →
+          </Link>
+        </div>
+
         {items.length === 0 ? (
           <p className="text-muted">No courses are available right now.</p>
         ) : (

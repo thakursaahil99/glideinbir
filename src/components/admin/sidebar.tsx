@@ -22,6 +22,7 @@ import {
   HelpCircle,
   MessageSquareText,
   FileText,
+  Newspaper,
 } from "lucide-react";
 
 // `roles: null` means every admin role can see it (e.g. the Dashboard).
@@ -84,6 +85,7 @@ const SECTIONS: { title: string; links: { href: string; label: string; icon: typ
       { href: "/admin/reviews", label: "Reviews", icon: MessageSquareText, roles: ["CONTENT_MANAGER", "BOOKING_MANAGER"] },
       { href: "/admin/faqs", label: "FAQs", icon: HelpCircle, roles: ["CONTENT_MANAGER"] },
       { href: "/admin/pages", label: "Site pages", icon: FileText, roles: ["CONTENT_MANAGER"] },
+      { href: "/admin/blog", label: "Blog", icon: Newspaper, roles: ["CONTENT_MANAGER"] },
     ],
   },
   {

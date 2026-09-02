@@ -109,6 +109,13 @@ export const courseService = {
 
 export const instructorService = {
   list: () => instructorRepository.findMany(),
+  listPublic: () => instructorRepository.findManyActive(),
+
+  async getBySlug(slug: string) {
+    const instructor = await instructorRepository.findBySlug(slug);
+    if (!instructor || !instructor.isActive) throw new NotFoundError("Instructor not found");
+    return instructor;
+  },
 
   async create(input: InstructorInput) {
     const slug = slugify(input.slug ?? input.name);

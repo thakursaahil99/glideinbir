@@ -34,7 +34,9 @@ export const courseMediaRepository = {
 
 export const instructorRepository = {
   findMany: () => prisma.instructor.findMany({ orderBy: { name: "asc" } }),
+  findManyActive: () => prisma.instructor.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
   findById: (id: string) => prisma.instructor.findUnique({ where: { id } }),
+  findBySlug: (slug: string) => prisma.instructor.findUnique({ where: { slug } }),
   create: (data: Prisma.InstructorCreateInput) => prisma.instructor.create({ data }),
   update: (id: string, data: Prisma.InstructorUpdateInput) =>
     prisma.instructor.update({ where: { id }, data }),

@@ -79,6 +79,18 @@ export function bookingReminderEmail(params: { name: string; bookingNumber: stri
   return { subject: `Reminder — your booking is tomorrow (${params.bookingNumber})`, html };
 }
 
+export function abandonedBookingEmail(params: { name: string; bookingNumber: string; bookingUrl: string }) {
+  const html = shell(
+    "You left something behind",
+    `<p>Hi ${params.name},</p>
+     <p>Your booking <strong>${params.bookingNumber}</strong> is still waiting on payment — your slot isn't
+     held forever, so it's worth finishing up if you still want it.</p>
+     ${button(params.bookingUrl, "Complete your booking")}
+     <p style="margin-top:24px;color:#78716c;">Changed your mind, or ran into an issue paying? Call +91 98053 38877 and we'll sort it out.</p>`,
+  );
+  return { subject: `Still want ${params.bookingNumber}? Your booking is waiting`, html };
+}
+
 export function contactAdminNotificationEmail(params: {
   name: string;
   email: string;

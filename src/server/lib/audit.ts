@@ -47,6 +47,7 @@ export const AUDIT_ENTITY_LABELS: Record<string, string> = {
   COUPON: "Coupon",
   REVIEW: "Review",
   FAQ: "FAQ",
+  BLOG_POST: "Blog post",
 };
 
 export type AuditEntityType = keyof typeof AUDIT_ENTITY_LABELS;
@@ -368,6 +369,11 @@ async function restoreFaq(d: Json) {
   return { id: faq.id as string };
 }
 
+async function restoreBlogPost(d: Json) {
+  await prisma.blogPost.create({ data: d as Prisma.BlogPostCreateInput });
+  return { id: d.id as string };
+}
+
 const RESTORERS: Record<AuditEntityType, (data: Json) => Promise<{ id: string }>> = {
   PARAGLIDING_CATEGORY: restoreParaglidingCategory,
   PARAGLIDING_PACKAGE: restoreParaglidingPackage,
@@ -383,6 +389,7 @@ const RESTORERS: Record<AuditEntityType, (data: Json) => Promise<{ id: string }>
   COUPON: restoreCoupon,
   REVIEW: restoreReview,
   FAQ: restoreFaq,
+  BLOG_POST: restoreBlogPost,
 };
 
 export async function restoreAuditLog(auditLogId: string, restoredById: string) {

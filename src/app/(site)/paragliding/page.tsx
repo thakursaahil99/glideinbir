@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
@@ -10,6 +11,7 @@ import { TiltCard } from "@/components/effects/tilt-card";
 import { ModuleHero } from "@/components/site/module-hero";
 import { CardArrow } from "@/components/site/card-arrow";
 import { RatingBadge } from "@/components/site/rating-badge";
+import { FlyingConditions } from "@/components/site/flying-conditions";
 import { reviewService } from "@/server/modules/review/service";
 
 export const metadata: Metadata = {
@@ -52,6 +54,11 @@ export default async function ParaglidingListPage({
         subtitle="Fly over the Bir Billing valley with a certified pilot — from a 15-minute joy ride to a full cross-country flight. Pick a package and an available slot."
         highlights={["8,000 ft launch to landing", "15 min to full-day flights", "BPA-certified pilots"]}
         effect="stars"
+        extra={
+          <Suspense fallback={null}>
+            <FlyingConditions />
+          </Suspense>
+        }
       />
 
       <Container className="py-16">
