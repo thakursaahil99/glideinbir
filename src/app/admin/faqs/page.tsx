@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type Faq = {
   id: string;
@@ -39,6 +40,8 @@ export default function AdminFaqsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState(EMPTY_FORM);
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => faqs?.filter((f) => matchesSearch(f, search)), [faqs, search]);
 
   function load() {
     fetch("/api/admin/faqs")
@@ -150,6 +153,8 @@ export default function AdminFaqsPage() {
       </p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]">
+        <div>
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by question, answer…" />
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -162,7 +167,7 @@ export default function AdminFaqsPage() {
               </tr>
             </thead>
             <tbody>
-              {faqs?.map((faq) => (
+              {filtered?.map((faq) => (
                 <tr
                   key={faq.id}
                   className={
@@ -203,16 +208,17 @@ export default function AdminFaqsPage() {
                   </td>
                 </tr>
               ))}
-              {faqs && faqs.length === 0 && (
+              {faqs && filtered && filtered.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                    No FAQs yet.
+                    {search ? "No matches." : "No FAQs yet."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </Card>
+        </div>
 
         <Card className="h-fit p-5">
           <div className="flex items-center justify-between">

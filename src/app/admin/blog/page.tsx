@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type Post = {
   id: string;
@@ -24,6 +25,8 @@ export default function AdminBlogPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState(EMPTY_FORM);
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => posts?.filter((p) => matchesSearch(p, search)), [posts, search]);
 
   function load() {
     fetch("/api/admin/blog")
@@ -90,6 +93,8 @@ export default function AdminBlogPage() {
       </p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]">
+        <div>
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by title…" />
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -101,7 +106,7 @@ export default function AdminBlogPage() {
               </tr>
             </thead>
             <tbody>
-              {posts?.map((post) => (
+              {filtered?.map((post) => (
                 <tr
                   key={post.id}
                   className={
@@ -137,16 +142,17 @@ export default function AdminBlogPage() {
                   </td>
                 </tr>
               ))}
-              {posts && posts.length === 0 && (
+              {posts && filtered && filtered.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-4 py-8 text-center text-muted">
-                    No posts yet.
+                    {search ? "No matches." : "No posts yet."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </Card>
+        </div>
 
         <Card className="h-fit p-5">
           <div className="flex items-center justify-between">

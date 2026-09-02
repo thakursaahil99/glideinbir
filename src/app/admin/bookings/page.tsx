@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { formatDate, formatINR } from "@/lib/format";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type Booking = {
   id: string;
@@ -16,6 +17,8 @@ type Booking = {
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<Booking[] | null>(null);
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => bookings?.filter((b) => matchesSearch(b, search)), [bookings, search]);
 
   useEffect(() => {
     fetch("/api/admin/bookings")
@@ -27,43 +30,46 @@ export default function AdminBookingsPage() {
     <div>
       <h1 className="text-2xl font-bold tracking-tight">Bookings</h1>
 
-      <Card className="mt-6 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
-            <tr>
-              <th className="px-4 py-3">Booking</th>
-              <th className="px-4 py-3">Customer</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Total</th>
-              <th className="px-4 py-3">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bookings?.map((booking) => (
-              <tr key={booking.id} className="border-b border-border last:border-0 transition-colors hover:bg-black/[0.025]">
-                <td className="px-4 py-3">
-                  <Link href={`/admin/bookings/${booking.id}`} className="font-medium text-brand">
-                    {booking.bookingNumber}
-                  </Link>
-                </td>
-                <td className="px-4 py-3">{booking.customerName}</td>
-                <td className="px-4 py-3">
-                  <Badge>{booking.status}</Badge>
-                </td>
-                <td className="px-4 py-3">{formatINR(booking.totalAmount)}</td>
-                <td className="px-4 py-3 text-muted">{formatDate(booking.createdAt)}</td>
-              </tr>
-            ))}
-            {bookings && bookings.length === 0 && (
+      <div className="mt-6">
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by booking number, customer…" />
+        <Card className="overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                  No bookings yet.
-                </td>
+                <th className="px-4 py-3">Booking</th>
+                <th className="px-4 py-3">Customer</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Total</th>
+                <th className="px-4 py-3">Date</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </Card>
+            </thead>
+            <tbody>
+              {filtered?.map((booking) => (
+                <tr key={booking.id} className="border-b border-border last:border-0 transition-colors hover:bg-black/[0.025]">
+                  <td className="px-4 py-3">
+                    <Link href={`/admin/bookings/${booking.id}`} className="font-medium text-brand">
+                      {booking.bookingNumber}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3">{booking.customerName}</td>
+                  <td className="px-4 py-3">
+                    <Badge>{booking.status}</Badge>
+                  </td>
+                  <td className="px-4 py-3">{formatINR(booking.totalAmount)}</td>
+                  <td className="px-4 py-3 text-muted">{formatDate(booking.createdAt)}</td>
+                </tr>
+              ))}
+              {bookings && filtered && filtered.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-muted">
+                    {search ? "No matches." : "No bookings yet."}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </Card>
+      </div>
     </div>
   );
 }

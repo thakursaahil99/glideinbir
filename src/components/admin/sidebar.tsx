@@ -128,7 +128,12 @@ export function AdminSidebar({ role }: { role: string }) {
             </p>
             <div className="mt-2 space-y-0.5">
               {section.links.map((link) => {
-                const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+                // "/admin" is a prefix of every other admin route, so it
+                // needs an exact match — startsWith would keep Dashboard
+                // highlighted no matter which section you're actually on.
+                const active =
+                  pathname === link.href ||
+                  (link.href !== "/admin" && pathname.startsWith(`${link.href}/`));
                 const Icon = link.icon;
                 return (
                   <Link

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Card, Badge } from "@/components/ui/card";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type DeletedRecord = {
   id: string;
@@ -32,6 +33,8 @@ export function DeletedRecordsTable() {
   const [error, setError] = useState<string | null>(null);
   const [restoringId, setRestoringId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => records?.filter((r) => matchesSearch(r, search)), [records, search]);
 
   function load() {
     fetch("/api/admin/audit/deleted")
@@ -58,7 +61,9 @@ export function DeletedRecordsTable() {
   }
 
   return (
-    <Card className="overflow-hidden">
+    <div>
+      <TableSearch value={search} onChange={setSearch} placeholder="Search by type, name, deleted by…" />
+      <Card className="overflow-hidden">
       <table className="w-full text-sm">
         <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
           <tr>
@@ -71,7 +76,7 @@ export function DeletedRecordsTable() {
           </tr>
         </thead>
         <tbody>
-          {records?.map((record) => (
+          {filtered?.map((record) => (
             <tr
               key={record.id}
               className="border-b border-border last:border-0 transition-colors hover:bg-black/[0.025]"
@@ -114,10 +119,10 @@ export function DeletedRecordsTable() {
               </td>
             </tr>
           ))}
-          {records && records.length === 0 && (
+          {records && filtered && filtered.length === 0 && (
             <tr>
               <td colSpan={6} className="px-4 py-8 text-center text-muted">
-                Nothing has been deleted yet.
+                {search ? "No matches." : "Nothing has been deleted yet."}
               </td>
             </tr>
           )}
@@ -131,6 +136,7 @@ export function DeletedRecordsTable() {
         </tbody>
       </table>
       {error && <p className="border-t border-border px-4 py-3 text-sm text-red-600">{error}</p>}
-    </Card>
+      </Card>
+    </div>
   );
 }

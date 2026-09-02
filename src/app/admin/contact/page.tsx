@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { formatDate } from "@/lib/format";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type ContactMessage = {
   id: string;
@@ -17,6 +18,8 @@ type ContactMessage = {
 export default function AdminContactPage() {
   const [messages, setMessages] = useState<ContactMessage[] | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => messages?.filter((m) => matchesSearch(m, search)), [messages, search]);
 
   function load() {
     fetch("/api/admin/contact")
@@ -47,8 +50,12 @@ export default function AdminContactPage() {
         emailed to the Super Admin.
       </p>
 
-      <div className="mt-6 space-y-4">
-        {messages?.map((message) => (
+      <div className="mt-4">
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by name, email, message…" />
+      </div>
+
+      <div className="mt-2 space-y-4">
+        {filtered?.map((message) => (
           <Card key={message.id} className={message.isRead ? "p-5" : "border-brand/40 bg-brand/5 p-5"}>
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -76,8 +83,8 @@ export default function AdminContactPage() {
             <p className="mt-3 whitespace-pre-wrap text-sm">{message.message}</p>
           </Card>
         ))}
-        {messages && messages.length === 0 && (
-          <Card className="p-8 text-center text-muted">No messages yet.</Card>
+        {messages && filtered && filtered.length === 0 && (
+          <Card className="p-8 text-center text-muted">{search ? "No matches." : "No messages yet."}</Card>
         )}
         {!messages && <Card className="p-8 text-center text-muted">Loading…</Card>}
       </div>

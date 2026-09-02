@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { formatDate } from "@/lib/format";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type Review = {
   id: string;
@@ -34,6 +35,8 @@ export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<Review[] | null>(null);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["value"]>("");
   const [isPending, startTransition] = useTransition();
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => reviews?.filter((r) => matchesSearch(r, search)), [reviews, search]);
 
   function load() {
     const qs = filter ? `?status=${filter}` : "";
@@ -88,8 +91,12 @@ export default function AdminReviewsPage() {
         ))}
       </div>
 
-      <div className="mt-6 space-y-4">
-        {reviews?.map((review) => {
+      <div className="mt-4">
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by customer, comment, target…" />
+      </div>
+
+      <div className="mt-2 space-y-4">
+        {filtered?.map((review) => {
           const target = review.paraglidingPackage?.title ?? review.schoolCourse?.title ?? review.hotel?.name;
           return (
             <Card key={review.id} className="p-5">
@@ -139,7 +146,9 @@ export default function AdminReviewsPage() {
             </Card>
           );
         })}
-        {reviews && reviews.length === 0 && <Card className="p-8 text-center text-muted">No reviews yet.</Card>}
+        {reviews && filtered && filtered.length === 0 && (
+          <Card className="p-8 text-center text-muted">{search ? "No matches." : "No reviews yet."}</Card>
+        )}
         {!reviews && <Card className="p-8 text-center text-muted">Loading…</Card>}
       </div>
     </div>

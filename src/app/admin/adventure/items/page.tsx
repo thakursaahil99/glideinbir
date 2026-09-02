@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatINR } from "@/lib/format";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type Category = { id: string; name: string };
 type Item = {
@@ -40,6 +41,8 @@ export default function AdminAdventureItemsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState(EMPTY_FORM);
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => items?.filter((i) => matchesSearch(i, search)), [items, search]);
 
   function load() {
     fetch("/api/admin/adventure/categories")
@@ -110,6 +113,8 @@ export default function AdminAdventureItemsPage() {
       <p className="mt-1 text-sm text-muted">Camping, trekking, cottages/stays, and other adventure activities.</p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div>
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by title, category, location…" />
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -123,7 +128,7 @@ export default function AdminAdventureItemsPage() {
               </tr>
             </thead>
             <tbody>
-              {items?.map((item) => (
+              {filtered?.map((item) => (
                 <tr
                   key={item.id}
                   className={
@@ -169,16 +174,17 @@ export default function AdminAdventureItemsPage() {
                   </td>
                 </tr>
               ))}
-              {items && items.length === 0 && (
+              {items && filtered && filtered.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-muted">
-                    No items yet.
+                    {search ? "No matches." : "No items yet."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </Card>
+        </div>
 
         <Card className="h-fit p-5">
           <div className="flex items-center justify-between">

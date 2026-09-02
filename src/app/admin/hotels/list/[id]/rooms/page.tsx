@@ -1,10 +1,11 @@
 "use client";
 
-import { use, useEffect, useState, useTransition } from "react";
+import { use, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { Card, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatINR } from "@/lib/format";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type Room = {
   id: string;
@@ -36,6 +37,8 @@ export default function AdminHotelRoomsPage({ params }: { params: Promise<{ id: 
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState(EMPTY_FORM);
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => rooms?.filter((r) => matchesSearch(r, search)), [rooms, search]);
 
   function load() {
     fetch(`/api/admin/hotels/${id}/rooms`)
@@ -113,6 +116,8 @@ export default function AdminHotelRoomsPage({ params }: { params: Promise<{ id: 
       </p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div>
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by name, type…" />
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -126,7 +131,7 @@ export default function AdminHotelRoomsPage({ params }: { params: Promise<{ id: 
               </tr>
             </thead>
             <tbody>
-              {rooms?.map((room) => (
+              {filtered?.map((room) => (
                 <tr
                   key={room.id}
                   className={
@@ -164,16 +169,17 @@ export default function AdminHotelRoomsPage({ params }: { params: Promise<{ id: 
                   </td>
                 </tr>
               ))}
-              {rooms && rooms.length === 0 && (
+              {rooms && filtered && filtered.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-muted">
-                    No rooms yet.
+                    {search ? "No matches." : "No rooms yet."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </Card>
+        </div>
 
         <Card className="h-fit p-5">
           <div className="flex items-center justify-between">

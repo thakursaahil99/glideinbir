@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type Coupon = {
   id: string;
@@ -23,6 +24,8 @@ export default function AdminCouponsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState(EMPTY_FORM);
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => coupons?.filter((c) => matchesSearch(c, search)), [coupons, search]);
 
   function load() {
     fetch("/api/admin/coupons")
@@ -85,6 +88,8 @@ export default function AdminCouponsPage() {
       <h1 className="text-2xl font-bold tracking-tight">Coupons</h1>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div>
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by code…" />
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -97,7 +102,7 @@ export default function AdminCouponsPage() {
               </tr>
             </thead>
             <tbody>
-              {coupons?.map((coupon) => (
+              {filtered?.map((coupon) => (
                 <tr
                   key={coupon.id}
                   className={
@@ -138,16 +143,17 @@ export default function AdminCouponsPage() {
                   </td>
                 </tr>
               ))}
-              {coupons && coupons.length === 0 && (
+              {coupons && filtered && filtered.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                    No coupons yet.
+                    {search ? "No matches." : "No coupons yet."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </Card>
+        </div>
 
         <Card className="h-fit p-5">
           <div className="flex items-center justify-between">

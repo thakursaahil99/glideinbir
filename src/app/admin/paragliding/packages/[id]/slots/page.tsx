@@ -1,10 +1,11 @@
 "use client";
 
-import { use, useEffect, useState, useTransition } from "react";
+import { use, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type Slot = {
   id: string;
@@ -78,6 +79,8 @@ export default function AdminPackageSlotsPage({ params }: { params: Promise<{ id
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState({ date: "", startTime: "07:00", capacity: "4" });
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => slots?.filter((s) => matchesSearch(s, search)), [slots, search]);
 
   function load() {
     fetch(`/api/admin/paragliding/packages/${id}/slots`)
@@ -123,6 +126,8 @@ export default function AdminPackageSlotsPage({ params }: { params: Promise<{ id
       <p className="mt-1 text-sm text-muted">Capacity and status can be edited inline; date/time are fixed once created.</p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div>
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by date, status…" />
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -135,7 +140,7 @@ export default function AdminPackageSlotsPage({ params }: { params: Promise<{ id
               </tr>
             </thead>
             <tbody>
-              {slots?.map((slot) => (
+              {filtered?.map((slot) => (
                 <tr key={slot.id} className="border-b border-border last:border-0 transition-colors hover:bg-black/[0.025]">
                   <td className="px-4 py-3">{formatDate(slot.date)}</td>
                   <td className="px-4 py-3">{slot.startTime}</td>
@@ -155,16 +160,17 @@ export default function AdminPackageSlotsPage({ params }: { params: Promise<{ id
                   </td>
                 </tr>
               ))}
-              {slots && slots.length === 0 && (
+              {slots && filtered && filtered.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                    No slots yet.
+                    {search ? "No matches." : "No slots yet."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </Card>
+        </div>
 
         <Card className="h-fit p-5">
           <h3 className="font-semibold">Add slot</h3>

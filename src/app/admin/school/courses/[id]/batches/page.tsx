@@ -1,10 +1,11 @@
 "use client";
 
-import { use, useEffect, useState, useTransition } from "react";
+import { use, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { Card, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type Instructor = { id: string; name: string };
 type Batch = {
@@ -37,6 +38,8 @@ export default function AdminCourseBatchesPage({ params }: { params: Promise<{ i
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState(EMPTY_FORM);
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => batches?.filter((b) => matchesSearch(b, search)), [batches, search]);
 
   function load() {
     fetch("/api/admin/school/instructors")
@@ -109,6 +112,8 @@ export default function AdminCourseBatchesPage({ params }: { params: Promise<{ i
       <h1 className="mt-2 text-2xl font-bold tracking-tight">Batches</h1>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div>
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by instructor, location, status…" />
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -121,7 +126,7 @@ export default function AdminCourseBatchesPage({ params }: { params: Promise<{ i
               </tr>
             </thead>
             <tbody>
-              {batches?.map((batch) => (
+              {filtered?.map((batch) => (
                 <tr
                   key={batch.id}
                   className={
@@ -160,16 +165,17 @@ export default function AdminCourseBatchesPage({ params }: { params: Promise<{ i
                   </td>
                 </tr>
               ))}
-              {batches && batches.length === 0 && (
+              {batches && filtered && filtered.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                    No batches yet.
+                    {search ? "No matches." : "No batches yet."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </Card>
+        </div>
 
         <Card className="h-fit p-5">
           <div className="flex items-center justify-between">

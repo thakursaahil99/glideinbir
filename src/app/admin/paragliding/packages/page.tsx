@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatINR } from "@/lib/format";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type Category = { id: string; name: string };
 type Package = {
@@ -40,6 +41,8 @@ export default function AdminPackagesPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState(EMPTY_FORM);
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => packages?.filter((p) => matchesSearch(p, search)), [packages, search]);
 
   function load() {
     fetch("/api/admin/paragliding/categories")
@@ -113,6 +116,8 @@ export default function AdminPackagesPage() {
       <h1 className="text-2xl font-bold tracking-tight">Paragliding packages</h1>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div>
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by title, category, location…" />
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -126,7 +131,7 @@ export default function AdminPackagesPage() {
               </tr>
             </thead>
             <tbody>
-              {packages?.map((pkg) => (
+              {filtered?.map((pkg) => (
                 <tr
                   key={pkg.id}
                   className={
@@ -170,16 +175,17 @@ export default function AdminPackagesPage() {
                   </td>
                 </tr>
               ))}
-              {packages && packages.length === 0 && (
+              {packages && filtered && filtered.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-muted">
-                    No packages yet.
+                    {search ? "No matches." : "No packages yet."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </Card>
+        </div>
 
         <Card className="h-fit p-5">
           <div className="flex items-center justify-between">

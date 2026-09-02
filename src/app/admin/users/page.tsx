@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type User = {
   id: string;
@@ -75,6 +76,8 @@ export default function AdminUsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "CUSTOMER" });
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => users?.filter((u) => matchesSearch(u, search)), [users, search]);
 
   function load() {
     fetch("/api/admin/users")
@@ -122,6 +125,8 @@ export default function AdminUsersPage() {
       </p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div>
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by name, email, role…" />
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -135,7 +140,7 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody>
-              {users?.map((user) => (
+              {filtered?.map((user) => (
                 <tr key={user.id} className="border-b border-border last:border-0 transition-colors hover:bg-black/[0.025]">
                   <td className="px-4 py-3 font-medium">{user.name}</td>
                   <td className="px-4 py-3">{user.email}</td>
@@ -160,16 +165,17 @@ export default function AdminUsersPage() {
                   </td>
                 </tr>
               ))}
-              {users && users.length === 0 && (
+              {users && filtered && filtered.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-muted">
-                    No users yet.
+                    {search ? "No matches." : "No users yet."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </Card>
+        </div>
 
         <Card className="h-fit p-5">
           <h3 className="font-semibold">Add staff account</h3>

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatINR } from "@/lib/format";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type Course = {
   id: string;
@@ -36,6 +37,8 @@ export default function AdminCoursesPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState(EMPTY_FORM);
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => courses?.filter((c) => matchesSearch(c, search)), [courses, search]);
 
   function load() {
     fetch("/api/admin/school/courses")
@@ -103,6 +106,8 @@ export default function AdminCoursesPage() {
       <h1 className="text-2xl font-bold tracking-tight">Courses</h1>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div>
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by title, level, location…" />
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -116,7 +121,7 @@ export default function AdminCoursesPage() {
               </tr>
             </thead>
             <tbody>
-              {courses?.map((course) => (
+              {filtered?.map((course) => (
                 <tr
                   key={course.id}
                   className={
@@ -160,16 +165,17 @@ export default function AdminCoursesPage() {
                   </td>
                 </tr>
               ))}
-              {courses && courses.length === 0 && (
+              {courses && filtered && filtered.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-muted">
-                    No courses yet.
+                    {search ? "No matches." : "No courses yet."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </Card>
+        </div>
 
         <Card className="h-fit p-5">
           <div className="flex items-center justify-between">

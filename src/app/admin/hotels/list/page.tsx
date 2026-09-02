@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type Hotel = {
   id: string;
@@ -32,6 +33,8 @@ export default function AdminHotelsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState(EMPTY_FORM);
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => hotels?.filter((h) => matchesSearch(h, search)), [hotels, search]);
 
   function load() {
     fetch("/api/admin/hotels")
@@ -95,6 +98,8 @@ export default function AdminHotelsPage() {
       <h1 className="text-2xl font-bold tracking-tight">Hotels</h1>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div>
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by name, city…" />
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -106,7 +111,7 @@ export default function AdminHotelsPage() {
               </tr>
             </thead>
             <tbody>
-              {hotels?.map((hotel) => (
+              {filtered?.map((hotel) => (
                 <tr
                   key={hotel.id}
                   className={
@@ -148,16 +153,17 @@ export default function AdminHotelsPage() {
                   </td>
                 </tr>
               ))}
-              {hotels && hotels.length === 0 && (
+              {hotels && filtered && filtered.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-4 py-8 text-center text-muted">
-                    No hotels yet.
+                    {search ? "No matches." : "No hotels yet."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </Card>
+        </div>
 
         <Card className="h-fit p-5">
           <div className="flex items-center justify-between">

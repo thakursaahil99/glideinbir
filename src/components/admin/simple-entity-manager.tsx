@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 export type Field = {
   name: string;
@@ -39,6 +40,8 @@ export function SimpleEntityManager<T extends { id: string }>({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [search, setSearch] = useState("");
+  const filteredItems = useMemo(() => items?.filter((item) => matchesSearch(item, search)), [items, search]);
 
   function load() {
     fetch(apiBase)
@@ -115,7 +118,9 @@ export function SimpleEntityManager<T extends { id: string }>({
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-      <Card className="overflow-hidden">
+      <div>
+        <TableSearch value={search} onChange={setSearch} placeholder="Search…" />
+        <Card className="overflow-hidden">
         <table className="w-full text-sm">
           <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
             <tr>
@@ -128,7 +133,7 @@ export function SimpleEntityManager<T extends { id: string }>({
             </tr>
           </thead>
           <tbody>
-            {items?.map((item) => (
+            {filteredItems?.map((item) => (
               <tr
                 key={item.id}
                 className={
@@ -162,10 +167,10 @@ export function SimpleEntityManager<T extends { id: string }>({
                 </td>
               </tr>
             ))}
-            {items && items.length === 0 && (
+            {items && filteredItems && filteredItems.length === 0 && (
               <tr>
                 <td colSpan={columns.length + 1} className="px-4 py-8 text-center text-muted">
-                  {emptyLabel}
+                  {search ? "No matches." : emptyLabel}
                 </td>
               </tr>
             )}
@@ -178,7 +183,8 @@ export function SimpleEntityManager<T extends { id: string }>({
             )}
           </tbody>
         </table>
-      </Card>
+        </Card>
+      </div>
 
       <Card className="h-fit p-5">
         <div className="flex items-center justify-between">

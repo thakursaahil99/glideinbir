@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Card, Badge } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatINR } from "@/lib/format";
+import { TableSearch, matchesSearch } from "@/components/admin/table-search";
 
 type Route = {
   id: string;
@@ -45,6 +46,8 @@ export default function AdminTravelRoutesPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [form, setForm] = useState(EMPTY_FORM);
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => routes?.filter((r) => matchesSearch(r, search)), [routes, search]);
 
   function load() {
     fetch("/api/admin/travel/routes")
@@ -117,6 +120,8 @@ export default function AdminTravelRoutesPage() {
       <p className="mt-1 text-sm text-muted">Volvo bus and taxi transport.</p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div>
+        <TableSearch value={search} onChange={setSearch} placeholder="Search by route, mode, vehicle…" />
         <Card className="overflow-hidden">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -130,7 +135,7 @@ export default function AdminTravelRoutesPage() {
               </tr>
             </thead>
             <tbody>
-              {routes?.map((route) => (
+              {filtered?.map((route) => (
                 <tr
                   key={route.id}
                   className={
@@ -182,16 +187,17 @@ export default function AdminTravelRoutesPage() {
                   </td>
                 </tr>
               ))}
-              {routes && routes.length === 0 && (
+              {routes && filtered && filtered.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-muted">
-                    No routes yet.
+                    {search ? "No matches." : "No routes yet."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </Card>
+        </div>
 
         <Card className="h-fit p-5">
           <div className="flex items-center justify-between">
