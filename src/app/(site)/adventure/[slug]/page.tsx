@@ -34,13 +34,12 @@ export default async function AdventureDetailPage({
 }) {
   const { slug } = await params;
 
-  const [item, user] = await Promise.all([
+  const [item, user, slots] = await Promise.all([
     itemService.getBySlug(slug).catch(() => null),
     getCurrentUser(),
+    slotService.listForItemSlug(slug).catch(() => []),
   ]);
   if (!item) notFound();
-
-  const slots = await slotService.listForItemSlug(slug);
 
   const galleryImages = item.media.length > 0 ? item.media.map((m) => m.url) : ["/placeholder.svg"];
 

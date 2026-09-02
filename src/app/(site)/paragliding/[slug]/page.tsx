@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { packageService, slotService } from "@/server/modules/paragliding/service";
@@ -7,6 +8,7 @@ import { BookParaglidingWidget } from "@/components/site/book-paragliding-widget
 import { DetailSplit } from "@/components/site/detail-split";
 import { ReviewsSection } from "@/components/site/reviews-section";
 import { FaqSection } from "@/components/site/faq-section";
+import { SectionSkeleton } from "@/components/site/section-skeleton";
 import { formatINR } from "@/lib/format";
 import { GradientText } from "@/components/effects/gradient-text";
 
@@ -36,13 +38,12 @@ export default async function ParaglidingDetailPage({
 }) {
   const { slug } = await params;
 
-  const [pkg, user] = await Promise.all([
+  const [pkg, user, slots] = await Promise.all([
     packageService.getBySlug(slug).catch(() => null),
     getCurrentUser(),
+    slotService.listForPackageSlug(slug).catch(() => []),
   ]);
   if (!pkg) notFound();
-
-  const slots = await slotService.listForPackageSlug(slug);
 
   const galleryImages = pkg.media.length > 0 ? pkg.media.map((m) => m.url) : ["/placeholder.svg"];
 
@@ -89,8 +90,12 @@ export default async function ParaglidingDetailPage({
         </div>
       )}
 
-      <FaqSection category="PARAGLIDING" targetId={pkg.id} />
-      <ReviewsSection targetType="PARAGLIDING" targetId={pkg.id} />
+      <Suspense fallback={<SectionSkeleton />}>
+        <FaqSection category="PARAGLIDING" targetId={pkg.id} />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton />}>
+        <ReviewsSection targetType="PARAGLIDING" targetId={pkg.id} />
+      </Suspense>
     </DetailSplit>
   );
 }

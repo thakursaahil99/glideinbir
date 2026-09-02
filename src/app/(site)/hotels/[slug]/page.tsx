@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { hotelService } from "@/server/modules/hotel/service";
@@ -7,6 +8,7 @@ import { BookHotelWidget } from "@/components/site/book-hotel-widget";
 import { DetailSplit } from "@/components/site/detail-split";
 import { ReviewsSection } from "@/components/site/reviews-section";
 import { FaqSection } from "@/components/site/faq-section";
+import { SectionSkeleton } from "@/components/site/section-skeleton";
 import { MobileBookBar } from "@/components/site/mobile-book-bar";
 import { ScrollReveal } from "@/components/effects/scroll-reveal";
 import { formatINR } from "@/lib/format";
@@ -115,8 +117,12 @@ export default async function HotelDetailPage({
           </div>
         </ScrollReveal>
 
-        <FaqSection category="HOTEL" targetId={hotel.id} />
-        <ReviewsSection targetType="HOTEL" targetId={hotel.id} />
+        <Suspense fallback={<SectionSkeleton />}>
+          <FaqSection category="HOTEL" targetId={hotel.id} />
+        </Suspense>
+        <Suspense fallback={<SectionSkeleton />}>
+          <ReviewsSection targetType="HOTEL" targetId={hotel.id} />
+        </Suspense>
       </Container>
 
       {cheapestRoom && (

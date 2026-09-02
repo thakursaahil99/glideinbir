@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { courseService, batchService } from "@/server/modules/school/service";
@@ -7,6 +8,7 @@ import { BookSchoolWidget } from "@/components/site/book-school-widget";
 import { DetailSplit } from "@/components/site/detail-split";
 import { ReviewsSection } from "@/components/site/reviews-section";
 import { FaqSection } from "@/components/site/faq-section";
+import { SectionSkeleton } from "@/components/site/section-skeleton";
 import { formatINR } from "@/lib/format";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { GradientText } from "@/components/effects/gradient-text";
@@ -36,13 +38,12 @@ export default async function SchoolDetailPage({
 }) {
   const { slug } = await params;
 
-  const [course, user] = await Promise.all([
+  const [course, user, batches] = await Promise.all([
     courseService.getBySlug(slug).catch(() => null),
     getCurrentUser(),
+    batchService.listForCourseSlug(slug).catch(() => []),
   ]);
   if (!course) notFound();
-
-  const batches = await batchService.listForCourseSlug(slug);
   const syllabus = course.syllabus as { title: string; description: string }[];
 
   const galleryImages = course.media.length > 0 ? course.media.map((m) => m.url) : ["/placeholder.svg"];
@@ -104,8 +105,12 @@ export default async function SchoolDetailPage({
         </div>
       )}
 
-      <FaqSection category="SCHOOL" targetId={course.id} />
-      <ReviewsSection targetType="SCHOOL" targetId={course.id} />
+      <Suspense fallback={<SectionSkeleton />}>
+        <FaqSection category="SCHOOL" targetId={course.id} />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton />}>
+        <ReviewsSection targetType="SCHOOL" targetId={course.id} />
+      </Suspense>
     </DetailSplit>
   );
 }

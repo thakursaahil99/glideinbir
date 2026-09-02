@@ -33,13 +33,12 @@ export default async function TravelDetailPage({
 }) {
   const { slug } = await params;
 
-  const [route, user] = await Promise.all([
+  const [route, user, slots] = await Promise.all([
     routeService.getBySlug(slug).catch(() => null),
     getCurrentUser(),
+    slotService.listForRouteSlug(slug).catch(() => []),
   ]);
   if (!route) notFound();
-
-  const slots = await slotService.listForRouteSlug(slug);
 
   const galleryImages = route.media.length > 0 ? route.media.map((m) => m.url) : ["/placeholder.svg"];
 
