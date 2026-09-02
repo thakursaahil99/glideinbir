@@ -59,7 +59,7 @@ export default async function SchoolDetailPage({
       price={formatINR(course.fee.toString())}
       priceUnit="per student"
       sidebar={
-        <Card className="p-6">
+        <Card className="border-t-4 border-t-indigo-400 p-6">
           <div className="text-2xl font-bold">
             <GradientText>{formatINR(course.fee.toString())}</GradientText>
           </div>

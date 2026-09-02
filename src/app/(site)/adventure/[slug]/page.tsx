@@ -54,7 +54,7 @@ export default async function AdventureDetailPage({
       price={formatINR(item.price.toString())}
       priceUnit={item.pricingUnit.replace("_", " ").toLowerCase()}
       sidebar={
-        <Card className="p-6">
+        <Card className="border-t-4 border-t-emerald-400 p-6">
           <div className="text-2xl font-bold">
             <GradientText>{formatINR(item.price.toString())}</GradientText>
           </div>

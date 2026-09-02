@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { Phone, Mail, MapPin } from "lucide-react";
+import { clsx } from "clsx";
 import { Container } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/button";
+import { MODULE_THEME, type ModuleKey } from "@/lib/module-theme";
 
-const COLUMNS = [
+const COLUMNS: { title: string; links: { href: string; label: string; theme?: ModuleKey }[] }[] = [
   {
     title: "Explore",
     links: [
-      { href: "/paragliding", label: "Paragliding" },
-      { href: "/school", label: "Paragliding School" },
-      { href: "/hotels", label: "Hotels" },
-      { href: "/adventure", label: "Adventure" },
-      { href: "/travel", label: "Travel" },
+      { href: "/paragliding", label: "Paragliding", theme: "paragliding" },
+      { href: "/school", label: "Paragliding School", theme: "school" },
+      { href: "/hotels", label: "Hotels", theme: "hotels" },
+      { href: "/adventure", label: "Adventure", theme: "adventure" },
+      { href: "/travel", label: "Travel", theme: "travel" },
     ],
   },
   {
@@ -82,13 +84,23 @@ export function SiteFooter() {
             <div key={col.title}>
               <div className="text-sm font-semibold">{col.title}</div>
               <ul className="mt-3 space-y-2">
-                {col.links.map((link) => (
-                  <li key={link.href}>
-                    <Link href={link.href} className="text-sm text-muted hover:text-ink">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
+                {col.links.map((link) => {
+                  const theme = link.theme && MODULE_THEME[link.theme];
+                  return (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className={clsx(
+                          "flex items-center gap-1.5 text-sm transition-opacity hover:opacity-70",
+                          theme ? theme.text : "text-muted hover:text-ink",
+                        )}
+                      >
+                        {theme && <span className={clsx("h-1.5 w-1.5 rounded-full", theme.solid)} />}
+                        {link.label}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}

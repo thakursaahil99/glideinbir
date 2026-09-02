@@ -40,11 +40,11 @@ export default async function AdminDashboardPage() {
   const [stats, user] = await Promise.all([getStats(), getCurrentUser()]);
 
   const cards = [
-    { label: "Active packages", value: stats.packages, icon: Package, color: "text-orange-600 bg-orange-50" },
-    { label: "Active courses", value: stats.courses, icon: GraduationCap, color: "text-indigo-600 bg-indigo-50" },
-    { label: "Active hotels", value: stats.hotels, icon: Hotel, color: "text-cyan-600 bg-cyan-50" },
-    { label: "Total bookings", value: stats.bookings, icon: CalendarCheck, color: "text-purple-600 bg-purple-50" },
-    { label: "Revenue collected", value: formatINR(stats.revenue), icon: Wallet, color: "text-green-600 bg-green-50" },
+    { label: "Active packages", value: stats.packages, icon: Package, color: "text-orange-600 bg-orange-50", border: "border-t-orange-400" },
+    { label: "Active courses", value: stats.courses, icon: GraduationCap, color: "text-indigo-600 bg-indigo-50", border: "border-t-indigo-400" },
+    { label: "Active hotels", value: stats.hotels, icon: Hotel, color: "text-cyan-600 bg-cyan-50", border: "border-t-cyan-400" },
+    { label: "Total bookings", value: stats.bookings, icon: CalendarCheck, color: "text-purple-600 bg-purple-50", border: "border-t-purple-400" },
+    { label: "Revenue collected", value: formatINR(stats.revenue), icon: Wallet, color: "text-green-600 bg-green-50", border: "border-t-green-400" },
   ];
 
   return (
@@ -59,7 +59,7 @@ export default async function AdminDashboardPage() {
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {cards.map((card) => (
-          <Card key={card.label} className="p-5">
+          <Card key={card.label} className={`border-t-4 p-5 ${card.border}`}>
             <div className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${card.color}`}>
               <card.icon className="h-5 w-5" strokeWidth={2} />
             </div>

@@ -1,5 +1,6 @@
 import { requireRoleForPage } from "@/server/auth/guards";
 import { AdminSidebar } from "@/components/admin/sidebar";
+import { AdminTopBar } from "@/components/admin/topbar";
 import { LogoutButton } from "@/components/site/logout-button";
 
 const ADMIN_ROLES = [
@@ -23,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminSidebar role={user.role} />
       <div className="flex-1">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-paper/80 px-8 backdrop-blur">
-          <span className="text-sm text-muted">Manage Glideinbir</span>
+          <AdminTopBar />
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-sm font-semibold text-white">
               {initial}

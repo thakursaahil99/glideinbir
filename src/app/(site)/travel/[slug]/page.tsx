@@ -53,7 +53,7 @@ export default async function TravelDetailPage({
       price={formatINR(route.price.toString())}
       priceUnit={route.pricingUnit.replace("_", " ").toLowerCase()}
       sidebar={
-        <Card className="p-6">
+        <Card className="border-t-4 border-t-violet-400 p-6">
           <div className="text-2xl font-bold">
             <GradientText>{formatINR(route.price.toString())}</GradientText>
           </div>

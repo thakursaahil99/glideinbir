@@ -22,18 +22,20 @@ export interface ModuleTheme {
   soft: string;
   /** solid background, for the active nav item / filled accents */
   solid: string;
-  /** border color for accent rules and left-borders */
+  /** border color for accent rules and left-borders (all sides) */
   border: string;
+  /** just the top border color, for a colored accent strip on a card */
+  topBorder: string;
 }
 
 export const MODULE_THEME: Record<ModuleKey, ModuleTheme> = {
-  overview: { text: "text-brand", soft: "bg-brand/10", solid: "bg-brand", border: "border-brand" },
-  paragliding: { text: "text-blue-600", soft: "bg-blue-50", solid: "bg-blue-500", border: "border-blue-400" },
-  school: { text: "text-indigo-600", soft: "bg-indigo-50", solid: "bg-indigo-500", border: "border-indigo-400" },
-  hotels: { text: "text-cyan-600", soft: "bg-cyan-50", solid: "bg-cyan-500", border: "border-cyan-400" },
-  adventure: { text: "text-emerald-600", soft: "bg-emerald-50", solid: "bg-emerald-500", border: "border-emerald-400" },
-  travel: { text: "text-violet-600", soft: "bg-violet-50", solid: "bg-violet-500", border: "border-violet-400" },
-  sales: { text: "text-amber-600", soft: "bg-amber-50", solid: "bg-amber-500", border: "border-amber-400" },
-  content: { text: "text-pink-600", soft: "bg-pink-50", solid: "bg-pink-500", border: "border-pink-400" },
-  audit: { text: "text-red-600", soft: "bg-red-50", solid: "bg-red-500", border: "border-red-400" },
+  overview: { text: "text-brand", soft: "bg-brand/10", solid: "bg-brand", border: "border-brand", topBorder: "border-t-brand" },
+  paragliding: { text: "text-blue-600", soft: "bg-blue-50", solid: "bg-blue-500", border: "border-blue-400", topBorder: "border-t-blue-400" },
+  school: { text: "text-indigo-600", soft: "bg-indigo-50", solid: "bg-indigo-500", border: "border-indigo-400", topBorder: "border-t-indigo-400" },
+  hotels: { text: "text-cyan-600", soft: "bg-cyan-50", solid: "bg-cyan-500", border: "border-cyan-400", topBorder: "border-t-cyan-400" },
+  adventure: { text: "text-emerald-600", soft: "bg-emerald-50", solid: "bg-emerald-500", border: "border-emerald-400", topBorder: "border-t-emerald-400" },
+  travel: { text: "text-violet-600", soft: "bg-violet-50", solid: "bg-violet-500", border: "border-violet-400", topBorder: "border-t-violet-400" },
+  sales: { text: "text-amber-600", soft: "bg-amber-50", solid: "bg-amber-500", border: "border-amber-400", topBorder: "border-t-amber-400" },
+  content: { text: "text-pink-600", soft: "bg-pink-50", solid: "bg-pink-500", border: "border-pink-400", topBorder: "border-t-pink-400" },
+  audit: { text: "text-red-600", soft: "bg-red-50", solid: "bg-red-500", border: "border-red-400", topBorder: "border-t-red-400" },
 };

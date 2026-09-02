@@ -60,7 +60,7 @@ export default async function HotelDetailPage({
         title={hotel.name}
         subtitle={`${hotel.address}, ${hotel.city}`}
         sidebar={
-          <Card className="p-6">
+          <Card className="border-t-4 border-t-cyan-400 p-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold">
               <Clock className="h-4 w-4 text-brand" /> Check-in / Check-out
             </h2>

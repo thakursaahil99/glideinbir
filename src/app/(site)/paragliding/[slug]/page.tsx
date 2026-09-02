@@ -58,7 +58,7 @@ export default async function ParaglidingDetailPage({
       price={formatINR(pkg.price.toString())}
       priceUnit="per person"
       sidebar={
-        <Card className="p-6">
+        <Card className="border-t-4 border-t-blue-400 p-6">
           <div className="text-2xl font-bold">
             <GradientText>{formatINR(pkg.price.toString())}</GradientText>
           </div>

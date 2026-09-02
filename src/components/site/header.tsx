@@ -7,13 +7,14 @@ import { clsx } from "clsx";
 import { Phone, Menu, X, Search } from "lucide-react";
 import { Container } from "@/components/ui/card";
 import { LogoutButton } from "./logout-button";
+import { MODULE_THEME, type ModuleKey } from "@/lib/module-theme";
 
-const NAV_LINKS = [
-  { href: "/paragliding", label: "Paragliding" },
-  { href: "/school", label: "School" },
-  { href: "/hotels", label: "Hotels" },
-  { href: "/adventure", label: "Adventure" },
-  { href: "/travel", label: "Travel" },
+const NAV_LINKS: { href: string; label: string; theme?: ModuleKey }[] = [
+  { href: "/paragliding", label: "Paragliding", theme: "paragliding" },
+  { href: "/school", label: "School", theme: "school" },
+  { href: "/hotels", label: "Hotels", theme: "hotels" },
+  { href: "/adventure", label: "Adventure", theme: "adventure" },
+  { href: "/travel", label: "Travel", theme: "travel" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -61,18 +62,19 @@ export function SiteHeader({ user }: { user: { name: string } | null }) {
         <nav className="hidden items-center gap-1 md:flex">
           {NAV_LINKS.map((link) => {
             const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+            const theme = MODULE_THEME[link.theme ?? "overview"];
             return (
               <Link
                 key={link.href}
                 href={link.href}
                 className={clsx(
                   "relative px-3 py-2 text-sm font-medium transition-colors",
-                  active ? "text-ink" : "text-muted hover:text-ink",
+                  active ? theme.text : "text-muted hover:text-ink",
                 )}
               >
                 {link.label}
                 {active && (
-                  <span className="absolute inset-x-3 -bottom-[1px] h-0.5 rounded-full bg-brand" />
+                  <span className={clsx("absolute inset-x-3 -bottom-[1px] h-0.5 rounded-full", theme.solid)} />
                 )}
               </Link>
             );
@@ -168,13 +170,14 @@ export function SiteHeader({ user }: { user: { name: string } | null }) {
 
             {NAV_LINKS.map((link) => {
               const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+              const theme = MODULE_THEME[link.theme ?? "overview"];
               return (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={clsx(
                     "rounded-lg px-3 py-2.5 text-base font-medium",
-                    active ? "bg-brand/10 text-brand" : "text-ink hover:bg-black/5",
+                    active ? clsx(theme.soft, theme.text) : "text-ink hover:bg-black/5",
                   )}
                 >
                   {link.label}
