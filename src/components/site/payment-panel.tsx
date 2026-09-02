@@ -4,6 +4,7 @@ import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { markJustConfirmed } from "@/components/site/booking-celebration";
 
 interface RazorpayCheckoutOptions {
   key: string;
@@ -69,6 +70,7 @@ export function PaymentPanel({
           setError(confirmBody.data?.reason ?? confirmBody.error?.message ?? "Payment could not be confirmed.");
           return;
         }
+        markJustConfirmed(bookingId);
         router.refresh();
         return;
       }
@@ -99,6 +101,7 @@ export function PaymentPanel({
             setError(verifyBody.data?.reason ?? verifyBody.error?.message ?? "Payment could not be confirmed.");
             return;
           }
+          markJustConfirmed(bookingId);
           router.refresh();
         },
         modal: { ondismiss: () => setStatus("idle") },

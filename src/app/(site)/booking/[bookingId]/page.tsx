@@ -4,8 +4,8 @@ import { requireUserForPage } from "@/server/auth/guards";
 import { hasRole } from "@/server/auth/rbac";
 import { bookingService } from "@/server/modules/booking/service";
 import { Card, Container, Badge } from "@/components/ui/card";
-import { LinkButton } from "@/components/ui/button";
 import { PaymentPanel } from "@/components/site/payment-panel";
+import { BookingCelebration } from "@/components/site/booking-celebration";
 import { LeaveReviewForm } from "@/components/site/leave-review-form";
 import { formatDate, formatINR } from "@/lib/format";
 import { ParticleField } from "@/components/effects/particle-field";
@@ -252,15 +252,7 @@ export default async function BookingPage({
                     </p>
                   </>
                 )}
-                {booking.status === "CONFIRMED" && (
-                  <div className="text-center">
-                    <CircleCheck className="mx-auto h-8 w-8 text-emerald-600" />
-                    <p className="mt-3 font-medium">Your booking is confirmed!</p>
-                    <LinkButton href="/account/bookings" variant="ghost" className="mt-4">
-                      View my bookings
-                    </LinkButton>
-                  </div>
-                )}
+                {booking.status === "CONFIRMED" && <BookingCelebration bookingId={booking.id} />}
                 {(booking.status === "FAILED" || booking.status === "CANCELLED") && (
                   <p className="text-center text-sm text-muted">
                     This booking is {status.label.toLowerCase()}.
