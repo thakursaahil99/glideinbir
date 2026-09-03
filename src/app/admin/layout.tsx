@@ -1,22 +1,12 @@
 import { requireRoleForPage } from "@/server/auth/guards";
 import { AdminSidebar } from "@/components/admin/sidebar";
 import { AdminTopBar } from "@/components/admin/topbar";
+import { SahuBhai } from "@/components/admin/sahu-bhai";
 import { LogoutButton } from "@/components/site/logout-button";
-
-const ADMIN_ROLES = [
-  "SUPER_ADMIN",
-  "BOOKING_MANAGER",
-  "PARAGLIDING_MANAGER",
-  "SCHOOL_MANAGER",
-  "HOTEL_MANAGER",
-  "ADVENTURE_MANAGER",
-  "TRAVEL_MANAGER",
-  "FINANCE_MANAGER",
-  "CONTENT_MANAGER",
-] as const;
+import { ADMIN_ROLES } from "@/lib/admin-roles";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireRoleForPage([...ADMIN_ROLES], "/admin");
+  const user = await requireRoleForPage(ADMIN_ROLES, "/admin");
   const initial = user.name.trim().charAt(0).toUpperCase();
 
   return (
@@ -38,6 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </header>
         <main className="p-8">{children}</main>
       </div>
+      <SahuBhai />
     </div>
   );
 }

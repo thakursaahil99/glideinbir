@@ -47,6 +47,14 @@ const envSchema = z.object({
   // /api/cron/booking-reminders. Unset locally is fine (that route just
   // 401s), no impact on the rest of the app.
   CRON_SECRET: z.string().optional(),
+
+  // --- Sahu Bhai (admin AI assistant) ---
+  // Any OpenAI-compatible chat-completions provider works (Groq, Google
+  // Gemini, OpenRouter, Cerebras…). The feature stays completely dormant
+  // until SAHU_BHAI_API_KEY is set — see SAHU_BHAI.md for provider options.
+  SAHU_BHAI_API_KEY: z.string().optional(),
+  SAHU_BHAI_BASE_URL: z.string().url().default("https://api.groq.com/openai/v1"),
+  SAHU_BHAI_MODEL: z.string().min(1).default("llama-3.3-70b-versatile"),
 });
 
 function loadEnv() {
