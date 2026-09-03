@@ -4,7 +4,8 @@ import type { MetadataRoute } from "next";
 // and /sahu) become installable — the public marketing site does not.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Sahu Bhai — Glideinbir assistant",
+    id: "/sahu",
+    name: "Sahu Bhai",
     short_name: "Sahu Bhai",
     description:
       "Chat assistant for the Glideinbir admin — run admin tasks and ask general questions from your phone or desktop.",

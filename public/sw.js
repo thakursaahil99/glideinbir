@@ -4,7 +4,7 @@
 // - Caches the app shell so /sahu opens even with a flaky connection.
 // - Never caches API calls or auth — those always hit the network.
 
-const CACHE = "sahu-bhai-v2";
+const CACHE = "sahu-bhai-v3";
 // Only pre-cache assets that always return 200 for everyone. /sahu itself
 // redirects to /login when signed out, which would fail cache.addAll — it's
 // cached at runtime by the navigation handler instead.

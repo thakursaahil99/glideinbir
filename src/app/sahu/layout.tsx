@@ -4,9 +4,12 @@ import { ADMIN_ROLES } from "@/lib/admin-roles";
 import { IosInstallPrompt } from "@/components/ios-install-prompt";
 
 // Manifest / apple-web-app tags and the service worker are set site-wide in
-// the root layout, so nothing PWA-specific is needed here.
+// the root layout. `title.absolute` opts out of the root "%s | Glideinbir…"
+// template so the tab — and any "Add to Home Screen" shortcut — is just
+// "Sahu Bhai".
 export const metadata: Metadata = {
-  title: "Sahu Bhai",
+  title: { absolute: "Sahu Bhai" },
+  applicationName: "Sahu Bhai",
 };
 
 export const viewport: Viewport = {
