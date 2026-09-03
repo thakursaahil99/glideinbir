@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { requireRoleForPage } from "@/server/auth/guards";
 import { ADMIN_ROLES } from "@/lib/admin-roles";
 import { PwaRegister } from "@/components/pwa-register";
+import { IosInstallPrompt } from "@/components/ios-install-prompt";
 
 export const metadata: Metadata = {
   title: "Sahu Bhai",
@@ -22,6 +23,7 @@ export default async function SahuLayout({ children }: { children: React.ReactNo
     <div className="flex h-[100dvh] flex-col bg-paper">
       {children}
       <PwaRegister />
+      <IosInstallPrompt />
     </div>
   );
 }

@@ -57,7 +57,7 @@ export function SahuBhai() {
 
       <SahuBhaiChat className="flex-1" />
 
-      <PwaInstallButton className="border-t border-border px-3 py-2" />
+      <PwaInstallButton className="m-3 self-start" />
     </div>
   );
 }
