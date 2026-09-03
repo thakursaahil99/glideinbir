@@ -33,20 +33,24 @@ OpenAI-compatible chat-completions provider — pick one with a free tier:
 
 | Provider | `SAHU_BHAI_BASE_URL` | `SAHU_BHAI_MODEL` | Get a key |
 |---|---|---|---|
-| Groq (default) | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` | console.groq.com |
+| Groq (default) | `https://api.groq.com/openai/v1` | `qwen/qwen3.8-27b` (or `openai/gpt-oss-120b`) | console.groq.com |
 | Google Gemini | `https://generativelanguage.googleapis.com/v1beta/openai/` | `gemini-2.0-flash` | aistudio.google.com |
-| OpenRouter | `https://openrouter.ai/api/v1` | `meta-llama/llama-3.3-70b-instruct:free` | openrouter.ai |
-| Cerebras | `https://api.cerebras.ai/v1` | `llama-3.3-70b` | cloud.cerebras.ai |
+| OpenRouter | `https://openrouter.ai/api/v1` | a `:free` model | openrouter.ai |
+| Ollama (local, no key) | `http://localhost:11434/v1` | `qwen2.5:3b` | — (runs on your machine) |
 
 ```bash
 # .env
-SAHU_BHAI_API_KEY="your-provider-key"
+SAHU_BHAI_API_KEY="your-provider-key"   # any non-empty string for Ollama
 SAHU_BHAI_BASE_URL="https://api.groq.com/openai/v1"
-SAHU_BHAI_MODEL="llama-3.3-70b-versatile"
+SAHU_BHAI_MODEL="qwen/qwen3.8-27b"
 ```
 
 Restart `next dev` after changing env vars. The model must support tool /
-function calling.
+function calling. Groq model ids change over time — check
+`GET https://api.groq.com/openai/v1/models` if one stops working.
+
+**Production (Vercel):** set the same three vars in Project → Settings →
+Environment Variables (Production), then redeploy.
 
 ## Files
 
