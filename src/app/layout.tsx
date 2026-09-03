@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { BRAND_COLOR_BOOTSTRAP_SCRIPT } from "@/lib/theme-color";
 import { ToastProvider } from "@/components/ui/toast";
+import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 
 // Space Grotesk everywhere — one geometric, wide-letterform, faintly
@@ -51,6 +52,10 @@ export const metadata: Metadata = {
   creator: "Glideinbir",
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
+  // Makes the site installable as the "Sahu Bhai" app (start_url /sahu).
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "Sahu Bhai", statusBarStyle: "default" },
+  other: { "apple-mobile-web-app-capable": "yes" },
   openGraph: {
     type: "website",
     siteName: "Glideinbir",
@@ -111,6 +116,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
         <ToastProvider>{children}</ToastProvider>
+        <PwaRegister />
         <Analytics />
         <SpeedInsights />
       </body>

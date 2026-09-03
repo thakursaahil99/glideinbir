@@ -1,15 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { requireRoleForPage } from "@/server/auth/guards";
 import { ADMIN_ROLES } from "@/lib/admin-roles";
-import { PwaRegister } from "@/components/pwa-register";
 import { IosInstallPrompt } from "@/components/ios-install-prompt";
 
+// Manifest / apple-web-app tags and the service worker are set site-wide in
+// the root layout, so nothing PWA-specific is needed here.
 export const metadata: Metadata = {
   title: "Sahu Bhai",
-  manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "Sahu Bhai", statusBarStyle: "default" },
-  // Legacy tag for older iOS — Next only emits the modern `mobile-web-app-capable`.
-  other: { "apple-mobile-web-app-capable": "yes" },
 };
 
 export const viewport: Viewport = {
@@ -22,7 +19,6 @@ export default async function SahuLayout({ children }: { children: React.ReactNo
   return (
     <div className="flex h-[100dvh] flex-col bg-paper">
       {children}
-      <PwaRegister />
       <IosInstallPrompt />
     </div>
   );
