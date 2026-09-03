@@ -118,8 +118,8 @@ export default function AdminHotelRoomsPage({ params }: { params: Promise<{ id: 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         <div>
         <TableSearch value={search} onChange={setSearch} placeholder="Search by name, type…" />
-        <Card className="overflow-hidden">
-          <table className="w-full text-sm">
+        <Card className="overflow-x-auto">
+          <table className="w-full min-w-[44rem] text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
               <tr>
                 <th className="px-4 py-3">Name</th>

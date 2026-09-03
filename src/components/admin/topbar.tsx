@@ -15,15 +15,15 @@ export function AdminTopBar() {
   const Icon = active?.link.icon;
 
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex min-w-0 items-center gap-2.5">
       {Icon && (
-        <span className={clsx("flex h-8 w-8 items-center justify-center rounded-lg", theme.soft, theme.text)}>
+        <span className={clsx("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", theme.soft, theme.text)}>
           <Icon className="h-4 w-4" strokeWidth={2.25} />
         </span>
       )}
-      <div className="leading-tight">
-        <p className="text-sm font-semibold">{active?.link.label ?? "Dashboard"}</p>
-        {active && <p className="text-xs text-muted">{active.section.title}</p>}
+      <div className="min-w-0 leading-tight">
+        <p className="truncate text-sm font-semibold">{active?.link.label ?? "Dashboard"}</p>
+        {active && <p className="truncate text-xs text-muted">{active.section.title}</p>}
       </div>
     </div>
   );

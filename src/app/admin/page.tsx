@@ -71,8 +71,8 @@ export default async function AdminDashboardPage() {
 
       <div className="mt-10">
         <h2 className="text-lg font-semibold">Recent bookings</h2>
-        <Card className="mt-4 overflow-hidden">
-          <table className="w-full text-sm">
+        <Card className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[44rem] text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
               <tr>
                 <th className="px-4 py-3">Booking</th>

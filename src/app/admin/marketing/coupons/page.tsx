@@ -90,8 +90,8 @@ export default function AdminCouponsPage() {
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
         <div>
         <TableSearch value={search} onChange={setSearch} placeholder="Search by code…" />
-        <Card className="overflow-hidden">
-          <table className="w-full text-sm">
+        <Card className="overflow-x-auto">
+          <table className="w-full min-w-[44rem] text-sm">
             <thead className="border-b border-border bg-surface text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
               <tr>
                 <th className="px-4 py-3">Code</th>

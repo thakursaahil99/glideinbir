@@ -6,7 +6,10 @@ import { clsx } from "clsx";
 import { MODULE_THEME } from "@/lib/module-theme";
 import { ADMIN_SECTIONS } from "@/lib/admin-nav";
 
-export function AdminSidebar({ role }: { role: string }) {
+// The nav itself — shared by the fixed desktop sidebar and the mobile
+// slide-over drawer. `onNavigate` lets the drawer close itself when a link
+// is tapped.
+export function SidebarContent({ role, onNavigate }: { role: string; onNavigate?: () => void }) {
   const pathname = usePathname();
 
   // Super Admin sees everything, no filtering. Everyone else sees only the
@@ -22,9 +25,9 @@ export function AdminSidebar({ role }: { role: string }) {
         })).filter((section) => section.links.length > 0);
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-surface">
+    <>
       <div className="flex h-14 items-center border-b border-border px-5">
-        <Link href="/admin" className="text-lg font-bold tracking-tight">
+        <Link href="/admin" onClick={onNavigate} className="text-lg font-bold tracking-tight">
           Glide<span className="text-brand">in</span>bir
           <span className="ml-1.5 rounded-full bg-ink px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
             Admin
@@ -54,6 +57,7 @@ export function AdminSidebar({ role }: { role: string }) {
                     <Link
                       key={link.href}
                       href={link.href}
+                      onClick={onNavigate}
                       className={clsx(
                         "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                         active ? clsx(theme.solid, "text-white shadow-sm") : "text-ink/80 hover:bg-black/5 hover:text-ink",
@@ -76,6 +80,16 @@ export function AdminSidebar({ role }: { role: string }) {
           );
         })}
       </nav>
+    </>
+  );
+}
+
+// Fixed sidebar for desktop (lg and up). On smaller screens it's hidden and
+// the mobile drawer in <AdminShell> takes over.
+export function AdminSidebar({ role }: { role: string }) {
+  return (
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-surface lg:flex">
+      <SidebarContent role={role} />
     </aside>
   );
 }
