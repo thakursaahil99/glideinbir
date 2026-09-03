@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Share, Plus, X } from "lucide-react";
+import { SahuBadge } from "@/components/sahu-mark";
 
 const DISMISS_KEY = "sahu-ios-install-dismissed";
 
@@ -42,9 +43,7 @@ export function IosInstallPrompt() {
   return (
     <div className="fixed inset-x-0 top-0 z-[60] border-b border-border bg-paper/95 p-4 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.25)] backdrop-blur">
       <div className="mx-auto flex max-w-md items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-brand-dark text-base font-bold tracking-tight text-white">
-          SB
-        </div>
+        <SahuBadge className="h-11 w-11 shrink-0 rounded-xl" />
         <div className="flex-1 text-sm leading-relaxed">
           <p className="font-semibold">Add Sahu Bhai to your Home Screen</p>
           <p className="mt-1 text-muted">
