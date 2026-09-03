@@ -8,6 +8,10 @@ import { ADMIN_ROLES } from "@/lib/admin-roles";
 import { runSahuBhai } from "@/server/modules/assistant/agent";
 import { isSahuBhaiConfigured } from "@/server/modules/assistant/client";
 
+// The agent loop can make several LLM round-trips; give it room (Vercel
+// caps this at 60s on Hobby, 300s on Pro).
+export const maxDuration = 60;
+
 const bodySchema = z.object({
   mode: z.enum(["readonly", "act"]).default("readonly"),
   messages: z
@@ -24,7 +28,8 @@ const bodySchema = z.object({
 export const POST = withErrorHandling(async (request: NextRequest) => {
   const user = await requireRole(...ADMIN_ROLES);
 
-  if (!checkRateLimit(`sahu-bhai:${user.id}`, 20, 60_000)) {
+  // Generous — just a runaway-loop guard, not a real usage cap.
+  if (!checkRateLimit(`sahu-bhai:${user.id}`, 120, 60_000)) {
     throw new RateLimitedError("Sahu Bhai needs a breather — try again in a minute.");
   }
 
