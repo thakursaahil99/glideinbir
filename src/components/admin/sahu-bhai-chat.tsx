@@ -6,25 +6,27 @@ import { Send, Loader2 } from "lucide-react";
 import { Markdown } from "@/components/markdown";
 
 type Mode = "readonly" | "act";
+type Lang = "en" | "hi";
 type Action = { method: string; path: string; status: number; ok: boolean };
 type Entry = { role: "user" | "assistant"; content: string; actions?: Action[] };
 
 const EMAIL_KEY = "sahu-bhai:email";
 
-function loadStored(key: string): { mode: Mode; entries: Entry[] } {
+function loadStored(key: string): { mode: Mode; lang: Lang; entries: Entry[] } {
   try {
     const raw = typeof window !== "undefined" && localStorage.getItem(key);
     if (raw) {
-      const saved = JSON.parse(raw) as { mode?: Mode; entries?: Entry[] };
+      const saved = JSON.parse(raw) as { mode?: Mode; lang?: Lang; entries?: Entry[] };
       return {
         mode: saved.mode === "act" ? "act" : "readonly",
+        lang: saved.lang === "hi" ? "hi" : "en",
         entries: Array.isArray(saved.entries) ? saved.entries.slice(-20) : [],
       };
     }
   } catch {
     /* ignore unreadable storage */
   }
-  return { mode: "readonly", entries: [] };
+  return { mode: "readonly", lang: "en", entries: [] };
 }
 
 function readEmail(): string | null {
@@ -51,6 +53,7 @@ export function SahuBhaiChat({
   emptyHint?: string;
 }) {
   const [mode, setMode] = useState<Mode>(() => loadStored(storageKey).mode);
+  const [lang, setLang] = useState<Lang>(() => loadStored(storageKey).lang);
   const [entries, setEntries] = useState<Entry[]>(() => loadStored(storageKey).entries);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -64,11 +67,11 @@ export function SahuBhaiChat({
 
   useEffect(() => {
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ mode, entries: entries.slice(-20) }));
+      localStorage.setItem(storageKey, JSON.stringify({ mode, lang, entries: entries.slice(-20) }));
     } catch {
       /* ignore */
     }
-  }, [mode, entries, storageKey]);
+  }, [mode, lang, entries, storageKey]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -80,6 +83,7 @@ export function SahuBhaiChat({
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         ...(showModeToggle ? { mode } : {}),
+        lang,
         messages: history.slice(-40).map((e) => ({ role: e.role, content: e.content })),
       }),
     });
@@ -148,35 +152,51 @@ export function SahuBhaiChat({
 
   return (
     <div className={clsx("flex min-h-0 flex-col", className)}>
-      {(showModeToggle || entries.length > 0) && (
-        <div className="flex items-center gap-1 border-b border-border bg-surface/60 px-3 py-2 text-xs">
-          {showModeToggle &&
-            (["readonly", "act"] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMode(m)}
-                className={clsx(
-                  "rounded-full px-2.5 py-1 font-medium transition-colors",
-                  mode === m ? "bg-brand text-white" : "text-muted hover:bg-black/5",
-                )}
-              >
-                {m === "readonly" ? "Read-only" : "Make changes"}
-              </button>
-            ))}
-          <button
-            type="button"
-            onClick={() => {
-              setEntries([]);
-              setError(null);
-              setGate(null);
-            }}
-            className="ml-auto rounded-full px-2 py-1 font-medium text-muted hover:bg-black/5"
-          >
-            Clear
-          </button>
+      <div className="flex items-center gap-1 border-b border-border bg-surface/60 px-3 py-2 text-xs">
+        {showModeToggle &&
+          (["readonly", "act"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              className={clsx(
+                "rounded-full px-2.5 py-1 font-medium transition-colors",
+                mode === m ? "bg-brand text-white" : "text-muted hover:bg-black/5",
+              )}
+            >
+              {m === "readonly" ? "Read-only" : "Make changes"}
+            </button>
+          ))}
+
+        <div className="flex items-center rounded-full bg-black/5 p-0.5">
+          {(["en", "hi"] as const).map((l) => (
+            <button
+              key={l}
+              type="button"
+              onClick={() => setLang(l)}
+              title={l === "en" ? "Reply in English" : "Reply in Hindi / Hinglish"}
+              className={clsx(
+                "rounded-full px-2 py-0.5 font-medium transition-colors",
+                lang === l ? "bg-brand text-white" : "text-muted hover:text-ink",
+              )}
+            >
+              {l === "en" ? "EN" : "हिं"}
+            </button>
+          ))}
         </div>
-      )}
+
+        <button
+          type="button"
+          onClick={() => {
+            setEntries([]);
+            setError(null);
+            setGate(null);
+          }}
+          className="ml-auto rounded-full px-2 py-1 font-medium text-muted hover:bg-black/5"
+        >
+          Clear
+        </button>
+      </div>
 
       <div
         ref={scrollRef}
@@ -231,8 +251,8 @@ export function SahuBhaiChat({
             }}
             className="rounded-xl border border-border bg-paper p-3 text-sm"
           >
-            <p className="font-medium">Ek email daal do — phir unlimited chat.</p>
-            <p className="mt-0.5 text-xs text-muted">Sirf email, koi password nahi.</p>
+            <p className="font-medium">Enter your email to keep chatting.</p>
+            <p className="mt-0.5 text-xs text-muted">Just an email — no password, no verification.</p>
             <div className="mt-2 flex gap-2">
               <input
                 type="email"

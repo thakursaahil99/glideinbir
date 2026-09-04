@@ -8,6 +8,7 @@ import type { AssistantMode } from "./authorize";
 const MAX_ITERATIONS = 8;
 
 export type ClientMessage = { role: "user" | "assistant"; content: string };
+export type ReplyLang = "en" | "hi";
 
 export type SahuBhaiResult = {
   reply: string;
@@ -20,6 +21,7 @@ export async function runSahuBhai(params: {
   // "admin" gives the admin_api tool (SUPER_ADMIN only); "none" is a plain
   // chat assistant (other admins + the whole public site).
   tools: "admin" | "none";
+  lang: ReplyLang;
   mode: AssistantMode;
   origin: string;
   cookie: string;
@@ -27,8 +29,8 @@ export async function runSahuBhai(params: {
 }): Promise<SahuBhaiResult> {
   const systemPrompt =
     params.tools === "admin" && params.user
-      ? buildSystemPrompt({ mode: params.mode, user: params.user })
-      : buildPublicSystemPrompt();
+      ? buildSystemPrompt({ mode: params.mode, user: params.user, lang: params.lang })
+      : buildPublicSystemPrompt(params.lang);
 
   const messages: ChatMessage[] = [
     { role: "system", content: systemPrompt },

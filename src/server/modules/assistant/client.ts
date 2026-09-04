@@ -102,7 +102,7 @@ export async function chatCompletion(
     logger.error("Sahu Bhai LLM error response", { status: res.status, body: text.slice(0, 500) });
     if (res.status === 429) {
       throw new RateLimitedError(
-        "Sahu Bhai abhi busy hai (free-tier ka per-minute limit). ~15-20 second ruk ke phir bhejo, ya thoda chhota sawaal karo.",
+        "Sahu Bhai is busy right now (free-tier per-minute limit). Wait ~15–20 seconds and try again, or send a shorter message.",
       );
     }
     throw new AppError(

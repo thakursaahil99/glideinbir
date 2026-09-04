@@ -13,6 +13,7 @@ const MAX_MESSAGE_CHARS = 8_000;
 const MAX_HISTORY = 12;
 
 const bodySchema = z.object({
+  lang: z.enum(["en", "hi"]).default("en"),
   messages: z
     .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() }))
     .min(1)
@@ -24,10 +25,10 @@ const bodySchema = z.object({
 export const POST = withErrorHandling(async (request: NextRequest) => {
   const ip = getClientIp(request);
   if (!checkRateLimit(`sahu-public:${ip}`, 15, 5 * 60 * 1000)) {
-    throw new RateLimitedError("Thoda ruk kar phir try kariye — bahut requests aa gayi.");
+    throw new RateLimitedError("Too many requests — please wait a moment and try again.");
   }
 
-  const { messages } = bodySchema.parse(await request.json());
+  const { messages, lang } = bodySchema.parse(await request.json());
   const user = await getCurrentUser();
   const session = await getOrCreateSession({
     user: user ? { id: user.id, email: user.email } : null,
@@ -51,6 +52,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   const result = await runSahuBhai({
     history,
     tools: "none",
+    lang,
     mode: "readonly",
     origin: new URL(request.url).origin,
     cookie: "",

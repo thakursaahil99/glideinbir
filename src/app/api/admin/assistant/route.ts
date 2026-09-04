@@ -19,6 +19,7 @@ export const maxDuration = 60;
 // happens. We accept it and trim in the handler instead.
 const bodySchema = z.object({
   mode: z.enum(["readonly", "act"]).default("readonly"),
+  lang: z.enum(["en", "hi"]).default("en"),
   messages: z
     .array(
       z.object({
@@ -44,7 +45,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     throw new RateLimitedError("Sahu Bhai needs a breather — try again in a minute.");
   }
 
-  const { mode, messages } = bodySchema.parse(await request.json());
+  const { mode, lang, messages } = bodySchema.parse(await request.json());
 
   // Drop empty turns, cap each turn's length, keep the most recent slice.
   const history = messages
@@ -60,6 +61,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     // Only SUPER_ADMIN can drive admin changes through the AI; every other
     // role gets a chat-only assistant.
     tools: user.role === "SUPER_ADMIN" ? "admin" : "none",
+    lang,
     mode,
     origin: new URL(request.url).origin,
     cookie: request.headers.get("cookie") ?? "",

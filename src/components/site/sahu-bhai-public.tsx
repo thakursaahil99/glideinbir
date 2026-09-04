@@ -52,7 +52,7 @@ export function SahuBhaiPublic() {
         endpoint="/api/sahu"
         storageKey="sahu-bhai:public"
         showModeToggle={false}
-        emptyHint="Paragliding, Bir Billing, trip planning — kuch bhi poochho."
+        emptyHint="Ask about paragliding, Bir Billing, trip planning — anything."
       />
     </div>
   );

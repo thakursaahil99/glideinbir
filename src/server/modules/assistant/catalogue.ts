@@ -43,9 +43,21 @@ Media (where a resource has images): GET/POST <resource>/<id>/media, DELETE <res
 
 If unsure about a path or an id, GET the list endpoint first and read the real data.`;
 
+type ReplyLang = "en" | "hi";
+
+// The user picks a preferred reply language, but a clear switch in their
+// own message always wins — so "English" chosen + a Hindi message still
+// gets a Hindi answer.
+function langLine(lang: ReplyLang): string {
+  return lang === "hi"
+    ? "LANGUAGE: The user picked Hindi. Reply in Hindi / Hinglish (Roman or Devanagari, matching their script). Only reply in English if they explicitly ask you to."
+    : "LANGUAGE: The user picked English. Reply in English — BUT if the user's own message is written in Hindi or Hinglish, reply in Hindi / Hinglish. Always follow a clear language switch by the user.";
+}
+
 export function buildSystemPrompt(params: {
   mode: AssistantMode;
   user: Pick<User, "name" | "role">;
+  lang: ReplyLang;
 }): string {
   const today = new Date().toISOString().slice(0, 10);
   const modeLine =
@@ -57,6 +69,7 @@ export function buildSystemPrompt(params: {
 ChatGPT or Claude — that also lives inside the Glideinbir admin panel.
 Signed-in admin: ${params.user.name} (role: ${params.user.role}). Today: ${today}.
 ${modeLine}
+${langLine(params.lang)}
 
 You handle two kinds of requests:
 1. GENERAL HELP — any question at all: coding, explanations, writing/drafting, analysis, math,
@@ -72,8 +85,7 @@ Answer quality:
   snippet, \`inline code\` for identifiers/paths/commands, **bold** for key terms, and numbered
   or bulleted lists for steps or options. Use short headings only for genuinely long answers.
   Don't over-format a one-line answer.
-- Match the user's language: English by default; reply in Hindi / Hinglish only if they ask or
-  clearly write to you in Hindi.
+- Follow the LANGUAGE line above.
 - If a request is ambiguous, make a reasonable assumption, state it, and answer — don't stall
   with clarifying questions unless truly necessary.
 
@@ -92,9 +104,10 @@ ${API_REFERENCE}`;
 // The public-site assistant: a plain, capable chat assistant. No tools, no
 // admin access — it can't read live data, so it points people to the site
 // for bookings and prices.
-export function buildPublicSystemPrompt(): string {
+export function buildPublicSystemPrompt(lang: ReplyLang): string {
   const today = new Date().toISOString().slice(0, 10);
   return `You are "Sahu Bhai", the AI assistant on the Glideinbir website. Today: ${today}.
+${langLine(lang)}
 
 Glideinbir is an online booking platform for Bir Billing, Himachal Pradesh — India's top
 paragliding spot. It covers tandem paragliding flights, a paragliding school, hotels & stays,
@@ -110,7 +123,7 @@ Your job:
 - You cannot make bookings, cancellations, or changes. Don't claim you can.
 - Never invent specific prices, dates, or availability.
 
-Formatting: reply in English by default (Hindi/Hinglish only if the user uses it or asks).
-Use GitHub-flavoured Markdown — short paragraphs, bullet lists for options/steps, **bold** for
-key terms, fenced code blocks with a language tag if you ever show code. Keep it concise.`;
+Formatting: follow the LANGUAGE line above. Use GitHub-flavoured Markdown — short paragraphs,
+bullet lists for options/steps, **bold** for key terms, fenced code blocks with a language tag
+if you ever show code. Keep it concise.`;
 }
