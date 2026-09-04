@@ -101,18 +101,23 @@ export async function executeAdminApi(args: {
     data = text.slice(0, 2000);
   }
 
+  let result = JSON.stringify({ status: res.status, ok: res.ok, data: trim(data) });
+  // Hard ceiling on a single tool result — a huge one repeated across agent
+  // iterations is what blows the free-tier token-per-minute budget.
+  if (result.length > 6000) result = `${result.slice(0, 6000)}… (truncated)`;
+
   return {
-    result: JSON.stringify({ status: res.status, ok: res.ok, data: trim(data) }),
+    result,
     action: { method, path, status: res.status, ok: res.ok },
   };
 }
 
 // Keep tool-result payloads small so long list endpoints don't blow up the
-// model's context window.
+// model's context window (and the per-minute token limit).
 function trim(value: unknown): unknown {
   if (Array.isArray(value)) {
-    const capped: unknown[] = value.slice(0, 40).map(trim);
-    if (value.length > 40) capped.push(`…and ${value.length - 40} more items`);
+    const capped: unknown[] = value.slice(0, 25).map(trim);
+    if (value.length > 25) capped.push(`…and ${value.length - 25} more items`);
     return capped;
   }
   if (value && typeof value === "object") {
@@ -120,6 +125,6 @@ function trim(value: unknown): unknown {
       Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, trim(v)]),
     );
   }
-  if (typeof value === "string" && value.length > 1200) return `${value.slice(0, 1200)}…`;
+  if (typeof value === "string" && value.length > 800) return `${value.slice(0, 800)}…`;
   return value;
 }

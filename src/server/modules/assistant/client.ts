@@ -1,6 +1,6 @@
 import { env } from "@/config/env";
 import { logger } from "@/server/lib/logger";
-import { AppError, ServiceUnavailableError } from "@/server/lib/errors";
+import { AppError, RateLimitedError, ServiceUnavailableError } from "@/server/lib/errors";
 
 // Minimal OpenAI-compatible chat-completions client. Deliberately no SDK —
 // this way any provider with a /chat/completions endpoint (Groq, Gemini,
@@ -28,10 +28,29 @@ export function isSahuBhaiConfigured(): boolean {
   return Boolean(env.SAHU_BHAI_API_KEY);
 }
 
-export async function chatCompletion(params: {
-  messages: ChatMessage[];
-  tools?: ChatTool[];
-}): Promise<AssistantReply> {
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// "577ms" | "1m26.4s" | "2" (seconds) -> milliseconds
+function parseResetHeader(value: string | null): number | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (/^\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed) * 1000;
+  let ms = 0;
+  const m = trimmed.match(/(\d+(?:\.\d+)?)\s*m(?!s)/);
+  const s = trimmed.match(/(\d+(?:\.\d+)?)\s*s/);
+  const msPart = trimmed.match(/(\d+(?:\.\d+)?)\s*ms/);
+  if (m) ms += Number(m[1]) * 60_000;
+  if (s) ms += Number(s[1]) * 1000;
+  if (msPart) ms += Number(msPart[1]);
+  return ms || null;
+}
+
+const MAX_RETRIES = 2;
+
+export async function chatCompletion(
+  params: { messages: ChatMessage[]; tools?: ChatTool[] },
+  attempt = 0,
+): Promise<AssistantReply> {
   if (!env.SAHU_BHAI_API_KEY) {
     throw new ServiceUnavailableError(
       "Sahu Bhai isn't set up yet — an LLM API key is needed. Set SAHU_BHAI_API_KEY in .env (see SAHU_BHAI.md).",
@@ -64,9 +83,28 @@ export async function chatCompletion(params: {
     throw new AppError("Couldn't reach the Sahu Bhai LLM (network error).", 502, "LLM_UNREACHABLE");
   }
 
+  // Rate limited (free tiers cap tokens-per-minute) — the bucket refills
+  // continuously, so a short wait usually clears it. Retry a couple of times.
+  if (res.status === 429 && attempt < MAX_RETRIES) {
+    const waitMs = Math.min(
+      parseResetHeader(res.headers.get("retry-after")) ??
+        parseResetHeader(res.headers.get("x-ratelimit-reset-tokens")) ??
+        3000,
+      9000,
+    );
+    logger.warn("Sahu Bhai LLM 429 — retrying", { attempt, waitMs });
+    await sleep(waitMs + 250);
+    return chatCompletion(params, attempt + 1);
+  }
+
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     logger.error("Sahu Bhai LLM error response", { status: res.status, body: text.slice(0, 500) });
+    if (res.status === 429) {
+      throw new RateLimitedError(
+        "Sahu Bhai abhi busy hai (free-tier ka per-minute limit). ~15-20 second ruk ke phir bhejo, ya thoda chhota sawaal karo.",
+      );
+    }
     throw new AppError(
       `LLM provider returned an error (${res.status}). ${text.slice(0, 200)}`.trim(),
       502,
