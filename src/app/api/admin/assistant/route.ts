@@ -21,6 +21,7 @@ export const maxDuration = 60;
 const bodySchema = z.object({
   mode: z.enum(["readonly", "act"]).default("readonly"),
   lang: z.enum(["en", "hi"]).default("en"),
+  newChat: z.boolean().optional(),
   messages: z
     .array(
       z.object({
@@ -46,7 +47,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     throw new RateLimitedError("Sahu Bhai needs a breather — try again in a minute.");
   }
 
-  const { mode, lang, messages } = bodySchema.parse(await request.json());
+  const { mode, lang, newChat, messages } = bodySchema.parse(await request.json());
 
   // Drop empty turns, cap each turn's length, keep the most recent slice.
   const history = messages
@@ -59,9 +60,17 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   const origin = new URL(request.url).origin;
   const cookie = request.headers.get("cookie") ?? "";
-  const ip = getClientIp(request);
-  const ua = request.headers.get("user-agent");
   const lastUser = [...history].reverse().find((m) => m.role === "user");
+
+  // Create/rotate the logging session up front so a "New chat" Set-Cookie
+  // actually goes out with the response.
+  const session = await getOrCreateSession({
+    user: { id: user.id, email: user.email },
+    origin: "admin",
+    ip: getClientIp(request),
+    userAgent: request.headers.get("user-agent"),
+    forceNew: newChat,
+  });
 
   return sseResponse(
     (emit) =>
@@ -82,12 +91,6 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       extraDone: { configured: isSahuBhaiConfigured() },
       after: async (result) => {
         try {
-          const session = await getOrCreateSession({
-            user: { id: user.id, email: user.email },
-            origin: "admin",
-            ip,
-            userAgent: ua,
-          });
           await recordTurn({
             sessionId: session.id,
             userText: lastUser?.content ?? "",

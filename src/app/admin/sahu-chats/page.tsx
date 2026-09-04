@@ -29,6 +29,9 @@ type Stats = {
   fromAdmin: number;
 };
 
+type Daily = { date: string; count: number }[];
+type TopQuestion = { text: string; count: number };
+
 type Msg = {
   id: string;
   role: string;
@@ -54,6 +57,8 @@ function whoLabel(s: { email: string | null; userName: string | null }) {
 export default function AdminSahuChatsPage() {
   const [sessions, setSessions] = useState<SessionRow[] | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [daily, setDaily] = useState<Daily>([]);
+  const [topQuestions, setTopQuestions] = useState<TopQuestion[]>([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -81,6 +86,8 @@ export default function AdminSahuChatsPage() {
         if (b.success) {
           setSessions(b.data.sessions);
           setStats(b.data.stats);
+          setDaily(b.data.daily ?? []);
+          setTopQuestions(b.data.topQuestions ?? []);
         } else {
           setSessions([]);
         }
@@ -241,6 +248,50 @@ export default function AdminSahuChatsPage() {
               <p className="text-[11px] text-muted">{label}</p>
             </Card>
           ))}
+        </div>
+      )}
+
+      {(daily.length > 0 || topQuestions.length > 0) && (
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          {daily.length > 0 && (
+            <Card className="p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                New conversations · last 14 days
+              </p>
+              <div className="mt-3 flex h-24 items-end gap-1">
+                {daily.map((d) => {
+                  const max = Math.max(1, ...daily.map((x) => x.count));
+                  return (
+                    <div
+                      key={d.date}
+                      title={`${d.date}: ${d.count}`}
+                      className="flex-1 rounded-t bg-brand/70"
+                      style={{ height: `${Math.max(4, (d.count / max) * 100)}%` }}
+                    />
+                  );
+                })}
+              </div>
+              <div className="mt-1 flex justify-between text-[10px] text-muted">
+                <span>{daily[0]?.date.slice(5)}</span>
+                <span>{daily[daily.length - 1]?.date.slice(5)}</span>
+              </div>
+            </Card>
+          )}
+          {topQuestions.length > 0 && (
+            <Card className="p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                What people ask (public)
+              </p>
+              <ol className="mt-2 space-y-1 text-sm">
+                {topQuestions.map((q) => (
+                  <li key={q.text} className="flex items-start gap-2">
+                    <span className="text-muted">{q.count}×</span>
+                    <span className="min-w-0 flex-1 truncate">{q.text}</span>
+                  </li>
+                ))}
+              </ol>
+            </Card>
+          )}
         </div>
       )}
 

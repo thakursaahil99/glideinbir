@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { logger } from "@/server/lib/logger";
+import { RateLimitedError } from "@/server/lib/errors";
 import type { SahuBhaiResult } from "./agent";
 import type { ActionLog } from "./tools";
 
@@ -54,7 +55,10 @@ export function sseResponse(
           err && typeof err === "object" && "message" in err
             ? String((err as { message: unknown }).message)
             : "Something went wrong.";
-        send("error", { message });
+        send("error", {
+          message,
+          rateLimited: err instanceof RateLimitedError,
+        });
       }
 
       // Persist BEFORE closing — on serverless the function can be frozen

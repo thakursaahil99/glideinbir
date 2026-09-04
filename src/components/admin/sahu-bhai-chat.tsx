@@ -64,7 +64,10 @@ export function SahuBhaiChat({
   // history it belongs to so we can resend after the email is captured.
   const [gate, setGate] = useState<{ pending: string; history: Entry[] } | null>(null);
   const [email, setEmail] = useState("");
+  // Seconds left on a rate-limit cooldown (0 = none).
+  const [cooldown, setCooldown] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const newChatRef = useRef(false);
 
   useEffect(() => {
     try {
@@ -77,6 +80,20 @@ export function SahuBhaiChat({
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [entries, busy, gate]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  function newChat() {
+    setEntries([]);
+    setError(null);
+    setGate(null);
+    setInput("");
+    newChatRef.current = true;
+  }
 
   async function submitEmail(value: string, pending: string, history: Entry[]) {
     const res = await fetch("/api/sahu/email", {
@@ -113,9 +130,11 @@ export function SahuBhaiChat({
         body: JSON.stringify({
           ...(showModeToggle ? { mode } : {}),
           lang,
+          ...(newChatRef.current ? { newChat: true } : {}),
           messages: history.slice(-40).map((e) => ({ role: e.role, content: e.content })),
         }),
       });
+      newChatRef.current = false;
     } catch {
       setError("Couldn't reach the server.");
       setBusy(false);
@@ -126,6 +145,7 @@ export function SahuBhaiChat({
     if (!res.ok && !res.headers.get("content-type")?.includes("event-stream")) {
       const body = await res.json().catch(() => null);
       setError(body?.error?.message ?? "Something went wrong.");
+      if (body?.error?.code === "RATE_LIMITED") setCooldown(20);
       setBusy(false);
       return;
     }
@@ -165,7 +185,12 @@ export function SahuBhaiChat({
             continue;
           }
           if (!line.startsWith("data:")) continue;
-          let data: { delta?: string; message?: string; needsEmail?: boolean } & Action;
+          let data: {
+            delta?: string;
+            message?: string;
+            needsEmail?: boolean;
+            rateLimited?: boolean;
+          } & Action;
           try {
             data = JSON.parse(line.slice(5).trim());
           } catch {
@@ -175,8 +200,10 @@ export function SahuBhaiChat({
           else if (event === "action") {
             collectedActions.push(data);
             setActions([...collectedActions]);
-          } else if (event === "error") streamError = data.message ?? "Something went wrong.";
-          else if (event === "done") {
+          } else if (event === "error") {
+            streamError = data.message ?? "Something went wrong.";
+            if (data.rateLimited) setCooldown(20);
+          } else if (event === "done") {
             if (data.needsEmail) gated = true;
             else setActions([...collectedActions]);
           }
@@ -206,7 +233,7 @@ export function SahuBhaiChat({
 
   async function sendText(raw: string) {
     const text = raw.trim();
-    if (!text || busy || gate) return;
+    if (!text || busy || gate || cooldown > 0) return;
     setInput("");
     const withUser: Entry[] = [...entries, { role: "user", content: text }];
     setEntries(withUser);
@@ -252,14 +279,10 @@ export function SahuBhaiChat({
 
         <button
           type="button"
-          onClick={() => {
-            setEntries([]);
-            setError(null);
-            setGate(null);
-          }}
+          onClick={newChat}
           className="ml-auto rounded-full px-2 py-1 font-medium text-muted hover:bg-black/5"
         >
-          Clear
+          New chat
         </button>
       </div>
 
@@ -359,6 +382,11 @@ export function SahuBhaiChat({
       </div>
 
       <div className="border-t border-border p-3">
+        {cooldown > 0 && (
+          <p className="mx-auto mb-2 max-w-2xl text-center text-xs text-muted">
+            Rate limited — try again in {cooldown}s
+          </p>
+        )}
         <div className="mx-auto flex w-full max-w-2xl items-end gap-2">
           <textarea
             value={input}
@@ -376,7 +404,7 @@ export function SahuBhaiChat({
           <button
             type="button"
             onClick={() => void send()}
-            disabled={busy || !input.trim() || !!gate}
+            disabled={busy || !input.trim() || !!gate || cooldown > 0}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-white transition-colors hover:bg-brand-dark disabled:opacity-40"
           >
             <Send className="h-4 w-4" />

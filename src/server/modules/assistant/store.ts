@@ -20,9 +20,11 @@ export async function getOrCreateSession(params: {
   origin: "public" | "admin";
   ip?: string;
   userAgent?: string | null;
+  /** "New chat" — ignore the current cookie and start a fresh session. */
+  forceNew?: boolean;
 }): Promise<SahuChatSession> {
   const store = await cookies();
-  const existingId = store.get(SID_COOKIE)?.value;
+  const existingId = params.forceNew ? undefined : store.get(SID_COOKIE)?.value;
 
   let session = existingId
     ? await prisma.sahuChatSession.findUnique({ where: { id: existingId } })
