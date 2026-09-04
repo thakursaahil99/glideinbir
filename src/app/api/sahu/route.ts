@@ -1,10 +1,11 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/server/auth/guards";
-import { withErrorHandling, apiSuccess } from "@/server/lib/api-response";
+import { withErrorHandling } from "@/server/lib/api-response";
 import { RateLimitedError, ValidationError } from "@/server/lib/errors";
 import { checkRateLimit, getClientIp } from "@/server/lib/rate-limit";
 import { runSahuBhai } from "@/server/modules/assistant/agent";
+import { sseResponse } from "@/server/modules/assistant/sse";
 import {
   bumpPublicDailyCount,
   getOrCreateSession,
@@ -25,8 +26,9 @@ const bodySchema = z.object({
     .max(100),
 });
 
-// Public site assistant — read-only `site_api` tool, no admin access. Free
-// for the first few messages, then an email is required (see /api/sahu/email).
+// Public site assistant — read-only `site_api` tool, no admin access.
+// Streams the reply as SSE. Free for the first few messages, then an email
+// is required (see /api/sahu/email).
 export const POST = withErrorHandling(async (request: NextRequest) => {
   const ip = getClientIp(request);
   if (!checkRateLimit(`sahu-public:${ip}`, 15, 5 * 60 * 1000)) {
@@ -43,10 +45,11 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   });
 
   if (needsEmail(session, user)) {
-    return apiSuccess({ needsEmail: true, reply: null });
+    return sseResponse(async () => ({ reply: "", actions: [], truncated: false }), {
+      extraDone: { needsEmail: true },
+    });
   }
 
-  // Logged-in admins bypass the global public cap.
   if (!user && !(await bumpPublicDailyCount()).allowed) {
     throw new RateLimitedError(
       "Sahu Bhai has hit today's free usage limit. Please try again tomorrow, or reach us on WhatsApp.",
@@ -61,23 +64,31 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     throw new ValidationError("Say something for Sahu Bhai to respond to.");
   }
 
-  const result = await runSahuBhai({
-    history,
-    tools: "site",
-    lang,
-    mode: "readonly",
-    origin: new URL(request.url).origin,
-    cookie: "",
-    user: null,
-  });
-
+  const origin = new URL(request.url).origin;
   const lastUser = [...history].reverse().find((m) => m.role === "user");
-  await recordTurn({
-    sessionId: session.id,
-    userText: lastUser?.content ?? "",
-    assistantText: result.reply,
-    actions: result.actions,
-  });
 
-  return apiSuccess({ needsEmail: false, reply: result.reply, actions: result.actions });
+  return sseResponse(
+    (emit) =>
+      runSahuBhai({
+        history,
+        tools: "site",
+        lang,
+        mode: "readonly",
+        origin,
+        cookie: "",
+        user: null,
+        onText: emit.text,
+        onAction: emit.action,
+      }),
+    {
+      extraDone: { needsEmail: false },
+      after: (result) =>
+        recordTurn({
+          sessionId: session.id,
+          userText: lastUser?.content ?? "",
+          assistantText: result.reply,
+          actions: result.actions,
+        }),
+    },
+  );
 });

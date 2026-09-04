@@ -1,6 +1,6 @@
 import type { User } from "@prisma/client";
 import { logger } from "@/server/lib/logger";
-import { chatCompletion, type ChatMessage } from "./client";
+import { chatCompletion, streamChatCompletion, type ChatMessage } from "./client";
 import { buildSystemPrompt, buildPublicSystemPrompt } from "./catalogue";
 import {
   ADMIN_API_TOOL,
@@ -33,7 +33,16 @@ export async function runSahuBhai(params: {
   origin: string;
   cookie: string;
   user: Pick<User, "name" | "role"> | null;
+  // When set, reply text is streamed delta-by-delta as it's generated.
+  onText?: (delta: string) => void;
+  // Notified when a tool call completes (for live action chips).
+  onAction?: (action: ActionLog) => void;
 }): Promise<SahuBhaiResult> {
+  const complete = (messages: ChatMessage[], tools?: Parameters<typeof chatCompletion>[0]["tools"]) =>
+    params.onText
+      ? streamChatCompletion({ messages, tools }, params.onText)
+      : chatCompletion({ messages, tools });
+
   const systemPrompt =
     params.tools === "admin" && params.user
       ? buildSystemPrompt({ mode: params.mode, user: params.user, lang: params.lang })
@@ -45,7 +54,7 @@ export async function runSahuBhai(params: {
   ];
 
   if (params.tools === "none") {
-    const message = await chatCompletion({ messages });
+    const message = await complete(messages);
     return {
       reply: message.content?.trim() || "(No response — please try again.)",
       actions: [],
@@ -60,7 +69,7 @@ export async function runSahuBhai(params: {
   let priorResults = "";
 
   for (let i = 0; i < maxIterations; i++) {
-    const message = await chatCompletion({ messages, tools: [tool] });
+    const message = await complete(messages, [tool]);
     messages.push({
       role: "assistant",
       content: message.content ?? null,
@@ -103,7 +112,10 @@ export async function runSahuBhai(params: {
             })
           : await executeSiteApi({ raw: parsedArgs, origin: params.origin });
 
-      if (action) actions.push(action);
+      if (action) {
+        actions.push(action);
+        params.onAction?.(action);
+      }
       priorResults += result;
       messages.push({ role: "tool", tool_call_id: call.id, content: result });
     }
@@ -111,21 +123,17 @@ export async function runSahuBhai(params: {
 
   // Hit the iteration cap — ask for a plain-text wrap-up with no more tools.
   logger.warn("Sahu Bhai hit iteration cap", { tools: params.tools, actions: actions.length });
-  const summary = await chatCompletion({
-    messages: [
-      ...messages,
-      {
-        role: "user",
-        content:
-          "Do not make any more tool calls. Answer the user now with what you have — what you found, and anything still unknown.",
-      },
-    ],
-  });
+  const summary = await complete([
+    ...messages,
+    {
+      role: "user",
+      content:
+        "Do not make any more tool calls. Answer the user now with what you have — what you found, and anything still unknown.",
+    },
+  ]);
 
   return {
-    reply:
-      summary.content?.trim() ||
-      "Couldn't finish that — please try asking in a simpler way.",
+    reply: summary.content?.trim() || "Couldn't finish that — please try asking in a simpler way.",
     actions,
     truncated: true,
   };

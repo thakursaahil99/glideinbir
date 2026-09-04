@@ -78,19 +78,6 @@ export function SahuBhaiChat({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [entries, busy, gate]);
 
-  async function callApi(history: Entry[]) {
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        ...(showModeToggle ? { mode } : {}),
-        lang,
-        messages: history.slice(-40).map((e) => ({ role: e.role, content: e.content })),
-      }),
-    });
-    return { res, body: await res.json() };
-  }
-
   async function submitEmail(value: string, pending: string, history: Entry[]) {
     const res = await fetch("/api/sahu/email", {
       method: "POST",
@@ -112,31 +99,108 @@ export function SahuBhaiChat({
     await deliver(pending, history);
   }
 
-  // `history` already includes the pending user turn.
+  // `history` already includes the pending user turn. Streams the reply
+  // (SSE) into a live assistant entry.
   async function deliver(text: string, history: Entry[]) {
     setBusy(true);
     setError(null);
+
+    let res: Response;
     try {
-      const { res, body } = await callApi(history);
-      if (!res.ok || !body.success) {
-        setError(body.error?.message ?? "Something went wrong.");
-      } else if (body.data.needsEmail) {
-        const saved = readEmail();
-        if (saved) {
-          await submitEmail(saved, text, history);
-          return;
-        }
-        setGate({ pending: text, history });
-      } else {
-        setEntries((prev) => [
-          ...prev,
-          { role: "assistant", content: body.data.reply, actions: body.data.actions },
-        ]);
-      }
+      res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...(showModeToggle ? { mode } : {}),
+          lang,
+          messages: history.slice(-40).map((e) => ({ role: e.role, content: e.content })),
+        }),
+      });
     } catch {
       setError("Couldn't reach the server.");
-    } finally {
       setBusy(false);
+      return;
+    }
+
+    // A non-stream error response (auth, rate limit, validation) is JSON.
+    if (!res.ok && !res.headers.get("content-type")?.includes("event-stream")) {
+      const body = await res.json().catch(() => null);
+      setError(body?.error?.message ?? "Something went wrong.");
+      setBusy(false);
+      return;
+    }
+
+    // Open a live assistant entry to stream into — it lands right after the
+    // pending user turn.
+    const assistantIndex = history.length;
+    setEntries([...history, { role: "assistant", content: "" }]);
+    const appendDelta = (delta: string) =>
+      setEntries((prev) =>
+        prev.map((e, i) => (i === assistantIndex ? { ...e, content: e.content + delta } : e)),
+      );
+    const setActions = (actions: Action[]) =>
+      setEntries((prev) => prev.map((e, i) => (i === assistantIndex ? { ...e, actions } : e)));
+    const dropEmptyAssistant = () =>
+      setEntries((prev) => prev.filter((e, i) => !(i === assistantIndex && e.content === "")));
+
+    const collectedActions: Action[] = [];
+    let streamError: string | null = null;
+    let gated = false;
+
+    try {
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("no stream");
+      const decoder = new TextDecoder();
+      let buf = "";
+      let event = "";
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (line.startsWith("event:")) {
+            event = line.slice(6).trim();
+            continue;
+          }
+          if (!line.startsWith("data:")) continue;
+          let data: { delta?: string; message?: string; needsEmail?: boolean } & Action;
+          try {
+            data = JSON.parse(line.slice(5).trim());
+          } catch {
+            continue;
+          }
+          if (event === "text" && data.delta) appendDelta(data.delta);
+          else if (event === "action") {
+            collectedActions.push(data);
+            setActions([...collectedActions]);
+          } else if (event === "error") streamError = data.message ?? "Something went wrong.";
+          else if (event === "done") {
+            if (data.needsEmail) gated = true;
+            else setActions([...collectedActions]);
+          }
+        }
+      }
+    } catch {
+      streamError = streamError ?? "Connection interrupted.";
+    }
+
+    setBusy(false);
+
+    if (gated) {
+      dropEmptyAssistant();
+      const saved = readEmail();
+      if (saved) {
+        await submitEmail(saved, text, history);
+        return;
+      }
+      setGate({ pending: text, history });
+      return;
+    }
+    if (streamError) {
+      dropEmptyAssistant();
+      setError(streamError);
     }
   }
 
@@ -222,7 +286,8 @@ export function SahuBhaiChat({
             )}
           </div>
         )}
-        {entries.map((entry, i) => (
+        {entries.map((entry, i) =>
+          entry.role === "assistant" && entry.content === "" && !entry.actions?.length ? null : (
           <div
             key={i}
             className={clsx(
@@ -253,8 +318,9 @@ export function SahuBhaiChat({
               </div>
             )}
           </div>
-        ))}
-        {busy && (
+          ),
+        )}
+        {busy && entries[entries.length - 1]?.content === "" && (
           <div className="mr-auto flex items-center gap-2 rounded-2xl bg-surface px-3 py-2 text-sm text-muted">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
             thinking…
