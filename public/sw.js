@@ -1,13 +1,9 @@
-// Minimal service worker for the "Sahu Bhai" PWA.
-// - Makes the app installable (a fetch handler is part of the install
-//   criteria on Chromium).
-// - Caches the app shell so /sahu opens even with a flaky connection.
-// - Never caches API calls or auth — those always hit the network.
+// Service worker for the "Sahu Bhai" PWA.
+// Priorities: (1) installability, (2) /sahu opens offline, (3) NEVER serve a
+// stale app after a deploy. So: the admin is left entirely to the network,
+// navigations are network-first, and assets are stale-while-revalidate.
 
-const CACHE = "sahu-bhai-v3";
-// Only pre-cache assets that always return 200 for everyone. /sahu itself
-// redirects to /login when signed out, which would fail cache.addAll — it's
-// cached at runtime by the navigation handler instead.
+const CACHE = "sahu-bhai-v4";
 const SHELL = ["/manifest.webmanifest", "/sahu-icon-192.png", "/sahu-icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -30,29 +26,35 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  // Always go to the network for API + auth — never serve stale data.
-  if (url.pathname.startsWith("/api/")) return;
 
-  // Navigations: network first, fall back to the cached shell when offline.
+  // API, auth and the whole admin: always straight to the network, never
+  // cached — so a deploy is picked up immediately and data is never stale.
+  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/admin")) return;
+
+  // Navigations: network-first; fall back to a cached page only when offline.
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request).catch(() => caches.match(request).then((r) => r || caches.match("/sahu"))),
+      fetch(request).catch(() =>
+        caches.match(request).then((r) => r || caches.match("/sahu") || caches.match("/")),
+      ),
     );
     return;
   }
 
-  // Static assets: cache first, then network (and cache the result).
+  // Other assets: stale-while-revalidate — instant from cache, but always
+  // refresh in the background so the next load is current.
   event.respondWith(
-    caches.match(request).then(
-      (cached) =>
-        cached ||
-        fetch(request).then((resp) => {
+    caches.match(request).then((cached) => {
+      const network = fetch(request)
+        .then((resp) => {
           if (resp.ok && resp.type === "basic") {
             const copy = resp.clone();
             caches.open(CACHE).then((c) => c.put(request, copy));
           }
           return resp;
-        }),
-    ),
+        })
+        .catch(() => cached);
+      return cached || network;
+    }),
   );
 });
