@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { clsx } from "clsx";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, Download, Mail } from "lucide-react";
 import { Card, Badge } from "@/components/ui/card";
 import { formatDate } from "@/lib/format";
 import { TableSearch, matchesSearch } from "@/components/admin/table-search";
@@ -12,10 +12,21 @@ type SessionRow = {
   id: string;
   email: string | null;
   userName: string | null;
+  isCustomer: boolean;
   origin: string;
   turns: number;
   totalMessages: number;
+  createdAt: string;
   lastMessageAt: string;
+};
+
+type Stats = {
+  total: number;
+  thisWeek: number;
+  leads: number;
+  uniqueEmails: number;
+  fromPublic: number;
+  fromAdmin: number;
 };
 
 type Msg = {
@@ -34,26 +45,46 @@ type Transcript = {
   messages: Msg[];
 };
 
+type Filter = "all" | "leads" | "admin";
+
 function whoLabel(s: { email: string | null; userName: string | null }) {
   return s.userName ?? s.email ?? "Anonymous";
 }
 
 export default function AdminSahuChatsPage() {
   const [sessions, setSessions] = useState<SessionRow[] | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<Filter>("all");
   const [openId, setOpenId] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<Transcript | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const filtered = useMemo(
-    () => sessions?.filter((s) => matchesSearch(s, search)),
-    [sessions, search],
+    () =>
+      sessions
+        ?.filter((s) =>
+          filter === "leads"
+            ? s.origin === "public" && s.email
+            : filter === "admin"
+              ? s.origin === "admin"
+              : true,
+        )
+        .filter((s) => matchesSearch(s, search)),
+    [sessions, search, filter],
   );
 
   function loadList() {
     fetch("/api/admin/sahu-chats")
       .then((r) => r.json())
-      .then((b) => setSessions(b.success ? b.data : []));
+      .then((b) => {
+        if (b.success) {
+          setSessions(b.data.sessions);
+          setStats(b.data.stats);
+        } else {
+          setSessions([]);
+        }
+      });
   }
 
   useEffect(loadList, []);
@@ -64,6 +95,17 @@ export default function AdminSahuChatsPage() {
     fetch(`/api/admin/sahu-chats/${id}`)
       .then((r) => r.json())
       .then((b) => b.success && setTranscript(b.data));
+  }
+
+  async function exportCsv() {
+    const res = await fetch("/api/admin/sahu-chats/export");
+    if (!res.ok) return;
+    const url = URL.createObjectURL(await res.blob());
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sahu-bhai-leads-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function remove(id: string) {
@@ -104,14 +146,24 @@ export default function AdminSahuChatsPage() {
                   {transcript.email ?? "no email"} · {transcript.origin}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => remove(transcript.id)}
-                disabled={isPending}
-                className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
-              >
-                <Trash2 className="h-3.5 w-3.5" /> Delete
-              </button>
+              <div className="flex items-center gap-2">
+                {transcript.email && transcript.origin === "public" && (
+                  <a
+                    href={`mailto:${transcript.email}`}
+                    className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-brand hover:bg-brand/10"
+                  >
+                    <Mail className="h-3.5 w-3.5" /> Email
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => remove(transcript.id)}
+                  disabled={isPending}
+                  className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                </button>
+              </div>
             </div>
 
             <div className="mt-4 space-y-3">
@@ -155,19 +207,60 @@ export default function AdminSahuChatsPage() {
   }
 
   // ---- list view ----
-  const withEmail = sessions?.filter((s) => s.email).length ?? 0;
-
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">Sahu Bhai — chat history</h1>
-      <p className="mt-1 text-sm text-muted">
-        Every conversation with Sahu Bhai, from the public website and the admin panel — one row
-        per visitor / login.
-        {sessions ? ` ${sessions.length} total · ${withEmail} with an email.` : ""}
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Sahu Bhai — chat history</h1>
+          <p className="mt-1 text-sm text-muted">
+            Every conversation, from the public website and the admin panel — one row per
+            visitor / login.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => void exportCsv()}
+          className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-ink hover:bg-black/5"
+        >
+          <Download className="h-3.5 w-3.5" /> Export leads (CSV)
+        </button>
+      </div>
 
-      <div className="mt-4">
-        <TableSearch value={search} onChange={setSearch} placeholder="Search by email, name…" />
+      {stats && (
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {[
+            ["Conversations", stats.total],
+            ["This week", stats.thisWeek],
+            ["Leads (email)", stats.leads],
+            ["Unique emails", stats.uniqueEmails],
+            ["From site", stats.fromPublic],
+            ["From admin", stats.fromAdmin],
+          ].map(([label, value]) => (
+            <Card key={label} className="p-3">
+              <p className="text-lg font-bold">{value}</p>
+              <p className="text-[11px] text-muted">{label}</p>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        {(["all", "leads", "admin"] as const).map((f) => (
+          <button
+            key={f}
+            type="button"
+            onClick={() => setFilter(f)}
+            className={clsx(
+              "rounded-full px-3 py-1 text-xs font-medium capitalize transition-colors",
+              filter === f ? "bg-brand text-white" : "text-muted hover:bg-black/5",
+            )}
+          >
+            {f === "leads" ? "Leads only" : f}
+          </button>
+        ))}
+        <div className="ml-auto w-full sm:w-64">
+          <TableSearch value={search} onChange={setSearch} placeholder="Search by email, name…" />
+        </div>
       </div>
 
       <Card className="mt-2 overflow-x-auto">
@@ -188,7 +281,14 @@ export default function AdminSahuChatsPage() {
                 className="cursor-pointer border-b border-border last:border-0 transition-colors hover:bg-black/[0.025]"
                 onClick={() => open(s.id)}
               >
-                <td className="px-4 py-3 font-medium">{whoLabel(s)}</td>
+                <td className="px-4 py-3">
+                  <span className="font-medium">{whoLabel(s)}</span>
+                  {s.isCustomer && (
+                    <Badge tone="success" className="ml-2 align-middle">
+                      Customer
+                    </Badge>
+                  )}
+                </td>
                 <td className="px-4 py-3">
                   <Badge tone={s.origin === "admin" ? "purple" : "neutral"}>{s.origin}</Badge>
                 </td>
@@ -212,7 +312,7 @@ export default function AdminSahuChatsPage() {
             {sessions && filtered && filtered.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-muted">
-                  {search ? "No matches." : "No conversations yet."}
+                  {search || filter !== "all" ? "No matches." : "No conversations yet."}
                 </td>
               </tr>
             )}
