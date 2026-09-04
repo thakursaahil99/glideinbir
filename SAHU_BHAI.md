@@ -1,13 +1,19 @@
-# Sahu Bhai — admin AI assistant
+# Sahu Bhai — AI assistant
 
-Sahu Bhai is a chat assistant inside `/admin`. You type instructions in plain
-language (Hindi / Hinglish / English) and it performs the admin work for you by
-calling the same `/api/admin/**` REST API the admin screens use.
+Sahu Bhai runs in two places:
 
-## How it works
+| Surface | Endpoint | Powers |
+|---|---|---|
+| **Public site** widget (bottom-left, every page) | `POST /api/sahu` | Chat only. Free for 4 messages, then asks for an email (no verification). No live data, no bookings. |
+| **Admin panel** (bottom-right) + `/sahu` | `POST /api/admin/assistant` | **SUPER_ADMIN**: full `admin_api` tool (create/edit/delete). Other admin roles: chat only. |
 
-- A floating **Sahu Bhai** button sits at the bottom-right of every admin page.
-- It has **one tool**: `admin_api(method, path, body?)`. Every call runs as the
+Every conversation (public + admin) is stored and reviewable at **`/admin/sahu-chats`**
+(Super Admin only) — grouped by email / user, full transcript, deletable.
+
+## Admin assistant
+
+- The floating **Sahu Bhai** button sits at the bottom-right of every admin page.
+- For SUPER_ADMIN it has **one tool**: `admin_api(method, path, body?)`. Every call runs as the
   **signed-in admin's own session**, so role permissions, zod validation and the
   audit log all apply exactly as they do for the normal UI.
 - Replies in **English by default**; only switches to Hindi/Hinglish if you explicitly ask.

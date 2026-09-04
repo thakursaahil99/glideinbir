@@ -1,7 +1,7 @@
 import type { User } from "@prisma/client";
 import { logger } from "@/server/lib/logger";
 import { chatCompletion, type ChatMessage } from "./client";
-import { buildSystemPrompt } from "./catalogue";
+import { buildSystemPrompt, buildPublicSystemPrompt } from "./catalogue";
 import { ADMIN_API_TOOL, executeAdminApi, type ActionLog } from "./tools";
 import type { AssistantMode } from "./authorize";
 
@@ -17,15 +17,33 @@ export type SahuBhaiResult = {
 
 export async function runSahuBhai(params: {
   history: ClientMessage[];
+  // "admin" gives the admin_api tool (SUPER_ADMIN only); "none" is a plain
+  // chat assistant (other admins + the whole public site).
+  tools: "admin" | "none";
   mode: AssistantMode;
   origin: string;
   cookie: string;
-  user: Pick<User, "name" | "role">;
+  user: Pick<User, "name" | "role"> | null;
 }): Promise<SahuBhaiResult> {
+  const systemPrompt =
+    params.tools === "admin" && params.user
+      ? buildSystemPrompt({ mode: params.mode, user: params.user })
+      : buildPublicSystemPrompt();
+
   const messages: ChatMessage[] = [
-    { role: "system", content: buildSystemPrompt({ mode: params.mode, user: params.user }) },
+    { role: "system", content: systemPrompt },
     ...params.history.map((m): ChatMessage => ({ role: m.role, content: m.content })),
   ];
+
+  // No tools — one straight completion.
+  if (params.tools === "none") {
+    const message = await chatCompletion({ messages });
+    return {
+      reply: message.content?.trim() || "(No response — please try again.)",
+      actions: [],
+      truncated: false,
+    };
+  }
 
   const actions: ActionLog[] = [];
   let priorResults = "";

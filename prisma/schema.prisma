@@ -60,6 +60,7 @@ model User {
   auditLogs           AuditLog[]
   auditLogsRestored   AuditLog[]            @relation("AuditLogRestoredBy")
   rolePermissions     UserPermission[]
+  sahuChats           SahuChatSession[]
 
   @@index([role])
 }
@@ -1060,4 +1061,44 @@ model AuditLog {
   @@index([userId])
   @@index([entityType, entityId])
   @@index([action, restoredAt])
+}
+
+// ============================================================================
+// SAHU BHAI — AI ASSISTANT CHAT LOG
+// ============================================================================
+
+// One chat session (public visitor or a logged-in admin). The public
+// assistant is free for the first few messages, then `email` is required;
+// `messageCount` (user turns) drives that gate. Full transcript is kept so
+// Super Admin can review every conversation.
+model SahuChatSession {
+  id            String   @id @default(cuid())
+  email         String?
+  userId        String?
+  origin        String   @default("public") // "public" | "admin"
+  ipHash        String?
+  userAgent     String?
+  messageCount  Int      @default(0)
+  createdAt     DateTime @default(now())
+  lastMessageAt DateTime @default(now())
+
+  user     User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages SahuChatMessage[]
+
+  @@index([email])
+  @@index([userId])
+  @@index([lastMessageAt])
+}
+
+model SahuChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  role      String   // "user" | "assistant"
+  content   String
+  actions   Json?    // ActionLog[] when the assistant hit the admin API
+  createdAt DateTime @default(now())
+
+  session SahuChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
 }

@@ -19,6 +19,7 @@ import {
   MessageSquareText,
   FileText,
   Newspaper,
+  Bot,
 } from "lucide-react";
 import type { ModuleKey } from "./module-theme";
 
@@ -101,7 +102,10 @@ export const ADMIN_SECTIONS: AdminSection[] = [
   {
     title: "Super Admin",
     theme: "audit",
-    links: [{ href: "/admin/audit", label: "Deleted data", icon: Trash2, roles: [] }],
+    links: [
+      { href: "/admin/sahu-chats", label: "AI chats", icon: Bot, roles: [] },
+      { href: "/admin/audit", label: "Deleted data", icon: Trash2, roles: [] },
+    ],
   },
 ];
 

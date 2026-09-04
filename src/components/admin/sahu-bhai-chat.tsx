@@ -9,18 +9,16 @@ type Mode = "readonly" | "act";
 type Action = { method: string; path: string; status: number; ok: boolean };
 type Entry = { role: "user" | "assistant"; content: string; actions?: Action[] };
 
-const STORAGE_KEY = "sahu-bhai:v1";
-const HISTORY_CAP = 20;
+const EMAIL_KEY = "sahu-bhai:email";
 
-// Read once at mount (lazy initial state — never setState-in-effect).
-function loadStored(): { mode: Mode; entries: Entry[] } {
+function loadStored(key: string): { mode: Mode; entries: Entry[] } {
   try {
-    const raw = typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY);
+    const raw = typeof window !== "undefined" && localStorage.getItem(key);
     if (raw) {
       const saved = JSON.parse(raw) as { mode?: Mode; entries?: Entry[] };
       return {
         mode: saved.mode === "act" ? "act" : "readonly",
-        entries: Array.isArray(saved.entries) ? saved.entries.slice(-HISTORY_CAP) : [],
+        entries: Array.isArray(saved.entries) ? saved.entries.slice(-20) : [],
       };
     }
   } catch {
@@ -29,51 +27,102 @@ function loadStored(): { mode: Mode; entries: Entry[] } {
   return { mode: "readonly", entries: [] };
 }
 
-// The chat itself — transcript + mode toggle + composer. Shared by the
-// floating panel (<SahuBhai>) and the installable full-screen page (/sahu).
-export function SahuBhaiChat({ className }: { className?: string }) {
-  const [mode, setMode] = useState<Mode>(() => loadStored().mode);
-  const [entries, setEntries] = useState<Entry[]>(() => loadStored().entries);
+function readEmail(): string | null {
+  try {
+    return localStorage.getItem(EMAIL_KEY);
+  } catch {
+    return null;
+  }
+}
+
+// The chat itself — transcript + composer. Shared by the admin panel, the
+// installable /sahu page, and the public-site widget.
+export function SahuBhaiChat({
+  className,
+  endpoint = "/api/admin/assistant",
+  storageKey = "sahu-bhai:v1",
+  showModeToggle = true,
+  emptyHint = "Ask me anything — admin work, or general questions.",
+}: {
+  className?: string;
+  endpoint?: string;
+  storageKey?: string;
+  showModeToggle?: boolean;
+  emptyHint?: string;
+}) {
+  const [mode, setMode] = useState<Mode>(() => loadStored(storageKey).mode);
+  const [entries, setEntries] = useState<Entry[]>(() => loadStored(storageKey).entries);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [gate, setGate] = useState<{ pending: string } | null>(null);
+  const [email, setEmail] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Latest entries, readable synchronously right after setEntries().
+  const entriesRef = useRef(entries);
+  entriesRef.current = entries;
 
   useEffect(() => {
     try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ mode, entries: entries.slice(-HISTORY_CAP) }),
-      );
+      localStorage.setItem(storageKey, JSON.stringify({ mode, entries: entries.slice(-20) }));
     } catch {
-      /* ignore unwritable storage */
+      /* ignore */
     }
-  }, [mode, entries]);
+  }, [mode, entries, storageKey]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [entries, busy]);
+  }, [entries, busy, gate]);
 
-  async function send() {
-    const text = input.trim();
-    if (!text || busy) return;
-    setInput("");
-    setError(null);
-    const withUser: Entry[] = [...entries, { role: "user", content: text }];
-    setEntries(withUser);
-    setBusy(true);
+  async function callApi(history: Entry[]) {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ...(showModeToggle ? { mode } : {}),
+        messages: history.slice(-40).map((e) => ({ role: e.role, content: e.content })),
+      }),
+    });
+    return { res, body: await res.json() };
+  }
+
+  async function submitEmail(value: string, pending: string) {
+    const res = await fetch("/api/sahu/email", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: value }),
+    });
+    const body = await res.json();
+    if (!res.ok || !body.success) {
+      setError(body.error?.message ?? "Couldn't save that email.");
+      return;
+    }
     try {
-      const res = await fetch("/api/admin/assistant", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          mode,
-          messages: withUser.slice(-40).map((e) => ({ role: e.role, content: e.content })),
-        }),
-      });
-      const body = await res.json();
+      localStorage.setItem(EMAIL_KEY, value);
+    } catch {
+      /* ignore */
+    }
+    setGate(null);
+    setEmail("");
+    await deliver(pending);
+  }
+
+  // Send `text` (already added as a user entry) and handle the reply / gate.
+  async function deliver(text: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      const withUser = entriesRef.current;
+      const { res, body } = await callApi(withUser);
       if (!res.ok || !body.success) {
         setError(body.error?.message ?? "Something went wrong.");
+      } else if (body.data.needsEmail) {
+        const saved = readEmail();
+        if (saved) {
+          await submitEmail(saved, text);
+          return;
+        }
+        setGate({ pending: text });
       } else {
         setEntries((prev) => [
           ...prev,
@@ -87,40 +136,54 @@ export function SahuBhaiChat({ className }: { className?: string }) {
     }
   }
 
+  async function send() {
+    const text = input.trim();
+    if (!text || busy || gate) return;
+    setInput("");
+    const withUser: Entry[] = [...entries, { role: "user", content: text }];
+    setEntries(withUser);
+    entriesRef.current = withUser;
+    await deliver(text);
+  }
+
   return (
     <div className={clsx("flex min-h-0 flex-col", className)}>
-      <div className="flex items-center gap-1 border-b border-border bg-surface/60 px-3 py-2 text-xs">
-        {(["readonly", "act"] as const).map((m) => (
+      {(showModeToggle || entries.length > 0) && (
+        <div className="flex items-center gap-1 border-b border-border bg-surface/60 px-3 py-2 text-xs">
+          {showModeToggle &&
+            (["readonly", "act"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className={clsx(
+                  "rounded-full px-2.5 py-1 font-medium transition-colors",
+                  mode === m ? "bg-brand text-white" : "text-muted hover:bg-black/5",
+                )}
+              >
+                {m === "readonly" ? "Read-only" : "Make changes"}
+              </button>
+            ))}
           <button
-            key={m}
             type="button"
-            onClick={() => setMode(m)}
-            className={clsx(
-              "rounded-full px-2.5 py-1 font-medium transition-colors",
-              mode === m ? "bg-brand text-white" : "text-muted hover:bg-black/5",
-            )}
+            onClick={() => {
+              setEntries([]);
+              setError(null);
+              setGate(null);
+            }}
+            className="ml-auto rounded-full px-2 py-1 font-medium text-muted hover:bg-black/5"
           >
-            {m === "readonly" ? "Read-only" : "Make changes"}
+            Clear
           </button>
-        ))}
-        <button
-          type="button"
-          onClick={() => {
-            setEntries([]);
-            setError(null);
-          }}
-          className="ml-auto rounded-full px-2 py-1 font-medium text-muted hover:bg-black/5"
-        >
-          Clear
-        </button>
-      </div>
+        </div>
+      )}
 
-      <div ref={scrollRef} className="mx-auto w-full max-w-2xl flex-1 space-y-3 overflow-y-auto px-4 py-4">
+      <div
+        ref={scrollRef}
+        className="mx-auto w-full max-w-2xl flex-1 space-y-3 overflow-y-auto px-4 py-4"
+      >
         {entries.length === 0 && (
-          <p className="mt-6 text-center text-sm text-muted">
-            Ask me anything — admin work like “deactivate the Volvo route to Delhi”, or
-            general questions for personal use.
-          </p>
+          <p className="mt-6 text-center text-sm text-muted">{emptyHint}</p>
         )}
         {entries.map((entry, i) => (
           <div
@@ -160,6 +223,35 @@ export function SahuBhaiChat({ className }: { className?: string }) {
             thinking…
           </div>
         )}
+        {gate && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (email.trim()) void submitEmail(email.trim(), gate.pending);
+            }}
+            className="rounded-xl border border-border bg-paper p-3 text-sm"
+          >
+            <p className="font-medium">Ek email daal do — phir unlimited chat.</p>
+            <p className="mt-0.5 text-xs text-muted">Sirf email, koi password nahi.</p>
+            <div className="mt-2 flex gap-2">
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="flex-1 rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-brand"
+              />
+              <button
+                type="submit"
+                disabled={busy}
+                className="rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:bg-brand-dark disabled:opacity-50"
+              >
+                Continue
+              </button>
+            </div>
+          </form>
+        )}
         {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>}
       </div>
 
@@ -181,7 +273,7 @@ export function SahuBhaiChat({ className }: { className?: string }) {
           <button
             type="button"
             onClick={() => void send()}
-            disabled={busy || !input.trim()}
+            disabled={busy || !input.trim() || !!gate}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-white transition-colors hover:bg-brand-dark disabled:opacity-40"
           >
             <Send className="h-4 w-4" />
