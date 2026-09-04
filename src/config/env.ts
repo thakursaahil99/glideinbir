@@ -54,7 +54,7 @@ const envSchema = z.object({
   // until SAHU_BHAI_API_KEY is set — see SAHU_BHAI.md for provider options.
   SAHU_BHAI_API_KEY: z.string().optional(),
   SAHU_BHAI_BASE_URL: z.string().url().default("https://api.groq.com/openai/v1"),
-  SAHU_BHAI_MODEL: z.string().min(1).default("qwen/qwen3.8-27b"),
+  SAHU_BHAI_MODEL: z.string().min(1).default("openai/gpt-oss-120b"),
 });
 
 function loadEnv() {

@@ -33,7 +33,7 @@ OpenAI-compatible chat-completions provider — pick one with a free tier:
 
 | Provider | `SAHU_BHAI_BASE_URL` | `SAHU_BHAI_MODEL` | Get a key |
 |---|---|---|---|
-| Groq (default) | `https://api.groq.com/openai/v1` | `qwen/qwen3.8-27b` (or `openai/gpt-oss-120b`) | console.groq.com |
+| Groq (default) | `https://api.groq.com/openai/v1` | `openai/gpt-oss-120b` (or `qwen/qwen3.8-27b`) | console.groq.com |
 | Google Gemini | `https://generativelanguage.googleapis.com/v1beta/openai/` | `gemini-2.0-flash` | aistudio.google.com |
 | OpenRouter | `https://openrouter.ai/api/v1` | a `:free` model | openrouter.ai |
 | Ollama (local, no key) | `http://localhost:11434/v1` | `qwen2.5:3b` | — (runs on your machine) |
@@ -42,7 +42,7 @@ OpenAI-compatible chat-completions provider — pick one with a free tier:
 # .env
 SAHU_BHAI_API_KEY="your-provider-key"   # any non-empty string for Ollama
 SAHU_BHAI_BASE_URL="https://api.groq.com/openai/v1"
-SAHU_BHAI_MODEL="qwen/qwen3.8-27b"
+SAHU_BHAI_MODEL="openai/gpt-oss-120b"
 ```
 
 Restart `next dev` after changing env vars. The model must support tool /

@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { requireRole } from "@/server/auth/guards";
 import { withErrorHandling, apiSuccess } from "@/server/lib/api-response";
-import { RateLimitedError } from "@/server/lib/errors";
+import { RateLimitedError, ValidationError } from "@/server/lib/errors";
 import { checkRateLimit } from "@/server/lib/rate-limit";
 import { ADMIN_ROLES } from "@/lib/admin-roles";
 import { runSahuBhai } from "@/server/modules/assistant/agent";
@@ -12,18 +12,25 @@ import { isSahuBhaiConfigured } from "@/server/modules/assistant/client";
 // caps this at 60s on Hobby, 300s on Pro).
 export const maxDuration = 60;
 
+// Kept lenient on purpose: an assistant turn (a long code answer, say) can
+// be huge, and it comes straight back in the next request's history — a
+// strict per-message cap here would 400 the whole conversation once that
+// happens. We accept it and trim in the handler instead.
 const bodySchema = z.object({
   mode: z.enum(["readonly", "act"]).default("readonly"),
   messages: z
     .array(
       z.object({
         role: z.enum(["user", "assistant"]),
-        content: z.string().trim().min(1).max(4000),
+        content: z.string(),
       }),
     )
     .min(1)
-    .max(40),
+    .max(100),
 });
+
+const MAX_MESSAGE_CHARS = 24_000;
+const MAX_HISTORY = 30;
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
   const user = await requireRole(...ADMIN_ROLES);
@@ -35,8 +42,17 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   const { mode, messages } = bodySchema.parse(await request.json());
 
+  // Drop empty turns, cap each turn's length, keep the most recent slice.
+  const history = messages
+    .map((m) => ({ role: m.role, content: m.content.slice(0, MAX_MESSAGE_CHARS) }))
+    .filter((m) => m.content.trim().length > 0)
+    .slice(-MAX_HISTORY);
+  if (history.length === 0) {
+    throw new ValidationError("Say something for Sahu Bhai to respond to.");
+  }
+
   const result = await runSahuBhai({
-    history: messages,
+    history,
     mode,
     origin: new URL(request.url).origin,
     cookie: request.headers.get("cookie") ?? "",

@@ -41,7 +41,7 @@ export async function chatCompletion(params: {
   const url = `${env.SAHU_BHAI_BASE_URL.replace(/\/+$/, "")}/chat/completions`;
   const payload: Record<string, unknown> = {
     model: env.SAHU_BHAI_MODEL,
-    temperature: 0,
+    temperature: 0.4,
     messages: params.messages,
   };
   if (params.tools && params.tools.length > 0) {

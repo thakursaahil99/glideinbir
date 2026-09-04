@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { clsx } from "clsx";
 import { Send, Loader2 } from "lucide-react";
+import { Markdown } from "@/components/markdown";
 
 type Mode = "readonly" | "act";
 type Action = { method: string; path: string; status: number; ok: boolean };
@@ -125,11 +126,17 @@ export function SahuBhaiChat({ className }: { className?: string }) {
           <div
             key={i}
             className={clsx(
-              "max-w-[85%] rounded-2xl px-3 py-2 text-sm",
-              entry.role === "user" ? "ml-auto bg-brand text-white" : "mr-auto bg-surface text-ink",
+              "rounded-2xl px-3 py-2 text-sm",
+              entry.role === "user"
+                ? "ml-auto max-w-[85%] bg-brand text-white"
+                : "mr-auto max-w-[92%] bg-surface text-ink",
             )}
           >
-            <p className="whitespace-pre-wrap break-words">{entry.content}</p>
+            {entry.role === "user" ? (
+              <p className="whitespace-pre-wrap break-words">{entry.content}</p>
+            ) : (
+              <Markdown>{entry.content}</Markdown>
+            )}
             {entry.actions && entry.actions.length > 0 && (
               <div className="mt-2 space-y-1 border-t border-black/10 pt-2">
                 {entry.actions.map((a, j) => (
