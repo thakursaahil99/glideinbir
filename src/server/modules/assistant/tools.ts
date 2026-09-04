@@ -112,6 +112,70 @@ export async function executeAdminApi(args: {
   };
 }
 
+// ---- public site tool (read-only, no auth) --------------------------------
+
+export const SITE_API_TOOL: ChatTool = {
+  type: "function",
+  function: {
+    name: "site_api",
+    description:
+      "Look up live public Glideinbir data: paragliding packages, school courses & instructors, hotels & rooms, adventure items, travel routes, and their prices / schedules / availability. GET only. Use this whenever the user asks what is offered or how much something costs.",
+    parameters: {
+      type: "object",
+      properties: {
+        path: {
+          type: "string",
+          description:
+            'A public API path, e.g. "/api/paragliding/packages", "/api/hotels", "/api/school/courses", "/api/adventure/items", "/api/travel/routes". A "/<slug>" detail path or a "?" query string is allowed.',
+        },
+      },
+      required: ["path"],
+      additionalProperties: false,
+    },
+  },
+};
+
+const SITE_PATH_RE = /^\/api\/(paragliding|school|hotels|adventure|travel)\/[A-Za-z0-9\-_/]*$/;
+
+export async function executeSiteApi(args: {
+  raw: unknown;
+  origin: string;
+}): Promise<{ result: string; action: ActionLog | null }> {
+  const input = (args.raw && typeof args.raw === "object" ? args.raw : {}) as { path?: unknown };
+  const path = String(input.path ?? "").trim();
+  const clean = path.split(/[?#]/)[0] ?? "";
+
+  if (!clean.startsWith("/") || clean.includes("..") || !SITE_PATH_RE.test(clean)) {
+    return {
+      result: JSON.stringify({
+        error: `"${path}" is not an allowed public path. Use /api/paragliding/packages, /api/hotels, /api/school/courses, /api/adventure/items or /api/travel/routes (optionally + "/<slug>").`,
+      }),
+      action: null,
+    };
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(`${args.origin}${path}`, { redirect: "manual" });
+  } catch (error) {
+    logger.error("Sahu Bhai site_api fetch failed", { path, error: String(error) });
+    return { result: JSON.stringify({ error: `Request to ${path} failed.` }), action: null };
+  }
+
+  const text = await res.text();
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = text.slice(0, 1000);
+  }
+
+  let result = JSON.stringify({ status: res.status, ok: res.ok, data: trim(data) });
+  if (result.length > 6000) result = `${result.slice(0, 6000)}… (truncated)`;
+
+  return { result, action: { method: "GET", path, status: res.status, ok: res.ok } };
+}
+
 // Keep tool-result payloads small so long list endpoints don't blow up the
 // model's context window (and the per-minute token limit).
 function trim(value: unknown): unknown {

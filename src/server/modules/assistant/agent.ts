@@ -2,13 +2,18 @@ import type { User } from "@prisma/client";
 import { logger } from "@/server/lib/logger";
 import { chatCompletion, type ChatMessage } from "./client";
 import { buildSystemPrompt, buildPublicSystemPrompt } from "./catalogue";
-import { ADMIN_API_TOOL, executeAdminApi, type ActionLog } from "./tools";
+import {
+  ADMIN_API_TOOL,
+  SITE_API_TOOL,
+  executeAdminApi,
+  executeSiteApi,
+  type ActionLog,
+} from "./tools";
 import type { AssistantMode } from "./authorize";
-
-const MAX_ITERATIONS = 8;
 
 export type ClientMessage = { role: "user" | "assistant"; content: string };
 export type ReplyLang = "en" | "hi";
+export type ToolMode = "admin" | "site" | "none";
 
 export type SahuBhaiResult = {
   reply: string;
@@ -16,11 +21,13 @@ export type SahuBhaiResult = {
   truncated: boolean;
 };
 
+const MAX_ITERATIONS: Record<Exclude<ToolMode, "none">, number> = { admin: 8, site: 4 };
+
 export async function runSahuBhai(params: {
   history: ClientMessage[];
-  // "admin" gives the admin_api tool (SUPER_ADMIN only); "none" is a plain
-  // chat assistant (other admins + the whole public site).
-  tools: "admin" | "none";
+  // "admin" → admin_api tool (SUPER_ADMIN only); "site" → read-only public
+  // data tool (public site); "none" → plain chat.
+  tools: ToolMode;
   lang: ReplyLang;
   mode: AssistantMode;
   origin: string;
@@ -30,14 +37,13 @@ export async function runSahuBhai(params: {
   const systemPrompt =
     params.tools === "admin" && params.user
       ? buildSystemPrompt({ mode: params.mode, user: params.user, lang: params.lang })
-      : buildPublicSystemPrompt(params.lang);
+      : buildPublicSystemPrompt(params.lang, params.tools === "site");
 
   const messages: ChatMessage[] = [
     { role: "system", content: systemPrompt },
     ...params.history.map((m): ChatMessage => ({ role: m.role, content: m.content })),
   ];
 
-  // No tools — one straight completion.
   if (params.tools === "none") {
     const message = await chatCompletion({ messages });
     return {
@@ -47,11 +53,14 @@ export async function runSahuBhai(params: {
     };
   }
 
+  const tool = params.tools === "admin" ? ADMIN_API_TOOL : SITE_API_TOOL;
+  const toolName = tool.function.name;
+  const maxIterations = MAX_ITERATIONS[params.tools];
   const actions: ActionLog[] = [];
   let priorResults = "";
 
-  for (let i = 0; i < MAX_ITERATIONS; i++) {
-    const message = await chatCompletion({ messages, tools: [ADMIN_API_TOOL] });
+  for (let i = 0; i < maxIterations; i++) {
+    const message = await chatCompletion({ messages, tools: [tool] });
     messages.push({
       role: "assistant",
       content: message.content ?? null,
@@ -74,7 +83,7 @@ export async function runSahuBhai(params: {
         parsedArgs = {};
       }
 
-      if (call.function.name !== "admin_api") {
+      if (call.function.name !== toolName) {
         messages.push({
           role: "tool",
           tool_call_id: call.id,
@@ -83,13 +92,17 @@ export async function runSahuBhai(params: {
         continue;
       }
 
-      const { result, action } = await executeAdminApi({
-        raw: parsedArgs,
-        mode: params.mode,
-        origin: params.origin,
-        cookie: params.cookie,
-        priorResults,
-      });
+      const { result, action } =
+        params.tools === "admin"
+          ? await executeAdminApi({
+              raw: parsedArgs,
+              mode: params.mode,
+              origin: params.origin,
+              cookie: params.cookie,
+              priorResults,
+            })
+          : await executeSiteApi({ raw: parsedArgs, origin: params.origin });
+
       if (action) actions.push(action);
       priorResults += result;
       messages.push({ role: "tool", tool_call_id: call.id, content: result });
@@ -97,14 +110,14 @@ export async function runSahuBhai(params: {
   }
 
   // Hit the iteration cap — ask for a plain-text wrap-up with no more tools.
-  logger.warn("Sahu Bhai hit iteration cap", { actions: actions.length });
+  logger.warn("Sahu Bhai hit iteration cap", { tools: params.tools, actions: actions.length });
   const summary = await chatCompletion({
     messages: [
       ...messages,
       {
         role: "user",
         content:
-          "Do not make any more tool calls. Give the user a plain summary of what happened so far — what is done and what is still pending.",
+          "Do not make any more tool calls. Answer the user now with what you have — what you found, and anything still unknown.",
       },
     ],
   });
@@ -112,7 +125,7 @@ export async function runSahuBhai(params: {
   return {
     reply:
       summary.content?.trim() ||
-      "Couldn't finish (too many steps). Please break the request into smaller parts and try again.",
+      "Couldn't finish that — please try asking in a simpler way.",
     actions,
     truncated: true,
   };

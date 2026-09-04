@@ -45,12 +45,14 @@ export function SahuBhaiChat({
   storageKey = "sahu-bhai:v1",
   showModeToggle = true,
   emptyHint = "Ask me anything — admin work, or general questions.",
+  starters = [],
 }: {
   className?: string;
   endpoint?: string;
   storageKey?: string;
   showModeToggle?: boolean;
   emptyHint?: string;
+  starters?: string[];
 }) {
   const [mode, setMode] = useState<Mode>(() => loadStored(storageKey).mode);
   const [lang, setLang] = useState<Lang>(() => loadStored(storageKey).lang);
@@ -58,12 +60,11 @@ export function SahuBhaiChat({
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [gate, setGate] = useState<{ pending: string } | null>(null);
+  // When the server asks for an email, we stash the message + the exact
+  // history it belongs to so we can resend after the email is captured.
+  const [gate, setGate] = useState<{ pending: string; history: Entry[] } | null>(null);
   const [email, setEmail] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
-  // Latest entries, readable synchronously right after setEntries().
-  const entriesRef = useRef(entries);
-  entriesRef.current = entries;
 
   useEffect(() => {
     try {
@@ -90,7 +91,7 @@ export function SahuBhaiChat({
     return { res, body: await res.json() };
   }
 
-  async function submitEmail(value: string, pending: string) {
+  async function submitEmail(value: string, pending: string, history: Entry[]) {
     const res = await fetch("/api/sahu/email", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -108,25 +109,24 @@ export function SahuBhaiChat({
     }
     setGate(null);
     setEmail("");
-    await deliver(pending);
+    await deliver(pending, history);
   }
 
-  // Send `text` (already added as a user entry) and handle the reply / gate.
-  async function deliver(text: string) {
+  // `history` already includes the pending user turn.
+  async function deliver(text: string, history: Entry[]) {
     setBusy(true);
     setError(null);
     try {
-      const withUser = entriesRef.current;
-      const { res, body } = await callApi(withUser);
+      const { res, body } = await callApi(history);
       if (!res.ok || !body.success) {
         setError(body.error?.message ?? "Something went wrong.");
       } else if (body.data.needsEmail) {
         const saved = readEmail();
         if (saved) {
-          await submitEmail(saved, text);
+          await submitEmail(saved, text, history);
           return;
         }
-        setGate({ pending: text });
+        setGate({ pending: text, history });
       } else {
         setEntries((prev) => [
           ...prev,
@@ -140,15 +140,16 @@ export function SahuBhaiChat({
     }
   }
 
-  async function send() {
-    const text = input.trim();
+  async function sendText(raw: string) {
+    const text = raw.trim();
     if (!text || busy || gate) return;
     setInput("");
     const withUser: Entry[] = [...entries, { role: "user", content: text }];
     setEntries(withUser);
-    entriesRef.current = withUser;
-    await deliver(text);
+    await deliver(text, withUser);
   }
+
+  const send = () => sendText(input);
 
   return (
     <div className={clsx("flex min-h-0 flex-col", className)}>
@@ -203,7 +204,23 @@ export function SahuBhaiChat({
         className="mx-auto w-full max-w-2xl flex-1 space-y-3 overflow-y-auto px-4 py-4"
       >
         {entries.length === 0 && (
-          <p className="mt-6 text-center text-sm text-muted">{emptyHint}</p>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted">{emptyHint}</p>
+            {starters.length > 0 && (
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                {starters.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => void sendText(s)}
+                    className="rounded-full border border-border px-3 py-1.5 text-xs text-ink transition-colors hover:border-brand hover:bg-brand/5"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
         {entries.map((entry, i) => (
           <div
@@ -247,7 +264,7 @@ export function SahuBhaiChat({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (email.trim()) void submitEmail(email.trim(), gate.pending);
+              if (email.trim()) void submitEmail(email.trim(), gate.pending, gate.history);
             }}
             className="rounded-xl border border-border bg-paper p-3 text-sm"
           >

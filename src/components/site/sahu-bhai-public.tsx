@@ -53,6 +53,12 @@ export function SahuBhaiPublic() {
         storageKey="sahu-bhai:public"
         showModeToggle={false}
         emptyHint="Ask about paragliding, Bir Billing, trip planning — anything."
+        starters={[
+          "What paragliding packages do you have?",
+          "Best time to visit Bir Billing?",
+          "Is tandem paragliding safe?",
+          "What should I wear?",
+        ]}
       />
     </div>
   );

@@ -5,7 +5,12 @@ import { withErrorHandling, apiSuccess } from "@/server/lib/api-response";
 import { RateLimitedError, ValidationError } from "@/server/lib/errors";
 import { checkRateLimit, getClientIp } from "@/server/lib/rate-limit";
 import { runSahuBhai } from "@/server/modules/assistant/agent";
-import { getOrCreateSession, needsEmail, recordTurn } from "@/server/modules/assistant/store";
+import {
+  bumpPublicDailyCount,
+  getOrCreateSession,
+  needsEmail,
+  recordTurn,
+} from "@/server/modules/assistant/store";
 
 export const maxDuration = 60;
 
@@ -20,8 +25,8 @@ const bodySchema = z.object({
     .max(100),
 });
 
-// Public site assistant — no admin access, no tools. Free for the first few
-// messages, then an email is required (see /api/sahu/email).
+// Public site assistant — read-only `site_api` tool, no admin access. Free
+// for the first few messages, then an email is required (see /api/sahu/email).
 export const POST = withErrorHandling(async (request: NextRequest) => {
   const ip = getClientIp(request);
   if (!checkRateLimit(`sahu-public:${ip}`, 15, 5 * 60 * 1000)) {
@@ -41,6 +46,13 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     return apiSuccess({ needsEmail: true, reply: null });
   }
 
+  // Logged-in admins bypass the global public cap.
+  if (!user && !(await bumpPublicDailyCount()).allowed) {
+    throw new RateLimitedError(
+      "Sahu Bhai has hit today's free usage limit. Please try again tomorrow, or reach us on WhatsApp.",
+    );
+  }
+
   const history = messages
     .map((m) => ({ role: m.role, content: m.content.slice(0, MAX_MESSAGE_CHARS) }))
     .filter((m) => m.content.trim().length > 0)
@@ -51,7 +63,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   const result = await runSahuBhai({
     history,
-    tools: "none",
+    tools: "site",
     lang,
     mode: "readonly",
     origin: new URL(request.url).origin,
@@ -64,7 +76,8 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     sessionId: session.id,
     userText: lastUser?.content ?? "",
     assistantText: result.reply,
+    actions: result.actions,
   });
 
-  return apiSuccess({ needsEmail: false, reply: result.reply });
+  return apiSuccess({ needsEmail: false, reply: result.reply, actions: result.actions });
 });

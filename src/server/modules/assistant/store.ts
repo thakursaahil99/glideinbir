@@ -66,11 +66,40 @@ export function needsEmail(session: SahuChatSession, user: unknown): boolean {
   return !user && !session.email && session.messageCount >= FREE_MESSAGES;
 }
 
-export async function setSessionEmail(sessionId: string, email: string): Promise<void> {
+// Global daily ceiling on public assistant replies, so a traffic spike on
+// the public bot can't burn through the shared Groq day limit and knock out
+// the admin assistant. Tracked in one SiteSetting row (no migration).
+const PUBLIC_DAILY_CAP = 500;
+
+export async function bumpPublicDailyCount(): Promise<{ allowed: boolean }> {
+  const today = new Date().toISOString().slice(0, 10);
+  const row = await prisma.siteSetting.findUnique({ where: { key: "sahu_public_day" } });
+  const value = (row?.value ?? {}) as { date?: string; count?: number };
+  const count = value.date === today ? (value.count ?? 0) : 0;
+
+  if (count >= PUBLIC_DAILY_CAP) return { allowed: false };
+
+  await prisma.siteSetting.upsert({
+    where: { key: "sahu_public_day" },
+    create: { key: "sahu_public_day", value: { date: today, count: 1 } },
+    update: { value: { date: today, count: count + 1 } },
+  });
+  return { allowed: true };
+}
+
+export async function setSessionEmail(
+  sessionId: string,
+  email: string,
+): Promise<{ isNew: boolean }> {
+  const existing = await prisma.sahuChatSession.findUnique({
+    where: { id: sessionId },
+    select: { email: true },
+  });
   await prisma.sahuChatSession.update({
     where: { id: sessionId },
     data: { email: email.trim().toLowerCase() },
   });
+  return { isNew: !existing?.email };
 }
 
 // One transaction: append the user turn + assistant turn, bump counters.
