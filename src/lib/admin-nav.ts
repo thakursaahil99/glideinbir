@@ -100,10 +100,16 @@ export const ADMIN_SECTIONS: AdminSection[] = [
     ],
   },
   {
+    title: "Sahu Bhai",
+    theme: "overview",
+    links: [
+      { href: "/admin/sahu-chats", label: "Chat history", icon: Bot, roles: [] },
+    ],
+  },
+  {
     title: "Super Admin",
     theme: "audit",
     links: [
-      { href: "/admin/sahu-chats", label: "AI chats", icon: Bot, roles: [] },
       { href: "/admin/audit", label: "Deleted data", icon: Trash2, roles: [] },
     ],
   },

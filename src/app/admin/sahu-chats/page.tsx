@@ -155,11 +155,15 @@ export default function AdminSahuChatsPage() {
   }
 
   // ---- list view ----
+  const withEmail = sessions?.filter((s) => s.email).length ?? 0;
+
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">AI chats</h1>
+      <h1 className="text-2xl font-bold tracking-tight">Sahu Bhai — chat history</h1>
       <p className="mt-1 text-sm text-muted">
-        Every Sahu Bhai conversation — from the public site and the admin panel.
+        Every conversation with Sahu Bhai, from the public website and the admin panel — one row
+        per visitor / login.
+        {sessions ? ` ${sessions.length} total · ${withEmail} with an email.` : ""}
       </p>
 
       <div className="mt-4">
