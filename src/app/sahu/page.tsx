@@ -5,6 +5,7 @@ import { ADMIN_ROLES } from "@/lib/admin-roles";
 import { SahuBhaiChat } from "@/components/admin/sahu-bhai-chat";
 import { SahuBadge } from "@/components/sahu-mark";
 import { PwaInstallButton } from "@/components/pwa-install-button";
+import { VapiVoiceButton } from "@/components/site/vapi-voice-button";
 
 // Full-screen, installable Sahu Bhai — the PWA's start_url. Open to everyone:
 //   - signed-in admin  → admin assistant (/api/admin/assistant), with the
@@ -29,6 +30,7 @@ export default async function SahuPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <VapiVoiceButton />
           <PwaInstallButton />
           {isAdmin ? (
             <Link href="/admin" className="text-xs font-medium text-muted hover:text-ink">

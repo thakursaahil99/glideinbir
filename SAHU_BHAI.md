@@ -61,7 +61,11 @@ OpenAI-compatible chat-completions provider — pick one with a free tier:
 | Ollama (local, no key) | `http://localhost:11434/v1` | `qwen2.5:3b` | unlimited but needs a machine on | — |
 
 ```bash
-# .env  (recommended: Gemini — generous free tier, no per-request size wall)
+# .env  — set once, no further changes needed. gemini-2.0-flash has the
+# biggest free daily allowance (1,500 requests/day, 1M tokens/min); a small
+# business bot will not exhaust it. gemini-2.5-flash answers coding questions
+# a bit better but has a smaller daily cap — only switch the model string if
+# you specifically want that and stay under a few hundred chats/day.
 SAHU_BHAI_API_KEY="your-gemini-key"
 SAHU_BHAI_BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai/"
 SAHU_BHAI_MODEL="gemini-2.0-flash"
@@ -81,6 +85,27 @@ switch to **Gemini** — same three env vars, no code change.
 **Production (Vercel):** set the same three vars in Project → Settings →
 Environment Variables (Production), then redeploy.
 
+## Voice ("Talk" button — Vapi)
+
+A **Talk** button appears in the Sahu Bhai widget header and on `/sahu` once
+**both** browser-safe env vars are set — otherwise it renders nothing:
+
+```bash
+NEXT_PUBLIC_VAPI_PUBLIC_KEY="pk_..."      # Vapi dashboard → API Keys → Public
+NEXT_PUBLIC_VAPI_ASSISTANT_ID="asst_..."  # Vapi dashboard → Assistants → (the id)
+```
+
+Setup: create an account at **vapi.ai** → create an Assistant (paste a
+Glideinbir system prompt, pick a voice + first message, choose a model) →
+copy its **Assistant ID** and your **Public Key** → set the two vars in
+Vercel → redeploy. Vapi is **not free** beyond the trial credit (~$10, then
+per-minute) — the LLM/voice for a call is billed by Vapi, separate from the
+text assistant's provider.
+
+`src/components/site/vapi-voice-button.tsx` dynamically imports `@vapi-ai/web`
+on first click (keeps its WebRTC dep out of the main bundle), starts the call
+(`vapi.start(assistantId)`), and shows a listening / speaking / End overlay.
+
 ## Files
 
 | Path | Role |
@@ -88,6 +113,7 @@ Environment Variables (Production), then redeploy.
 | `src/components/admin/sahu-bhai.tsx` | Floating chat panel (client) |
 | `src/components/admin/sahu-bhai-chat.tsx` | Shared transcript + composer (admin panel, `/sahu`, public widget) |
 | `src/components/site/sahu-bhai-public.tsx` | Public-site widget wrapper |
+| `src/components/site/vapi-voice-button.tsx` | "Talk" voice button (Vapi; hidden unless configured) |
 | `src/app/sahu/{layout,page}.tsx` | Full-screen installable app — admin or public depending on who's signed in |
 | `src/app/app/page.tsx` | Shareable "get the app" landing (install button, QR, share link) |
 | `src/app/api/admin/assistant/route.ts` | `POST` endpoint, RBAC + rate limit |

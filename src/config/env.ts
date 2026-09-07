@@ -55,6 +55,13 @@ const envSchema = z.object({
   SAHU_BHAI_API_KEY: z.string().optional(),
   SAHU_BHAI_BASE_URL: z.string().url().default("https://api.groq.com/openai/v1"),
   SAHU_BHAI_MODEL: z.string().min(1).default("openai/gpt-oss-120b"),
+
+  // --- Vapi voice assistant (optional) ---
+  // Both are browser-safe values from the Vapi dashboard (vapi.ai). The
+  // "Talk" button on the Sahu Bhai widget / app stays hidden until BOTH are
+  // set. Read client-side via process.env; listed here for documentation.
+  NEXT_PUBLIC_VAPI_PUBLIC_KEY: z.string().optional(),
+  NEXT_PUBLIC_VAPI_ASSISTANT_ID: z.string().optional(),
 });
 
 function loadEnv() {
