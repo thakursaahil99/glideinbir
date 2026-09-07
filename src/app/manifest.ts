@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next";
 
-// Served at /manifest.webmanifest. Only pages that link it (the admin area
-// and /sahu) become installable — the public marketing site does not.
+// Served at /manifest.webmanifest and linked site-wide from the root layout,
+// so any page can be installed. However installed, the app opens at
+// `start_url` (/sahu) — a full-screen Sahu Bhai that works for everyone.
+// /app is the shareable "get the app" landing page.
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/sahu",

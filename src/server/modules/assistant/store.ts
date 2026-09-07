@@ -7,7 +7,7 @@ import type { ActionLog } from "./tools";
 
 const SID_COOKIE = "sahu_sid";
 const SID_TTL_MS = 180 * 24 * 60 * 60 * 1000; // 180 days
-const FREE_MESSAGES = 4;
+const FREE_MESSAGES = 3;
 
 function hashIp(ip: string): string {
   return createHash("sha256").update(`${env.SESSION_SECRET}:${ip}`).digest("hex").slice(0, 32);

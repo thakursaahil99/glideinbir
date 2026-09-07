@@ -366,7 +366,9 @@ export function SahuBhaiChat({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="flex-1 rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-brand"
+                // 16px on mobile — anything smaller makes iOS Safari zoom in
+                // on focus and never zoom back out.
+                className="flex-1 rounded-lg border border-border px-3 py-2 text-base outline-none focus:border-brand sm:text-sm"
               />
               <button
                 type="submit"
@@ -399,7 +401,9 @@ export function SahuBhaiChat({
             }}
             rows={1}
             placeholder="Ask Sahu Bhai…"
-            className="max-h-32 flex-1 resize-none rounded-xl border border-border bg-paper px-3 py-2 text-sm outline-none focus:border-brand"
+            // 16px on mobile — a smaller font makes iOS Safari zoom the whole
+            // page in on focus (and the send button appears to "shrink").
+            className="max-h-32 flex-1 resize-none rounded-xl border border-border bg-paper px-3 py-2 text-base outline-none focus:border-brand sm:text-sm"
           />
           <button
             type="button"

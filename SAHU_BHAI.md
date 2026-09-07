@@ -4,8 +4,16 @@ Sahu Bhai runs in two places:
 
 | Surface | Endpoint | Powers |
 |---|---|---|
-| **Public site** widget (bottom-left, every page) | `POST /api/sahu` | Chat only. Free for 4 messages, then asks for an email (no verification). No live data, no bookings. |
-| **Admin panel** (bottom-right) + `/sahu` | `POST /api/admin/assistant` | **SUPER_ADMIN**: full `admin_api` tool (create/edit/delete). Other admin roles: chat only. |
+| **Public site** widget (bottom-left) + installed app (`/sahu`, logged out) | `POST /api/sahu` | Free for **3 messages**, then asks for an email (no verification). Before the email: friendly but limited (no live data). After the email (or for a logged-in customer): **full general-purpose assistant** — coding, writing, planning, anything — plus the read-only `site_api` tool for live packages / prices / availability. Still no bookings or account data. |
+| **Admin panel** (bottom-right) + `/sahu` (signed-in admin) | `POST /api/admin/assistant` | **SUPER_ADMIN**: full `admin_api` tool (create/edit/delete). Other admin roles: chat only. |
+
+`/sahu` (the installable app's `start_url`) is **open to everyone** — a signed-in admin
+gets the admin assistant, anyone else gets the public assistant, so the app is usable right
+after "Add to Home Screen" with no login wall. **`/app`** is a shareable "get the app"
+landing page (install button + QR + share link).
+
+The public bot must never reveal the personal contact details of the owner / admins / staff —
+enforced in the system prompt (`buildPublicSystemPrompt`).
 
 Every conversation (public + admin) is stored and reviewable at **`/admin/sahu-chats`**
 (Super Admin only) — grouped by email / user, full transcript, deletable.
@@ -63,7 +71,13 @@ Environment Variables (Production), then redeploy.
 | Path | Role |
 |---|---|
 | `src/components/admin/sahu-bhai.tsx` | Floating chat panel (client) |
+| `src/components/admin/sahu-bhai-chat.tsx` | Shared transcript + composer (admin panel, `/sahu`, public widget) |
+| `src/components/site/sahu-bhai-public.tsx` | Public-site widget wrapper |
+| `src/app/sahu/{layout,page}.tsx` | Full-screen installable app — admin or public depending on who's signed in |
+| `src/app/app/page.tsx` | Shareable "get the app" landing (install button, QR, share link) |
 | `src/app/api/admin/assistant/route.ts` | `POST` endpoint, RBAC + rate limit |
+| `src/app/api/sahu/route.ts` | Public `POST` endpoint — email gate, daily cap, `site_api` after email |
+| `src/server/modules/assistant/store.ts` | Chat sessions, email gate (`FREE_MESSAGES`), transcript logging |
 | `src/server/modules/assistant/agent.ts` | Tool-call loop |
 | `src/server/modules/assistant/client.ts` | OpenAI-compatible LLM call (no SDK) |
 | `src/server/modules/assistant/tools.ts` | The `admin_api` tool executor |

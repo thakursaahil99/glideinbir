@@ -33,6 +33,9 @@ export async function runSahuBhai(params: {
   origin: string;
   cookie: string;
   user: Pick<User, "name" | "role"> | null;
+  // Public bot only: the visitor has shared an email (or is a logged-in
+  // customer) → run the full general-purpose assistant prompt.
+  publicFull?: boolean;
   // When set, reply text is streamed delta-by-delta as it's generated.
   onText?: (delta: string) => void;
   // Notified when a tool call completes (for live action chips).
@@ -46,7 +49,7 @@ export async function runSahuBhai(params: {
   const systemPrompt =
     params.tools === "admin" && params.user
       ? buildSystemPrompt({ mode: params.mode, user: params.user, lang: params.lang })
-      : buildPublicSystemPrompt(params.lang, params.tools === "site");
+      : buildPublicSystemPrompt(params.lang, params.tools === "site", params.publicFull ?? false);
 
   const messages: ChatMessage[] = [
     { role: "system", content: systemPrompt },

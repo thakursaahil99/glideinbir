@@ -52,7 +52,7 @@ export function SahuBhaiPublic() {
         endpoint="/api/sahu"
         storageKey="sahu-bhai:public"
         showModeToggle={false}
-        emptyHint="Ask about paragliding, Bir Billing, trip planning — anything."
+        emptyHint="Ask about paragliding, Bir Billing, trip planning — anything. Share your email after a few messages to unlock the full assistant and live prices."
         starters={[
           "What paragliding packages do you have?",
           "Best time to visit Bir Billing?",

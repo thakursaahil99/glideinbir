@@ -69,11 +69,16 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   const origin = new URL(request.url).origin;
   const lastUser = [...history].reverse().find((m) => m.role === "user");
 
+  // Email given (or a logged-in customer) → unlock the full general-purpose
+  // assistant + live site_api data. Before that it's a limited helper.
+  const unlocked = Boolean(user) || Boolean(session.email);
+
   return sseResponse(
     (emit) =>
       runSahuBhai({
         history,
-        tools: "site",
+        tools: unlocked ? "site" : "none",
+        publicFull: unlocked,
         lang,
         mode: "readonly",
         origin,
