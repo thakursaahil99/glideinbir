@@ -20,7 +20,9 @@ export function Markdown({ children, className }: { children: string; className?
   return (
     <div
       className={clsx(
-        "space-y-2 text-sm leading-relaxed [word-break:break-word] [&_p]:m-0",
+        // min-w-0 + max-w-full let the wide children (tables, code) scroll
+        // inside their own box instead of stretching the chat bubble.
+        "min-w-0 max-w-full space-y-2 overflow-hidden text-sm leading-relaxed [overflow-wrap:anywhere] [&_p]:m-0",
         className,
       )}
     >
@@ -46,21 +48,29 @@ export function Markdown({ children, className }: { children: string; className?
           ),
           hr: () => <hr className="border-border" />,
           table: (p) => (
-            <div className="overflow-x-auto">
-              <table {...domProps(p)} className="w-full border-collapse text-xs" />
+            <div className="my-2 max-w-full overflow-x-auto overscroll-x-contain rounded-lg border border-border [-webkit-overflow-scrolling:touch]">
+              <table
+                {...domProps(p)}
+                className="w-max min-w-full border-collapse text-xs [&_tr:not(:last-child)]:border-b [&_tr]:border-border"
+              />
             </div>
           ),
           th: (p) => (
             <th
               {...domProps(p)}
-              className="border border-border bg-black/5 px-2 py-1 text-left font-semibold"
+              className="whitespace-nowrap bg-black/5 px-2.5 py-1.5 text-left font-semibold [&:not(:last-child)]:border-r [&:not(:last-child)]:border-border"
             />
           ),
-          td: (p) => <td {...domProps(p)} className="border border-border px-2 py-1 align-top" />,
+          td: (p) => (
+            <td
+              {...domProps(p)}
+              className="whitespace-nowrap px-2.5 py-1.5 align-top [&:not(:last-child)]:border-r [&:not(:last-child)]:border-border"
+            />
+          ),
           pre: (p) => (
             <pre
               {...domProps(p)}
-              className="my-2 overflow-x-auto rounded-lg bg-ink p-3 text-xs leading-relaxed text-white"
+              className="my-2 max-w-full overflow-x-auto overscroll-x-contain rounded-lg bg-ink p-3 text-xs leading-relaxed text-white [-webkit-overflow-scrolling:touch]"
             />
           ),
           code: (p) => {

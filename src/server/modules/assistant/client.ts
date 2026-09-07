@@ -95,6 +95,19 @@ async function post(
         "Sahu Bhai is busy right now (free-tier per-minute limit). Wait ~15–20 seconds and try again, or send a shorter message.",
       );
     }
+    // 413, or a 400 whose body complains about size / tokens / context: the
+    // request itself is too big for the current free model's per-request
+    // limit. Retrying as-is won't help — the fix is a shorter conversation.
+    const tooLarge =
+      res.status === 413 ||
+      (res.status === 400 && /too large|context length|maximum context|tokens per|reduce/i.test(text));
+    if (tooLarge) {
+      throw new AppError(
+        "That conversation got too long for Sahu Bhai's current free model. Tap “New chat” and ask again in a shorter message.",
+        413,
+        "REQUEST_TOO_LARGE",
+      );
+    }
     throw new AppError(
       `LLM provider returned an error (${res.status}). ${text.slice(0, 200)}`.trim(),
       502,

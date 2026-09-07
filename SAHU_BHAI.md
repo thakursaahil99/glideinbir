@@ -12,8 +12,16 @@ gets the admin assistant, anyone else gets the public assistant, so the app is u
 after "Add to Home Screen" with no login wall. **`/app`** is a shareable "get the app"
 landing page (install button + QR + share link).
 
-The public bot must never reveal the personal contact details of the owner / admins / staff —
-enforced in the system prompt (`buildPublicSystemPrompt`).
+**Identity:** every prompt says Sahu Bhai was *built by Sahil Thakur for Glideinbir* and must
+never name a base model or say it's made by OpenAI / Google / etc. (`IDENTITY_LINE` in
+`catalogue.ts`).
+
+**Language:** English is the default and does **not** flip to Hindi just because a message is
+casually Hinglish — it switches only on the हिं toggle or an explicit request, and is
+re-decided every message (`langLine()`).
+
+The public bot must never reveal the personal contact details of the owner / admins / staff,
+or point anyone to a staff login — enforced in `buildPublicSystemPrompt`.
 
 Every conversation (public + admin) is stored and reviewable at **`/admin/sahu-chats`**
 (Super Admin only) — grouped by email / user, full transcript, deletable.
@@ -45,23 +53,30 @@ Every conversation (public + admin) is stored and reviewable at **`/admin/sahu-c
 The feature is **disabled until `SAHU_BHAI_API_KEY` is set**. It works with any
 OpenAI-compatible chat-completions provider — pick one with a free tier:
 
-| Provider | `SAHU_BHAI_BASE_URL` | `SAHU_BHAI_MODEL` | Get a key |
-|---|---|---|---|
-| Groq (default) | `https://api.groq.com/openai/v1` | `openai/gpt-oss-120b` (or `qwen/qwen3.8-27b`) | console.groq.com |
-| Google Gemini | `https://generativelanguage.googleapis.com/v1beta/openai/` | `gemini-2.0-flash` | aistudio.google.com |
-| OpenRouter | `https://openrouter.ai/api/v1` | a `:free` model | openrouter.ai |
-| Ollama (local, no key) | `http://localhost:11434/v1` | `qwen2.5:3b` | — (runs on your machine) |
+| Provider | `SAHU_BHAI_BASE_URL` | `SAHU_BHAI_MODEL` | Free-tier headroom | Get a key |
+|---|---|---|---|---|
+| **Google Gemini (recommended for a public bot)** | `https://generativelanguage.googleapis.com/v1beta/openai/` | `gemini-2.0-flash` | ~1M tokens/min, 1,500 req/day — no "request too large" | aistudio.google.com |
+| Groq | `https://api.groq.com/openai/v1` | `openai/gpt-oss-120b` | only **8k tokens/min** — a longish chat 413s | console.groq.com |
+| OpenRouter | `https://openrouter.ai/api/v1` | a `:free` model | 20 req/min, 50/day | openrouter.ai |
+| Ollama (local, no key) | `http://localhost:11434/v1` | `qwen2.5:3b` | unlimited but needs a machine on | — |
 
 ```bash
-# .env
-SAHU_BHAI_API_KEY="your-provider-key"   # any non-empty string for Ollama
-SAHU_BHAI_BASE_URL="https://api.groq.com/openai/v1"
-SAHU_BHAI_MODEL="openai/gpt-oss-120b"
+# .env  (recommended: Gemini — generous free tier, no per-request size wall)
+SAHU_BHAI_API_KEY="your-gemini-key"
+SAHU_BHAI_BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai/"
+SAHU_BHAI_MODEL="gemini-2.0-flash"
 ```
 
 Restart `next dev` after changing env vars. The model must support tool /
-function calling. Groq model ids change over time — check
-`GET https://api.groq.com/openai/v1/models` if one stops working.
+function calling (Gemini flash and Groq `gpt-oss` both do).
+
+**Why Groq keeps stopping:** Groq's free tier caps a *single request* at ~8k
+tokens/min shared across all users, and returns HTTP **413** once a
+conversation + system prompt + tool results exceed it — not a wait-and-retry
+429. The client maps 413 to a "tap New chat" message, and history / tool
+results are trimmed hard (`MAX_HISTORY`, `MAX_MESSAGE_CHARS` in the two
+routes; result caps in `tools.ts`). For a public bot with real traffic,
+switch to **Gemini** — same three env vars, no code change.
 
 **Production (Vercel):** set the same three vars in Project → Settings →
 Environment Variables (Production), then redeploy.

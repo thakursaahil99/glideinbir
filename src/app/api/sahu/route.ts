@@ -15,8 +15,10 @@ import {
 
 export const maxDuration = 60;
 
-const MAX_MESSAGE_CHARS = 8_000;
-const MAX_HISTORY = 12;
+// Kept tight on purpose: the public bot shares one free-tier token budget
+// across every visitor, and some free models 413 a request that's too big.
+const MAX_MESSAGE_CHARS = 3_000;
+const MAX_HISTORY = 6;
 
 const bodySchema = z.object({
   lang: z.enum(["en", "hi"]).default("en"),

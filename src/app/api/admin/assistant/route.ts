@@ -36,8 +36,8 @@ const bodySchema = z.object({
 // Keep the slice we send to the model modest so a long chat stays under
 // free-tier token-per-minute limits. The client still keeps/shows the full
 // history locally; the model only needs recent context.
-const MAX_MESSAGE_CHARS = 8_000;
-const MAX_HISTORY = 12;
+const MAX_MESSAGE_CHARS = 5_000;
+const MAX_HISTORY = 8;
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
   const user = await requireRole(...ADMIN_ROLES);
