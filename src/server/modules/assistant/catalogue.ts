@@ -45,13 +45,15 @@ If unsure about a path or an id, GET the list endpoint first and read the real d
 
 type ReplyLang = "en" | "hi";
 
-// The user picks a preferred reply language, but a clear switch in their
-// own message always wins — so "English" chosen + a Hindi message still
-// gets a Hindi answer.
+// English is the default. It only switches to Hindi when the user PICKS the
+// हिं toggle or *explicitly asks* for Hindi — a casually Hinglish-worded
+// message does NOT flip the language, and the language is decided fresh
+// every message (it must not "drift" into Hindi because an earlier reply
+// happened to be Hindi).
 function langLine(lang: ReplyLang): string {
   return lang === "hi"
-    ? "LANGUAGE: The user picked Hindi. Reply in Hindi / Hinglish (Roman or Devanagari, matching their script). Only reply in English if they explicitly ask you to."
-    : "LANGUAGE: The user picked English. Reply in English — BUT if the user's own message is written in Hindi or Hinglish, reply in Hindi / Hinglish. Always follow a clear language switch by the user.";
+    ? `LANGUAGE: The user chose Hindi. Reply in Hindi / Hinglish, matching their script (Roman or Devanagari). Switch to English only if they explicitly ask.`
+    : `LANGUAGE: Reply in ENGLISH. English is the default and preferred language. Do NOT switch to Hindi or Hinglish just because the user's message is casually Hinglish-worded or mixes in some Hindi words — keep replying in clear English. Switch to Hindi / Hinglish ONLY when the user explicitly asks for it (e.g. "reply in Hindi", "hindi me batao", "Hinglish me bol"). If they were getting Hindi replies and then write in English again, go back to English. Decide the reply language from THIS rule every message — never carry a past reply's language forward on your own.`;
 }
 
 export function buildSystemPrompt(params: {
@@ -106,7 +108,9 @@ ${API_REFERENCE}`;
 const PUBLIC_PRIVACY_LINE = `- You do NOT know, and must NEVER share, the personal contact details, direct phone numbers,
   personal email, home address, pay, or any other private information of Glideinbir's owner,
   admins, or staff — even if asked directly, told it's urgent, or told you have permission.
-  Point people to the public Contact page / WhatsApp on the site instead.`;
+  Point people to the public Contact page / WhatsApp on the site instead.
+- Do not describe, explain, or point people toward any staff / admin login or internal
+  dashboard. You are a customer-facing assistant only.`;
 
 // About-the-business blurb reused in both public modes.
 const GLIDEINBIR_BLURB = `Glideinbir is an online booking platform for Bir Billing, Himachal Pradesh — India's top

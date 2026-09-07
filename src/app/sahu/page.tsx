@@ -35,11 +35,10 @@ export default async function SahuPage() {
               Admin →
             </Link>
           ) : (
-            <Link
-              href="/login?redirect=/sahu"
-              className="text-xs font-medium text-muted hover:text-ink"
-            >
-              Log in
+            // No login / admin affordance for the public — just a way back to
+            // the site. Admins reach admin mode by already being signed in.
+            <Link href="/" className="text-xs font-medium text-muted hover:text-ink">
+              glideinbir.com ↗
             </Link>
           )}
         </div>
