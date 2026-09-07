@@ -75,14 +75,16 @@ async function post(
     throw new AppError("Couldn't reach the Sahu Bhai LLM (network error).", 502, "LLM_UNREACHABLE");
   }
 
-  if (res.status === 429 && attempt < MAX_RETRIES) {
+  // 429 = rate limited; 503 = provider "high demand" (Gemini does this a
+  // lot on the free tier and it's almost always gone a second later).
+  if ((res.status === 429 || res.status === 503) && attempt < MAX_RETRIES) {
     const waitMs = Math.min(
       parseResetHeader(res.headers.get("retry-after")) ??
         parseResetHeader(res.headers.get("x-ratelimit-reset-tokens")) ??
-        3000,
+        (res.status === 503 ? 1500 : 3000),
       9000,
     );
-    logger.warn("Sahu Bhai LLM 429 — retrying", { attempt, waitMs });
+    logger.warn(`Sahu Bhai LLM ${res.status} — retrying`, { attempt, waitMs });
     await sleep(waitMs + 250);
     return post(body, attempt + 1);
   }
@@ -93,6 +95,11 @@ async function post(
     if (res.status === 429) {
       throw new RateLimitedError(
         "Sahu Bhai is busy right now (free-tier per-minute limit). Wait ~15–20 seconds and try again, or send a shorter message.",
+      );
+    }
+    if (res.status === 503) {
+      throw new RateLimitedError(
+        "Sahu Bhai's model is under heavy load right now. Give it a few seconds and try again.",
       );
     }
     // 413, or a 400 whose body complains about size / tokens / context: the

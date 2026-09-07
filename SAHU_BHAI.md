@@ -55,24 +55,24 @@ OpenAI-compatible chat-completions provider — pick one with a free tier:
 
 | Provider | `SAHU_BHAI_BASE_URL` | `SAHU_BHAI_MODEL` | Free-tier headroom | Get a key |
 |---|---|---|---|---|
-| **Google Gemini (recommended for a public bot)** | `https://generativelanguage.googleapis.com/v1beta/openai/` | `gemini-2.0-flash` | ~1M tokens/min, 1,500 req/day — no "request too large" | aistudio.google.com |
+| **Google Gemini (default & recommended)** | `https://generativelanguage.googleapis.com/v1beta/openai/` | `gemini-flash-latest` | ~1M tokens/min, big daily cap — no "request too large" | aistudio.google.com |
 | Groq | `https://api.groq.com/openai/v1` | `openai/gpt-oss-120b` | only **8k tokens/min** — a longish chat 413s | console.groq.com |
 | OpenRouter | `https://openrouter.ai/api/v1` | a `:free` model | 20 req/min, 50/day | openrouter.ai |
 | Ollama (local, no key) | `http://localhost:11434/v1` | `qwen2.5:3b` | unlimited but needs a machine on | — |
 
 ```bash
-# .env  — set once, no further changes needed. gemini-2.0-flash has the
-# biggest free daily allowance (1,500 requests/day, 1M tokens/min); a small
-# business bot will not exhaust it. gemini-2.5-flash answers coding questions
-# a bit better but has a smaller daily cap — only switch the model string if
-# you specifically want that and stay under a few hundred chats/day.
-SAHU_BHAI_API_KEY="your-gemini-key"
+# .env  — set once, no further changes needed. "gemini-flash-latest" is an
+# alias that always tracks the current free flash model, so it won't 404 when
+# Google retires a numbered version (numbered ids like gemini-2.0-flash /
+# gemini-2.5-flash are already gone for new keys).
+SAHU_BHAI_API_KEY="your-gemini-key"       # from aistudio.google.com — new keys look like "AQ.…"
 SAHU_BHAI_BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai/"
-SAHU_BHAI_MODEL="gemini-2.0-flash"
+SAHU_BHAI_MODEL="gemini-flash-latest"
 ```
 
 Restart `next dev` after changing env vars. The model must support tool /
-function calling (Gemini flash and Groq `gpt-oss` both do).
+function calling (Gemini flash and Groq `gpt-oss` both do). The client
+retries 429 **and** 503 ("model under high demand", common on Gemini free).
 
 **Why Groq keeps stopping:** Groq's free tier caps a *single request* at ~8k
 tokens/min shared across all users, and returns HTTP **413** once a

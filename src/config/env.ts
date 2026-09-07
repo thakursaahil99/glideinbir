@@ -53,8 +53,13 @@ const envSchema = z.object({
   // Gemini, OpenRouter, Cerebras…). The feature stays completely dormant
   // until SAHU_BHAI_API_KEY is set — see SAHU_BHAI.md for provider options.
   SAHU_BHAI_API_KEY: z.string().optional(),
-  SAHU_BHAI_BASE_URL: z.string().url().default("https://api.groq.com/openai/v1"),
-  SAHU_BHAI_MODEL: z.string().min(1).default("openai/gpt-oss-120b"),
+  SAHU_BHAI_BASE_URL: z
+    .string()
+    .url()
+    .default("https://generativelanguage.googleapis.com/v1beta/openai/"),
+  // "gemini-flash-latest" is an alias that always tracks the current free
+  // flash model, so it won't 404 when Google retires a numbered version.
+  SAHU_BHAI_MODEL: z.string().min(1).default("gemini-flash-latest"),
 
   // --- Vapi voice assistant (optional) ---
   // Both are browser-safe values from the Vapi dashboard (vapi.ai). The
