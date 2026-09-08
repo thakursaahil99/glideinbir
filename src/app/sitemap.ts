@@ -5,6 +5,7 @@ import { hotelService } from "@/server/modules/hotel/service";
 import { itemService } from "@/server/modules/adventure/service";
 import { routeService } from "@/server/modules/travel/service";
 import { blogService } from "@/server/modules/blog/service";
+import { SEED_POSTS } from "@/content/blog";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://glideinbir.vercel.app";
 
@@ -81,6 +82,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...posts.map((post) => ({
       url: `${siteUrl}/blog/${post.slug}`,
       lastModified: post.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.4,
+    })),
+    ...SEED_POSTS.filter((s) => !posts.some((p) => p.slug === s.slug)).map((s) => ({
+      url: `${siteUrl}/blog/${s.slug}`,
+      lastModified: new Date(s.publishedAt),
       changeFrequency: "monthly" as const,
       priority: 0.4,
     })),

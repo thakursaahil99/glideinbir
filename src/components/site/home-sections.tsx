@@ -4,7 +4,8 @@ import { LinkButton } from "@/components/ui/button";
 import { SectionHeader } from "./section-header";
 import { ScrollReveal } from "@/components/effects/scroll-reveal";
 import { HOW_IT_WORKS, BIR_BILLING_FACTS } from "@/content/bir-billing";
-import { MousePointerClick, ArrowRight } from "lucide-react";
+import { SEED_POSTS } from "@/content/blog";
+import { MousePointerClick, ArrowRight, BookOpen } from "lucide-react";
 
 export function HowItWorks() {
   return (
@@ -19,6 +20,32 @@ export function HowItWorks() {
             <h3 className="mt-2 font-semibold">{step.title}</h3>
             <p className="mt-2 text-sm text-muted">{step.body}</p>
           </Card>
+        ))}
+      </div>
+    </Container>
+  );
+}
+
+export function PlanningGuides() {
+  const posts = SEED_POSTS.slice(0, 3);
+  return (
+    <Container className="py-16">
+      <ScrollReveal>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <SectionHeader eyebrow="Plan the trip" icon={BookOpen} title="Guides worth reading first" />
+          <Link href="/blog" className="text-sm font-medium text-brand hover:underline">
+            All guides →
+          </Link>
+        </div>
+      </ScrollReveal>
+      <div className="mt-8 grid gap-6 md:grid-cols-3">
+        {posts.map((post) => (
+          <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
+            <Card className="h-full p-6 transition-colors hover:border-brand">
+              <h3 className="font-semibold group-hover:text-brand">{post.title}</h3>
+              <p className="mt-2 line-clamp-3 text-sm text-muted">{post.excerpt}</p>
+            </Card>
+          </Link>
         ))}
       </div>
     </Container>

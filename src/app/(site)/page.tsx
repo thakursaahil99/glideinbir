@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { SectionHeader } from "@/components/site/section-header";
 import { CardArrow } from "@/components/site/card-arrow";
-import { HowItWorks, BirBillingTeaser } from "@/components/site/home-sections";
+import { HowItWorks, BirBillingTeaser, PlanningGuides } from "@/components/site/home-sections";
 import { VideoSection } from "@/components/site/video-section";
 
 const MODULES = [
@@ -401,6 +401,8 @@ export default async function HomePage() {
       )}
 
       <BirBillingTeaser />
+
+      <PlanningGuides />
 
       <div className="dot-grid-bg border-y border-border bg-surface py-24">
         <Container className="grid items-center gap-12 md:grid-cols-2">

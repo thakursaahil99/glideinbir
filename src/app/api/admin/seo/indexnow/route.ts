@@ -8,6 +8,7 @@ import { hotelService } from "@/server/modules/hotel/service";
 import { itemService } from "@/server/modules/adventure/service";
 import { routeService } from "@/server/modules/travel/service";
 import { blogService } from "@/server/modules/blog/service";
+import { SEED_POSTS } from "@/content/blog";
 
 const STATIC_PATHS = [
   "/",
@@ -53,6 +54,7 @@ export const POST = withErrorHandling(async () => {
     ...routes.items.map((r) => `/travel/${r.slug}`),
     ...instructors.map((i) => `/courses/instructors/${i.slug}`),
     ...posts.map((p) => `/blog/${p.slug}`),
+    ...SEED_POSTS.filter((s) => !posts.some((p) => p.slug === s.slug)).map((s) => `/blog/${s.slug}`),
   ].map((path) => `${env.NEXT_PUBLIC_SITE_URL}${path}`);
 
   const result = await submitUrlsToIndexNow(urls);
