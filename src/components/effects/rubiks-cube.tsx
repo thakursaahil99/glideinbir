@@ -2,9 +2,8 @@
 
 import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import { BoxGeometry, EdgesGeometry, MeshStandardMaterial, type Mesh } from "three";
+import { BoxGeometry, EdgesGeometry, MeshStandardMaterial } from "three";
 import type { Group } from "three";
-import { applyBrandColor } from "@/lib/theme-color";
 
 type FaceColors = {
   right: string;
@@ -89,22 +88,10 @@ function Cubie({
   );
 }
 
-// Grabbing any face applies its color — the material actually clicked, not
-// a color baked onto the whole object, so a fully-silver cube and a
-// multicolor one both "just work" through the same handler.
-function pickColorFromFace(e: ThreeEvent<PointerEvent>) {
-  if (!e.face || typeof e.face.materialIndex !== "number") return;
-  const materials = (e.object as Mesh).material;
-  const mat = Array.isArray(materials) ? materials[e.face.materialIndex] : undefined;
-  if (mat && "color" in mat) {
-    const hex = `#${(mat as MeshStandardMaterial).color.getHexString()}`;
-    if (hex.toLowerCase() !== INNER) applyBrandColor(hex);
-  }
-}
-
 // The centerpiece: brushed silver, drag with the mouse/touch to spin it
 // around (idles with a slow auto-rotation, a little residual momentum on
-// release). Grabbing it also picks silver as the site's theme color.
+// release). Colour picking is handled by real HTML swatches below the
+// canvas (BrandColorPicker), not by clicking the 3D object.
 function DraggableCube() {
   const groupRef = useRef<Group>(null);
   const dragging = useRef(false);
@@ -125,7 +112,6 @@ function DraggableCube() {
     dragging.current = true;
     last.current = { x: e.clientX, y: e.clientY };
     (e.target as { setPointerCapture?: (id: number) => void }).setPointerCapture?.(e.pointerId);
-    pickColorFromFace(e);
   }
   function onMove(e: ThreeEvent<PointerEvent>) {
     if (!dragging.current || !groupRef.current) return;
@@ -143,7 +129,7 @@ function DraggableCube() {
   return (
     <group
       ref={groupRef}
-      position={[0, 1, 0]}
+      position={[0, 0, 0]}
       rotation={[0.45, 0.6, 0]}
       onPointerDown={onDown}
       onPointerMove={onMove}
@@ -157,98 +143,6 @@ function DraggableCube() {
   );
 }
 
-// Back to a single row of small solid-color cubes — the multicolor
-// mini-Rubik's-cube grid was fiddly to tell apart at a glance and felt busy.
-// A flat, unambiguous color per cube, one row, each one just spins in place.
-// The eight swatches are the site's own module-theme hues (see
-// src/lib/module-theme.ts) plus the brand orange — so whichever one the
-// visitor picks, the site still looks like itself, not a random recolor.
-const PALETTE_COLORS = [
-  "#ff6a00", // brand orange (default)
-  "#3b82f6", // blue    — paragliding
-  "#6366f1", // indigo  — school
-  "#06b6d4", // cyan    — hotels
-  "#10b981", // emerald — adventure
-  "#8b5cf6", // violet  — travel
-  "#f59e0b", // amber   — sales
-  "#ec4899", // pink    — content
-];
-
-const paletteEdges = new EdgesGeometry(new BoxGeometry(0.55, 0.55, 0.55));
-
-// Each swatch spins in place on its own axis/speed (alternating direction
-// for variety, same "always turning" feel as the centerpiece) and pops
-// slightly on hover; grabbing it picks its (one, unambiguous) color
-// instantly — no per-face lookup needed, unlike the multicolor centerpiece.
-function PaletteCube({
-  position,
-  color,
-  spinSpeed,
-}: {
-  position: [number, number, number];
-  color: string;
-  spinSpeed: number;
-}) {
-  const groupRef = useRef<Group>(null);
-  const hovered = useRef(false);
-  const material = useMemo(
-    () => new MeshStandardMaterial({ color, roughness: 0.28, metalness: 0.15 }),
-    [color],
-  );
-
-  useFrame(() => {
-    const group = groupRef.current;
-    if (!group) return;
-    group.rotation.y += spinSpeed;
-    group.rotation.x += spinSpeed * 0.6;
-    const target = hovered.current ? 1.3 : 1;
-    const next = group.scale.x + (target - group.scale.x) * 0.25;
-    group.scale.set(next, next, next);
-  });
-
-  return (
-    <group
-      ref={groupRef}
-      position={position}
-      rotation={[0.5, 0.7, 0]}
-      onPointerOver={() => {
-        hovered.current = true;
-      }}
-      onPointerOut={() => {
-        hovered.current = false;
-      }}
-      onPointerDown={(e: ThreeEvent<PointerEvent>) => {
-        e.stopPropagation();
-        applyBrandColor(color);
-      }}
-    >
-      <mesh material={material}>
-        <boxGeometry args={[0.55, 0.55, 0.55]} />
-        <lineSegments geometry={paletteEdges}>
-          <lineBasicMaterial color="#0a0a0a" />
-        </lineSegments>
-      </mesh>
-    </group>
-  );
-}
-
-function ColorPalette() {
-  const spacing = 0.62;
-  const startX = -((PALETTE_COLORS.length - 1) * spacing) / 2;
-  return (
-    <group position={[0, -1.9, 0]}>
-      {PALETTE_COLORS.map((color, i) => (
-        <PaletteCube
-          key={color}
-          color={color}
-          position={[startX + i * spacing, 0, 0]}
-          spinSpeed={(i % 2 === 0 ? 1 : -1) * (0.01 + (i % 3) * 0.004)}
-        />
-      ))}
-    </group>
-  );
-}
-
 export function RubiksCubeScene() {
   return (
     <Canvas camera={{ position: [0, 0, 8], fov: 42 }} dpr={[1, 1.5]} gl={{ antialias: true, alpha: true }}>
@@ -256,7 +150,6 @@ export function RubiksCubeScene() {
       <directionalLight position={[3, 4, 5]} intensity={1.4} />
       <pointLight position={[-4, -2, 3]} intensity={0.6} color="#22d3ee" />
       <DraggableCube />
-      <ColorPalette />
     </Canvas>
   );
 }

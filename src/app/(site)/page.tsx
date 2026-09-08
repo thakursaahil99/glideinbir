@@ -19,7 +19,7 @@ import { ScrollReveal, StaggerGroup, StaggerItem } from "@/components/effects/sc
 import { TiltCard } from "@/components/effects/tilt-card";
 import { GradientOrb } from "@/components/effects/gradient-orb";
 import { RubiksCubeLazy } from "@/components/effects/rubiks-cube-lazy";
-import { ThemeResetButton } from "@/components/site/theme-reset-button";
+import { BrandColorPicker } from "@/components/effects/brand-color-picker";
 import {
   Wind,
   GraduationCap,
@@ -434,11 +434,11 @@ export default async function HomePage() {
                 <RubiksCubeLazy />
               </div>
             </div>
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="mt-4">
               <p className="text-xs text-muted">
-                Drag to spin · tap a colour below to theme the site
+                Drag the cube to spin it. Pick a colour and the whole site retunes:
               </p>
-              <ThemeResetButton />
+              <BrandColorPicker className="mt-2.5" />
             </div>
           </div>
         </Container>

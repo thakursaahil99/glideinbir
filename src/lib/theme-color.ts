@@ -8,6 +8,20 @@
 // re-applies it before first paint to avoid a flash of the default color.
 const STORAGE_KEY = "glideinbir-brand-color";
 
+// The swatches offered on the homepage. These are the site's own
+// module-theme hues (src/lib/module-theme.ts) plus the brand orange, so
+// whichever one a visitor picks the site still looks like itself.
+export const BRAND_PALETTE: { hex: string; name: string }[] = [
+  { hex: "#ff6a00", name: "Orange" },
+  { hex: "#3b82f6", name: "Blue" },
+  { hex: "#6366f1", name: "Indigo" },
+  { hex: "#06b6d4", name: "Cyan" },
+  { hex: "#10b981", name: "Emerald" },
+  { hex: "#8b5cf6", name: "Violet" },
+  { hex: "#f59e0b", name: "Amber" },
+  { hex: "#ec4899", name: "Pink" },
+];
+
 function darken(hex: string, amount: number): string {
   const num = parseInt(hex.replace("#", ""), 16);
   const r = Math.max(0, Math.round(((num >> 16) & 255) * (1 - amount)));
