@@ -130,7 +130,7 @@ export function BookHotelWidget({
             value={checkIn}
             min={todayISO()}
             onChange={(e) => setCheckIn(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-base sm:text-sm"
           />
         </div>
         <div>
@@ -140,7 +140,7 @@ export function BookHotelWidget({
             value={checkOut}
             min={checkIn}
             onChange={(e) => setCheckOut(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-base sm:text-sm"
           />
         </div>
         <div>
@@ -150,7 +150,7 @@ export function BookHotelWidget({
             min={1}
             value={roomsRequested}
             onChange={(e) => setRoomsRequested(Math.max(1, Number(e.target.value)))}
-            className="mt-1 w-20 rounded-lg border border-border px-3 py-2 text-sm"
+            className="mt-1 w-20 rounded-lg border border-border px-3 py-2 text-base sm:text-sm"
           />
         </div>
         <div>
@@ -160,7 +160,7 @@ export function BookHotelWidget({
             min={1}
             value={guests}
             onChange={(e) => setGuests(Math.max(1, Number(e.target.value)))}
-            className="mt-1 w-20 rounded-lg border border-border px-3 py-2 text-sm"
+            className="mt-1 w-20 rounded-lg border border-border px-3 py-2 text-base sm:text-sm"
           />
         </div>
         <div className="flex items-end">
@@ -178,7 +178,7 @@ export function BookHotelWidget({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="For booking updates"
-            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-base sm:text-sm"
           />
         </div>
       )}

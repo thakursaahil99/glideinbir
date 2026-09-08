@@ -102,7 +102,7 @@ export function LeaveReviewForm({
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           placeholder="How was it? (optional)"
-          className="w-full rounded-lg border border-border px-3 py-2 text-sm outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
+          className="w-full rounded-lg border border-border px-3 py-2 text-base outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20 sm:text-sm"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <Button type="submit" size="sm" disabled={isPending}>

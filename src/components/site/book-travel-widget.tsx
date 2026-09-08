@@ -86,7 +86,7 @@ export function BookTravelWidget({
         <select
           value={slotId}
           onChange={(e) => setSlotId(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-base sm:text-sm"
         >
           {slots.map((slot) => {
             const left = slot.capacity - slot.bookedSeats;
@@ -107,7 +107,7 @@ export function BookTravelWidget({
           max={Math.max(seatsLeft, 1)}
           value={passengers}
           onChange={(e) => setPassengers(Math.max(1, Number(e.target.value)))}
-          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-base sm:text-sm"
         />
       </div>
 
@@ -119,7 +119,7 @@ export function BookTravelWidget({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="For booking updates"
-            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-base sm:text-sm"
           />
         </div>
       )}

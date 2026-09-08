@@ -87,7 +87,7 @@ export function BookSchoolWidget({
         <select
           value={batchId}
           onChange={(e) => setBatchId(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-base sm:text-sm"
         >
           {batches.map((batch) => {
             const left = batch.maxStudents - batch.bookedSeats;
@@ -109,7 +109,7 @@ export function BookSchoolWidget({
           max={Math.max(seatsLeft, 1)}
           value={students}
           onChange={(e) => setStudents(Math.max(1, Number(e.target.value)))}
-          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-base sm:text-sm"
         />
       </div>
 
@@ -121,7 +121,7 @@ export function BookSchoolWidget({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="For booking updates"
-            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-base sm:text-sm"
           />
         </div>
       )}

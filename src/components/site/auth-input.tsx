@@ -13,7 +13,7 @@ export function AuthInput({
         <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
         <input
           {...props}
-          className="w-full rounded-lg border border-border py-2 pl-10 pr-3 text-sm outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
+          className="w-full rounded-lg border border-border py-2 pl-10 pr-3 text-base outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20 sm:text-sm"
         />
       </div>
     </div>
