@@ -160,15 +160,18 @@ function DraggableCube() {
 // Back to a single row of small solid-color cubes — the multicolor
 // mini-Rubik's-cube grid was fiddly to tell apart at a glance and felt busy.
 // A flat, unambiguous color per cube, one row, each one just spins in place.
+// The eight swatches are the site's own module-theme hues (see
+// src/lib/module-theme.ts) plus the brand orange — so whichever one the
+// visitor picks, the site still looks like itself, not a random recolor.
 const PALETTE_COLORS = [
   "#ff6a00", // brand orange (default)
-  "#ef4444", // red
-  "#3b82f6", // blue
-  "#22c55e", // green
-  "#8b5cf6", // purple
-  "#ec4899", // pink
-  "#06b6d4", // teal
-  "#f59e0b", // amber
+  "#3b82f6", // blue    — paragliding
+  "#6366f1", // indigo  — school
+  "#06b6d4", // cyan    — hotels
+  "#10b981", // emerald — adventure
+  "#8b5cf6", // violet  — travel
+  "#f59e0b", // amber   — sales
+  "#ec4899", // pink    — content
 ];
 
 const paletteEdges = new EdgesGeometry(new BoxGeometry(0.55, 0.55, 0.55));

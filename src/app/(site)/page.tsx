@@ -227,53 +227,6 @@ export default async function HomePage() {
         </Container>
       )}
 
-      <section className="relative overflow-hidden bg-ink py-32 text-white">
-        <AuroraBackground />
-        <NoiseOverlay opacity={0.05} />
-        <Container className="relative z-10 grid items-center gap-16 md:grid-cols-2">
-          <ScrollReveal>
-            <p className="text-sm font-semibold uppercase tracking-widest text-white/60">
-              One platform
-            </p>
-            <h2 className="mt-3 text-4xl font-bold tracking-tight text-white md:text-5xl">
-              Flights, stays &amp; adventures — one checkout
-            </h2>
-            <p className="mt-5 max-w-md text-lg text-white/70">
-              No juggling five separate operators. Pick your flight, your course, your room,
-              your adventure, your ride — then check out once. One confirmation, one payment.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              {MODULES.map(({ icon: Icon, label }) => (
-                <span key={label} className="glass flex items-center gap-2 rounded-full px-4 py-2 text-sm">
-                  <Icon className="h-4 w-4 text-brand" strokeWidth={2} />
-                  {label}
-                </span>
-              ))}
-            </div>
-            <p className="mt-6 max-w-md text-sm text-white/50">
-              Make it yours, too — grab a color off the palette on the cube and the whole
-              site retunes to it. It&apos;s saved to your browser, so it stays picked wherever you go.
-            </p>
-            <MagneticButton className="mt-8 inline-block">
-              <LinkButton href="/paragliding" size="lg">
-                Explore everything
-              </LinkButton>
-            </MagneticButton>
-          </ScrollReveal>
-          <div>
-            <div className="h-[26rem] md:h-[34rem]">
-              <RubiksCubeLazy />
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <p className="text-center text-xs text-white/40">
-                Drag to spin the cube · grab a color below to theme the site
-              </p>
-              <ThemeResetButton />
-            </div>
-          </div>
-        </Container>
-      </section>
-
       {courses.items.length > 0 && (
         <div className="dot-grid-bg border-y border-border bg-surface py-24">
           <Container>
@@ -440,6 +393,56 @@ export default async function HomePage() {
           </StaggerGroup>
         </Container>
       )}
+
+      <div className="dot-grid-bg border-y border-border bg-surface py-24">
+        <Container className="grid items-center gap-12 md:grid-cols-2">
+          <ScrollReveal>
+            <SectionHeader
+              eyebrow="One platform"
+              icon={Layers}
+              title="Flights, stays & adventures — one checkout"
+              description="No juggling five separate operators. Pick your flight, course, room, adventure and ride, then check out once — one confirmation, one payment."
+            />
+            <div className="mt-8 flex flex-wrap gap-2.5">
+              {MODULES.map(({ icon: Icon, label }) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-paper px-4 py-2 text-sm font-medium"
+                >
+                  <Icon className="h-4 w-4 text-brand" strokeWidth={2} />
+                  {label}
+                </span>
+              ))}
+            </div>
+            <p className="mt-8 max-w-md text-sm text-muted">
+              <span className="font-semibold text-ink">Make it yours:</span> grab a colour off
+              the cube and the whole site retunes to it — saved to your browser, so it stays
+              picked wherever you go.
+            </p>
+            <MagneticButton className="mt-6 inline-block">
+              <LinkButton href="/paragliding" size="lg">
+                Explore everything
+              </LinkButton>
+            </MagneticButton>
+          </ScrollReveal>
+
+          <div>
+            <div className="relative overflow-hidden rounded-3xl border border-border bg-ink">
+              <AuroraBackground className="opacity-50" />
+              <NoiseOverlay opacity={0.04} />
+              <div className="relative z-10 h-[24rem] md:h-[30rem]">
+                <RubiksCubeLazy />
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs text-muted">
+                Drag to spin · tap a colour below to theme the site
+              </p>
+              <ThemeResetButton />
+            </div>
+          </div>
+        </Container>
+      </div>
 
       <section className="relative overflow-hidden py-24">
         <GradientOrb className="-top-10 -right-10" color="var(--color-brand)" size={340} />
