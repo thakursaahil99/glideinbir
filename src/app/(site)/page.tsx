@@ -39,6 +39,7 @@ import { SectionHeader } from "@/components/site/section-header";
 import { CardArrow } from "@/components/site/card-arrow";
 import { HowItWorks, BirBillingTeaser, PlanningGuides } from "@/components/site/home-sections";
 import { VideoSection } from "@/components/site/video-section";
+import { HeroMedia } from "@/components/site/hero-media";
 
 const MODULES = [
   { icon: Wind, label: "Paragliding" },
@@ -107,14 +108,11 @@ export default async function HomePage() {
   return (
     <>
       <section className="relative flex min-h-[90vh] items-center overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1722253991955-7359db2e7e5e?q=80&w=1920&h=1080&auto=format&fit=crop"
-          alt="Misty mountain ridge over Bir Billing"
-          fill
-          priority
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+        <HeroMedia alt="Misty forested mountain ridge above Bir Billing" />
+        {/* Darken the left, where the headline sits, and the bottom for the
+            stats row — keep the ridge on the right readable. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
         <ParticleField variant="dust" density={50} />
         <SpotlightCursor color="255,255,255" />
 

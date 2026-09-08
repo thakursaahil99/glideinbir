@@ -68,6 +68,12 @@ const envSchema = z.object({
   // a "Watch a flight" section with that video embedded. Leave unset to
   // hide the section. Read client-side via process.env.
   NEXT_PUBLIC_FLIGHT_VIDEO_ID: z.string().optional(),
+
+  // --- Homepage hero background video (optional) ---
+  // A direct video URL (.mp4/.webm). When set, it loops muted behind the
+  // hero headline. Alternatively drop public/hero.mp4. Falls back to the
+  // still image public/hero.webp.
+  NEXT_PUBLIC_HERO_VIDEO_URL: z.string().url().optional(),
 });
 
 function loadEnv() {
