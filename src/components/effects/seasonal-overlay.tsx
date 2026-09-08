@@ -94,14 +94,14 @@ function mountCanvas(canvas: HTMLCanvasElement, season: "rain" | "snow"): () => 
     // Scale count to the viewport, capped, and thin it right down on phones.
     const area = w * h;
     if (season === "rain") {
-      const count = Math.min(160, Math.round(area / 9000));
+      const count = Math.min(280, Math.round(area / 5200));
       drops = Array.from({ length: count }, () => ({
         x: Math.random() * w,
         y: Math.random() * h,
-        len: rand(10, 22),
-        vy: rand(7, 12),
-        vx: rand(-1.6, -0.6),
-        o: rand(0.06, 0.16),
+        len: rand(14, 32),
+        vy: rand(12, 19),
+        vx: rand(-2.6, -1.1),
+        o: rand(0.16, 0.42),
       }));
     } else {
       const count = Math.min(90, Math.round(area / 16000));
@@ -132,8 +132,8 @@ function mountCanvas(canvas: HTMLCanvasElement, season: "rain" | "snow"): () => 
           d.x = Math.random() * w;
         }
         if (d.x < 0) d.x = w;
-        ctx!.strokeStyle = `rgba(110,132,168,${d.o})`;
-        ctx!.lineWidth = 1;
+        ctx!.strokeStyle = `rgba(126,148,182,${d.o})`;
+        ctx!.lineWidth = d.o > 0.32 ? 1.5 : 1.1;
         ctx!.beginPath();
         ctx!.moveTo(d.x, d.y);
         ctx!.lineTo(d.x + d.vx * 1.5, d.y + d.len);
