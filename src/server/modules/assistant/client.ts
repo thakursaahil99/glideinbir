@@ -25,7 +25,54 @@ export type ChatTool = {
 type AssistantReply = { role: "assistant"; content: string | null; tool_calls?: ToolCall[] };
 
 export function isSahuBhaiConfigured(): boolean {
-  return Boolean(env.SAHU_BHAI_API_KEY);
+  return Boolean(env.SAHU_BHAI_API_KEY || env.SAHU_BHAI_API_KEY_2 || env.SAHU_BHAI_API_KEY_3);
+}
+
+// The primary provider plus any configured fallbacks, tried in order. A
+// request that fails on one because of a rate limit / quota / outage is
+// replayed on the next.
+type Provider = { name: string; apiKey: string; baseUrl: string; model: string };
+
+function providers(): Provider[] {
+  const list: Provider[] = [];
+  if (env.SAHU_BHAI_API_KEY) {
+    list.push({
+      name: "primary",
+      apiKey: env.SAHU_BHAI_API_KEY,
+      baseUrl: env.SAHU_BHAI_BASE_URL,
+      model: env.SAHU_BHAI_MODEL,
+    });
+  }
+  if (env.SAHU_BHAI_API_KEY_2) {
+    list.push({
+      name: "fallback-2",
+      apiKey: env.SAHU_BHAI_API_KEY_2,
+      baseUrl: env.SAHU_BHAI_BASE_URL_2,
+      model: env.SAHU_BHAI_MODEL_2,
+    });
+  }
+  if (env.SAHU_BHAI_API_KEY_3) {
+    if (env.SAHU_BHAI_BASE_URL_3 && env.SAHU_BHAI_MODEL_3) {
+      list.push({
+        name: "fallback-3",
+        apiKey: env.SAHU_BHAI_API_KEY_3,
+        baseUrl: env.SAHU_BHAI_BASE_URL_3,
+        model: env.SAHU_BHAI_MODEL_3,
+      });
+    } else {
+      logger.warn("Sahu Bhai: SAHU_BHAI_API_KEY_3 set but BASE_URL_3 / MODEL_3 missing — skipping slot 3");
+    }
+  }
+  return list;
+}
+
+// Errors worth replaying on the next provider (rate limit, quota, outage,
+// bad key, oversized request). A plain malformed-request 400 is not — it
+// would fail everywhere.
+function shouldFailover(err: unknown): boolean {
+  if (!(err instanceof AppError)) return true; // network / unknown → try next
+  if (err.statusCode === 400 && err.code === "LLM_ERROR") return false;
+  return true;
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -47,51 +94,80 @@ function parseResetHeader(value: string | null): number | null {
 
 const MAX_RETRIES = 2;
 
-// Fires the request, transparently retrying a 429 while the token bucket
-// refills, and turns a hard failure into a typed AppError.
-async function post(
-  body: Record<string, unknown>,
-  attempt = 0,
-): Promise<Response> {
-  if (!env.SAHU_BHAI_API_KEY) {
+// Fires the request against the configured providers in order. Each is
+// tried once (with a short in-provider retry on 429/503 only when it is
+// the last provider left); a rate-limit / quota / outage moves on to the
+// next. The final provider's failure is thrown as a typed AppError.
+async function post(body: Record<string, unknown>): Promise<Response> {
+  const ps = providers();
+  if (ps.length === 0) {
     throw new ServiceUnavailableError(
       "Sahu Bhai isn't set up yet — an LLM API key is needed. Set SAHU_BHAI_API_KEY in .env (see SAHU_BHAI.md).",
     );
   }
 
-  const url = `${env.SAHU_BHAI_BASE_URL.replace(/\/+$/, "")}/chat/completions`;
+  let lastError: unknown;
+  for (let i = 0; i < ps.length; i++) {
+    const isLast = i === ps.length - 1;
+    try {
+      return await postToProvider(ps[i]!, body, isLast);
+    } catch (error) {
+      lastError = error;
+      if (isLast || !shouldFailover(error)) throw error;
+      logger.warn("Sahu Bhai: provider failed, falling back", {
+        provider: ps[i]!.name,
+        next: ps[i + 1]!.name,
+        code: error instanceof AppError ? error.code : String(error),
+      });
+    }
+  }
+  throw lastError;
+}
+
+async function postToProvider(
+  provider: Provider,
+  body: Record<string, unknown>,
+  isLast: boolean,
+  attempt = 0,
+): Promise<Response> {
+  const url = `${provider.baseUrl.replace(/\/+$/, "")}/chat/completions`;
   let res: Response;
   try {
     res = await fetch(url, {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        authorization: `Bearer ${env.SAHU_BHAI_API_KEY}`,
+        authorization: `Bearer ${provider.apiKey}`,
       },
-      body: JSON.stringify({ model: env.SAHU_BHAI_MODEL, temperature: 0.4, ...body }),
+      body: JSON.stringify({ model: provider.model, temperature: 0.4, ...body }),
     });
   } catch (error) {
-    logger.error("Sahu Bhai LLM request failed", { error: String(error) });
+    logger.error("Sahu Bhai LLM request failed", { provider: provider.name, error: String(error) });
     throw new AppError("Couldn't reach the Sahu Bhai LLM (network error).", 502, "LLM_UNREACHABLE");
   }
 
-  // 429 = rate limited; 503 = provider "high demand" (Gemini does this a
-  // lot on the free tier and it's almost always gone a second later).
-  if ((res.status === 429 || res.status === 503) && attempt < MAX_RETRIES) {
+  // 429 = rate limited; 503 = "high demand". Retry in-provider only when
+  // there's no other provider to fall back to — otherwise fail fast and
+  // let post() move to the next one.
+  if ((res.status === 429 || res.status === 503) && isLast && attempt < MAX_RETRIES) {
     const waitMs = Math.min(
       parseResetHeader(res.headers.get("retry-after")) ??
         parseResetHeader(res.headers.get("x-ratelimit-reset-tokens")) ??
         (res.status === 503 ? 1500 : 3000),
       9000,
     );
-    logger.warn(`Sahu Bhai LLM ${res.status} — retrying`, { attempt, waitMs });
+    logger.warn(`Sahu Bhai LLM ${res.status} — retrying`, { provider: provider.name, attempt, waitMs });
     await sleep(waitMs + 250);
-    return post(body, attempt + 1);
+    return postToProvider(provider, body, isLast, attempt + 1);
   }
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    logger.error("Sahu Bhai LLM error response", { status: res.status, body: text.slice(0, 500) });
+    logger.error("Sahu Bhai LLM error response", {
+      provider: provider.name,
+      status: res.status,
+      body: text.slice(0, 500),
+    });
     if (res.status === 429) {
       throw new RateLimitedError(
         "Sahu Bhai is busy right now (free-tier per-minute limit). Wait ~15–20 seconds and try again, or send a shorter message.",
@@ -103,8 +179,7 @@ async function post(
       );
     }
     // 413, or a 400 whose body complains about size / tokens / context: the
-    // request itself is too big for the current free model's per-request
-    // limit. Retrying as-is won't help — the fix is a shorter conversation.
+    // request itself is too big for this model's per-request limit.
     const tooLarge =
       res.status === 413 ||
       (res.status === 400 && /too large|context length|maximum context|tokens per|reduce/i.test(text));
@@ -115,9 +190,11 @@ async function post(
         "REQUEST_TOO_LARGE",
       );
     }
+    // 401/402/5xx → typed so shouldFailover() lets post() try the next
+    // provider; a plain 400 stays a non-failover LLM_ERROR.
     throw new AppError(
       `LLM provider returned an error (${res.status}). ${text.slice(0, 200)}`.trim(),
-      502,
+      res.status === 400 ? 400 : 502,
       "LLM_ERROR",
     );
   }

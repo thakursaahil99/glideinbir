@@ -63,15 +63,28 @@ SAHU_BHAI_MODEL="openai/gpt-oss-120b"
 Restart `next dev` after changing env vars. The model must support tool /
 function calling. The client retries 429 and 503 automatically.
 
+**Fallback providers:** set `SAHU_BHAI_API_KEY_2` (and `_3`) and a
+rate-limit / quota / outage on the primary transparently replays the same
+request on the next provider. Slot 2 defaults to Cerebras
+(`https://api.cerebras.ai/v1`, `gpt-oss-120b`) — just paste the key. Slot 3
+needs `SAHU_BHAI_BASE_URL_3` + `SAHU_BHAI_MODEL_3` too. See
+`providers()` / `post()` in `client.ts`.
+
 **The free-tier reality (checked 2026-09):**
 
 | Option | Limit | Verdict |
 |---|---|---|
 | **Groq free** `gpt-oss-120b` | 8k tokens/min, 1000 req/day, shared | OK for low traffic. Long chats can 413 — client trims history + tool results to soften it, and maps a hard 413 to "tap New chat". |
+| **Cerebras free** `gpt-oss-120b` | **1M tokens/day, ~14,400 req/day**, 8k ctx | Best free tier — much higher daily ceiling, same model & speed. Good as primary or fallback #2. |
 | **Gemini free** (new 3.x flash) | **~20 requests/day** | Not usable for a public bot. Older `gemini-2.x` flash is gone for new keys. Tried and reverted. |
+| **SambaNova free** | 20 req/**day** | Useless like Gemini. |
 | **Groq pay-as-you-go** | no per-minute wall | Cheapest real fix — a small business bot is a few $/month. Same `BASE_URL`/`MODEL`, just a billed key. |
 | OpenRouter free | 20 req/min, ~50/day | too tight |
 | Ollama (local) | unlimited | needs a machine always on; this PC too weak |
+
+Recommended free setup: **Cerebras as primary + Groq as fallback #2** (or
+vice-versa) — two independent daily buckets, and one being down/limited
+doesn't take the bot down.
 
 **Production (Vercel):** set the three vars in Project → Settings → Environment
 Variables (Production), then redeploy (`git commit --allow-empty` + push works;

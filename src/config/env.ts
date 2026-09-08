@@ -56,6 +56,17 @@ const envSchema = z.object({
   SAHU_BHAI_BASE_URL: z.string().url().default("https://api.groq.com/openai/v1"),
   SAHU_BHAI_MODEL: z.string().min(1).default("openai/gpt-oss-120b"),
 
+  // Optional fallback providers. If the primary is rate-limited / out of
+  // quota / down, Sahu Bhai retries the same request on #2, then #3.
+  // Slot 2 defaults to Cerebras (1M free tokens/day, same gpt-oss-120b);
+  // just set the key. Slot 3 needs all three vars.
+  SAHU_BHAI_API_KEY_2: z.string().optional(),
+  SAHU_BHAI_BASE_URL_2: z.string().url().default("https://api.cerebras.ai/v1"),
+  SAHU_BHAI_MODEL_2: z.string().min(1).default("gpt-oss-120b"),
+  SAHU_BHAI_API_KEY_3: z.string().optional(),
+  SAHU_BHAI_BASE_URL_3: z.string().url().optional(),
+  SAHU_BHAI_MODEL_3: z.string().min(1).optional(),
+
   // --- Vapi voice assistant (optional) ---
   // Both are browser-safe values from the Vapi dashboard (vapi.ai). The
   // "Talk" button on the Sahu Bhai widget / app stays hidden until BOTH are
