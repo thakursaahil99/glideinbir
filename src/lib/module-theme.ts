@@ -1,9 +1,10 @@
-// One color per business area, reused everywhere that area shows up —
-// the admin sidebar, admin page headers, and the matching public site
-// section — so "Hotels" always reads as cyan, "School" always reads as
-// indigo, etc. Plain Tailwind palette classes (already used ad hoc in the
-// admin dashboard's stat cards) rather than new CSS tokens, so nothing
-// else has to change to pick these up.
+// Every business area (admin sidebar, admin page headers, the matching
+// public-site section) is themed off the single runtime brand colour, so
+// picking a colour on the homepage retunes the WHOLE site — section
+// eyebrows, nav highlights, accent borders and all — not just buttons.
+// The per-key shape is kept so callers don't change; they all resolve to
+// the same brand-based classes now. `--color-brand` is set at runtime by
+// applyBrandColor() (src/lib/theme-color.ts), so these update live.
 export type ModuleKey =
   | "overview"
   | "paragliding"
@@ -28,14 +29,22 @@ export interface ModuleTheme {
   topBorder: string;
 }
 
+const BRAND_THEME: ModuleTheme = {
+  text: "text-brand",
+  soft: "bg-brand/10",
+  solid: "bg-brand",
+  border: "border-brand",
+  topBorder: "border-t-brand",
+};
+
 export const MODULE_THEME: Record<ModuleKey, ModuleTheme> = {
-  overview: { text: "text-brand", soft: "bg-brand/10", solid: "bg-brand", border: "border-brand", topBorder: "border-t-brand" },
-  paragliding: { text: "text-blue-600", soft: "bg-blue-50", solid: "bg-blue-500", border: "border-blue-400", topBorder: "border-t-blue-400" },
-  school: { text: "text-indigo-600", soft: "bg-indigo-50", solid: "bg-indigo-500", border: "border-indigo-400", topBorder: "border-t-indigo-400" },
-  hotels: { text: "text-cyan-600", soft: "bg-cyan-50", solid: "bg-cyan-500", border: "border-cyan-400", topBorder: "border-t-cyan-400" },
-  adventure: { text: "text-emerald-600", soft: "bg-emerald-50", solid: "bg-emerald-500", border: "border-emerald-400", topBorder: "border-t-emerald-400" },
-  travel: { text: "text-violet-600", soft: "bg-violet-50", solid: "bg-violet-500", border: "border-violet-400", topBorder: "border-t-violet-400" },
-  sales: { text: "text-amber-600", soft: "bg-amber-50", solid: "bg-amber-500", border: "border-amber-400", topBorder: "border-t-amber-400" },
-  content: { text: "text-pink-600", soft: "bg-pink-50", solid: "bg-pink-500", border: "border-pink-400", topBorder: "border-t-pink-400" },
-  audit: { text: "text-red-600", soft: "bg-red-50", solid: "bg-red-500", border: "border-red-400", topBorder: "border-t-red-400" },
+  overview: BRAND_THEME,
+  paragliding: BRAND_THEME,
+  school: BRAND_THEME,
+  hotels: BRAND_THEME,
+  adventure: BRAND_THEME,
+  travel: BRAND_THEME,
+  sales: BRAND_THEME,
+  content: BRAND_THEME,
+  audit: BRAND_THEME,
 };

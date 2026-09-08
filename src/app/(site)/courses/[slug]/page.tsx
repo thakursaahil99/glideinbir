@@ -53,13 +53,13 @@ export default async function CourseDetailPage({
       images={galleryImages}
       breadcrumbs={[{ label: "Courses", href: "/courses" }, { label: course.title }]}
       imageAlt={course.title}
-      badge={<Badge tone="purple">{course.level}</Badge>}
+      badge={<Badge tone="brand">{course.level}</Badge>}
       title={course.title}
       subtitle={`${course.location} · ${course.durationDays} days`}
       price={formatINR(course.fee.toString())}
       priceUnit="per student"
       sidebar={
-        <Card className="border-t-4 border-t-indigo-400 p-6">
+        <Card className="border-t-4 border-t-brand p-6">
           <div className="text-2xl font-bold">
             <GradientText>{formatINR(course.fee.toString())}</GradientText>
           </div>

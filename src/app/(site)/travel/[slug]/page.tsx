@@ -47,13 +47,13 @@ export default async function TravelDetailPage({
       images={galleryImages}
       breadcrumbs={[{ label: "Travel", href: "/travel" }, { label: route.title }]}
       imageAlt={route.title}
-      badge={<Badge tone="amber">{route.mode}</Badge>}
+      badge={<Badge tone="brand">{route.mode}</Badge>}
       title={route.title}
       subtitle={`${route.fromLocation} → ${route.toLocation} · ${route.vehicleType} · ${route.durationLabel}`}
       price={formatINR(route.price.toString())}
       priceUnit={route.pricingUnit.replace("_", " ").toLowerCase()}
       sidebar={
-        <Card className="border-t-4 border-t-violet-400 p-6">
+        <Card className="border-t-4 border-t-brand p-6">
           <div className="text-2xl font-bold">
             <GradientText>{formatINR(route.price.toString())}</GradientText>
           </div>
