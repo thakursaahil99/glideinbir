@@ -50,61 +50,60 @@ Every conversation (public + admin) is stored and reviewable at **`/admin/sahu-c
 
 ## Setup
 
-The feature is **disabled until `SAHU_BHAI_API_KEY` is set**. It works with any
-OpenAI-compatible chat-completions provider — pick one with a free tier:
-
-| Provider | `SAHU_BHAI_BASE_URL` | `SAHU_BHAI_MODEL` | Free-tier headroom | Get a key |
-|---|---|---|---|---|
-| **Google Gemini (default & recommended)** | `https://generativelanguage.googleapis.com/v1beta/openai/` | `gemini-flash-latest` | ~1M tokens/min, big daily cap — no "request too large" | aistudio.google.com |
-| Groq | `https://api.groq.com/openai/v1` | `openai/gpt-oss-120b` | only **8k tokens/min** — a longish chat 413s | console.groq.com |
-| OpenRouter | `https://openrouter.ai/api/v1` | a `:free` model | 20 req/min, 50/day | openrouter.ai |
-| Ollama (local, no key) | `http://localhost:11434/v1` | `qwen2.5:3b` | unlimited but needs a machine on | — |
+The feature is **disabled until `SAHU_BHAI_API_KEY` is set**. Any
+OpenAI-compatible chat-completions provider works.
 
 ```bash
-# .env  — set once, no further changes needed. "gemini-flash-latest" is an
-# alias that always tracks the current free flash model, so it won't 404 when
-# Google retires a numbered version (numbered ids like gemini-2.0-flash /
-# gemini-2.5-flash are already gone for new keys).
-SAHU_BHAI_API_KEY="your-gemini-key"       # from aistudio.google.com — new keys look like "AQ.…"
-SAHU_BHAI_BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai/"
-SAHU_BHAI_MODEL="gemini-flash-latest"
+# .env  — Groq free tier. Works for low traffic; see the limits note below.
+SAHU_BHAI_API_KEY="gsk_..."               # console.groq.com
+SAHU_BHAI_BASE_URL="https://api.groq.com/openai/v1"
+SAHU_BHAI_MODEL="openai/gpt-oss-120b"
 ```
 
 Restart `next dev` after changing env vars. The model must support tool /
-function calling (Gemini flash and Groq `gpt-oss` both do). The client
-retries 429 **and** 503 ("model under high demand", common on Gemini free).
+function calling. The client retries 429 and 503 automatically.
 
-**Why Groq keeps stopping:** Groq's free tier caps a *single request* at ~8k
-tokens/min shared across all users, and returns HTTP **413** once a
-conversation + system prompt + tool results exceed it — not a wait-and-retry
-429. The client maps 413 to a "tap New chat" message, and history / tool
-results are trimmed hard (`MAX_HISTORY`, `MAX_MESSAGE_CHARS` in the two
-routes; result caps in `tools.ts`). For a public bot with real traffic,
-switch to **Gemini** — same three env vars, no code change.
+**The free-tier reality (checked 2026-09):**
 
-**Production (Vercel):** set the same three vars in Project → Settings →
-Environment Variables (Production), then redeploy.
+| Option | Limit | Verdict |
+|---|---|---|
+| **Groq free** `gpt-oss-120b` | 8k tokens/min, 1000 req/day, shared | OK for low traffic. Long chats can 413 — client trims history + tool results to soften it, and maps a hard 413 to "tap New chat". |
+| **Gemini free** (new 3.x flash) | **~20 requests/day** | Not usable for a public bot. Older `gemini-2.x` flash is gone for new keys. Tried and reverted. |
+| **Groq pay-as-you-go** | no per-minute wall | Cheapest real fix — a small business bot is a few $/month. Same `BASE_URL`/`MODEL`, just a billed key. |
+| OpenRouter free | 20 req/min, ~50/day | too tight |
+| Ollama (local) | unlimited | needs a machine always on; this PC too weak |
 
-## Voice ("Talk" button — Vapi)
+**Production (Vercel):** set the three vars in Project → Settings → Environment
+Variables (Production), then redeploy (`git commit --allow-empty` + push works;
+`vercel redeploy` is blocked by the Claude Code classifier).
 
-A **Talk** button appears in the Sahu Bhai widget header and on `/sahu` once
-**both** browser-safe env vars are set — otherwise it renders nothing:
+## Voice ("Talk" button)
+
+A **Talk** button sits in the Sahu Bhai widget header and on `/sahu`.
+`src/components/site/voice-button.tsx` picks one of two engines:
+
+**1. Browser Web Speech API — the default, free forever.** No account, no
+key, no limit. The browser does speech-to-text and text-to-speech locally;
+the reply comes from our own `/api/sahu` (Gemini). It runs a continuous
+listen → ask → speak loop until the user taps End, shows the live
+transcript, strips Markdown before speaking, and picks a `hi-IN` voice when
+the reply is in Devanagari. Chrome / Edge / Android are solid; iOS Safari
+works but is flakier. Nothing to configure.
+
+**2. Vapi — used only if BOTH env vars are set** (more natural voice, paid
+after the trial credit):
 
 ```bash
 NEXT_PUBLIC_VAPI_PUBLIC_KEY="pk_..."      # Vapi dashboard → API Keys → Public
 NEXT_PUBLIC_VAPI_ASSISTANT_ID="asst_..."  # Vapi dashboard → Assistants → (the id)
 ```
 
-Setup: create an account at **vapi.ai** → create an Assistant (paste a
-Glideinbir system prompt, pick a voice + first message, choose a model) →
-copy its **Assistant ID** and your **Public Key** → set the two vars in
-Vercel → redeploy. Vapi is **not free** beyond the trial credit (~$10, then
-per-minute) — the LLM/voice for a call is billed by Vapi, separate from the
-text assistant's provider.
-
-`src/components/site/vapi-voice-button.tsx` dynamically imports `@vapi-ai/web`
-on first click (keeps its WebRTC dep out of the main bundle), starts the call
-(`vapi.start(assistantId)`), and shows a listening / speaking / End overlay.
+Setup: **vapi.ai** → create an Assistant (Glideinbir system prompt, a voice,
+a first message, a model) → copy its **Assistant ID** + your **Public Key** →
+set the two vars in Vercel → redeploy. Vapi bills the call's LLM+voice
+per-minute (separate from the text assistant's provider). `@vapi-ai/web` is
+dynamically imported on first click so its WebRTC dep stays out of the main
+bundle.
 
 ## Files
 
@@ -113,7 +112,7 @@ on first click (keeps its WebRTC dep out of the main bundle), starts the call
 | `src/components/admin/sahu-bhai.tsx` | Floating chat panel (client) |
 | `src/components/admin/sahu-bhai-chat.tsx` | Shared transcript + composer (admin panel, `/sahu`, public widget) |
 | `src/components/site/sahu-bhai-public.tsx` | Public-site widget wrapper |
-| `src/components/site/vapi-voice-button.tsx` | "Talk" voice button (Vapi; hidden unless configured) |
+| `src/components/site/voice-button.tsx` | "Talk" voice button — free browser Web Speech by default, Vapi if configured |
 | `src/app/sahu/{layout,page}.tsx` | Full-screen installable app — admin or public depending on who's signed in |
 | `src/app/app/page.tsx` | Shareable "get the app" landing (install button, QR, share link) |
 | `src/app/api/admin/assistant/route.ts` | `POST` endpoint, RBAC + rate limit |

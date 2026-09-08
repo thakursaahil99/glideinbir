@@ -4,7 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { SahuBhaiChat } from "@/components/admin/sahu-bhai-chat";
 import { SahuBadge, SahuMark } from "@/components/sahu-mark";
-import { VapiVoiceButton } from "./vapi-voice-button";
+import { VoiceButton } from "./voice-button";
 
 // Public-site chat widget. Bottom-left so it never clashes with the
 // bottom-right WhatsApp button. Chat-only (no admin tools); free for a few
@@ -39,7 +39,7 @@ export function SahuBhaiPublic() {
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <VapiVoiceButton />
+          <VoiceButton />
           <button
             type="button"
             onClick={() => setOpen(false)}
