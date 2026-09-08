@@ -18,18 +18,20 @@ export function SahuBhaiPublic() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Chat with Sahu Bhai"
-        className="fixed bottom-5 left-5 z-40 flex items-center gap-2 rounded-full bg-gradient-to-br from-brand to-brand-dark py-2 pl-2 pr-4 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-105"
+        // Icon-only round button on mobile (mirrors the WhatsApp button on
+        // the opposite corner, clear of the book bar); text pill from sm up.
+        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark font-semibold text-white shadow-lg transition-transform hover:scale-105 sm:left-5 sm:h-auto sm:w-auto sm:gap-2 sm:py-2 sm:pl-2 sm:pr-4 sm:text-sm lg:bottom-6"
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
-          <SahuMark className="h-4 w-4" />
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 sm:h-7 sm:w-7">
+          <SahuMark className="h-5 w-5 sm:h-4 sm:w-4" />
         </span>
-        Ask Sahu Bhai
+        <span className="hidden sm:inline">Ask Sahu Bhai</span>
       </button>
     );
   }
 
   return (
-    <div className="fixed inset-x-3 bottom-3 z-40 flex h-[min(34rem,82dvh)] flex-col overflow-hidden rounded-2xl border border-border bg-paper shadow-2xl sm:inset-x-auto sm:left-5 sm:bottom-5 sm:w-[24rem]">
+    <div className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex h-[min(34rem,82dvh)] flex-col overflow-hidden rounded-2xl border border-border bg-paper shadow-2xl sm:inset-x-auto sm:bottom-5 sm:left-5 sm:w-[24rem]">
       <header className="flex items-center justify-between border-b border-border bg-surface px-4 py-3">
         <div className="flex items-center gap-2">
           <SahuBadge className="h-7 w-7 rounded-full" />

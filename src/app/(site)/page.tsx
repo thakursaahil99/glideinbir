@@ -146,18 +146,18 @@ export default async function HomePage() {
             Book tandem paragliding flights, certification courses, and hotel stays at
             India&apos;s home of paragliding.
           </p>
-          <div className="mt-10 flex flex-wrap items-center gap-4">
-            <MagneticButton>
-              <LinkButton href="/paragliding" size="lg">
+          <div className="mt-10 flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+            <MagneticButton className="w-full sm:w-auto">
+              <LinkButton href="/paragliding" size="lg" className="w-full sm:w-auto">
                 Book a flight
               </LinkButton>
             </MagneticButton>
-            <MagneticButton>
+            <MagneticButton className="w-full sm:w-auto">
               <LinkButton
                 href="/school"
                 variant="ghost"
                 size="lg"
-                className="border-white/40 text-white hover:bg-white/10"
+                className="w-full border-white/40 text-white hover:bg-white/10 sm:w-auto"
               >
                 Explore courses
               </LinkButton>
