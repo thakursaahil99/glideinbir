@@ -12,6 +12,7 @@ import { blogService } from "@/server/modules/blog/service";
 const STATIC_PATHS = [
   "/",
   "/paragliding",
+  "/bir-billing",
   "/courses",
   "/courses/instructors",
   "/hotels",

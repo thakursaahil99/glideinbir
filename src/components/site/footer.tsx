@@ -20,6 +20,7 @@ const COLUMNS: { title: string; links: { href: string; label: string; theme?: Mo
     title: "Company",
     links: [
       { href: "/about", label: "About us" },
+      { href: "/bir-billing", label: "Bir Billing guide" },
       { href: "/contact", label: "Contact" },
       { href: "/faq", label: "FAQs" },
       { href: "/blog", label: "Blog" },

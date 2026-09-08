@@ -5,6 +5,7 @@ import { hotelService } from "@/server/modules/hotel/service";
 import { Card, Container } from "@/components/ui/card";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
+import { ModuleInfo } from "@/components/site/module-info";
 import { CardArrow } from "@/components/site/card-arrow";
 import { RatingBadge } from "@/components/site/rating-badge";
 import { reviewService } from "@/server/modules/review/service";
@@ -70,6 +71,16 @@ export default async function HotelsListPage() {
           </StaggerGroup>
         )}
       </Container>
+
+      <ModuleInfo
+        heading="Where to stay in Bir Billing"
+        faqCategory="HOTEL"
+        paragraphs={[
+          "Almost everyone stays in Bir village, near the landing field, the cafés and the Tibetan monasteries — not up at Billing, which is just the takeoff and a 40-minute drive above. From Bir you can walk to the landing site and watch the wings come in over breakfast.",
+          "Options run from cheap hostel bunks and camping through to wooden cottages and deluxe rooms. In the October and May peaks the good places fill early, so book ahead.",
+          "Every stay listed here can go in the same checkout as your flight, course or trek — one payment, one confirmation. Each hotel page shows its exact location, rooms, rates and check-in times.",
+        ]}
+      />
     </div>
   );
 }

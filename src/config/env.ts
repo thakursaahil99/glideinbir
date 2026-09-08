@@ -62,6 +62,12 @@ const envSchema = z.object({
   // set. Read client-side via process.env; listed here for documentation.
   NEXT_PUBLIC_VAPI_PUBLIC_KEY: z.string().optional(),
   NEXT_PUBLIC_VAPI_ASSISTANT_ID: z.string().optional(),
+
+  // --- Homepage flight video (optional) ---
+  // A YouTube video id (the part after ?v=). When set, the homepage shows
+  // a "Watch a flight" section with that video embedded. Leave unset to
+  // hide the section. Read client-side via process.env.
+  NEXT_PUBLIC_FLIGHT_VIDEO_ID: z.string().optional(),
 });
 
 function loadEnv() {

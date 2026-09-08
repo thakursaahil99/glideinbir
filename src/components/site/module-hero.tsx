@@ -52,8 +52,8 @@ export function ModuleHero({
       {effect === "sparkles" && <ParticleField variant="sparkles" density={30} />}
       {effect === "orbs" && (
         <>
-          <GradientOrb className="-top-16 -right-16" color="#22d3ee" size={340} />
-          <GradientOrb className="bottom-0 -left-20" color="var(--color-brand)" size={300} />
+          <GradientOrb className="-top-16 -right-16" color="var(--color-brand)" size={340} />
+          <GradientOrb className="bottom-0 -left-20" color="var(--color-brand-dark)" size={300} />
         </>
       )}
 

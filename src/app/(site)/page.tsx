@@ -37,6 +37,8 @@ import {
 } from "lucide-react";
 import { SectionHeader } from "@/components/site/section-header";
 import { CardArrow } from "@/components/site/card-arrow";
+import { HowItWorks, BirBillingTeaser } from "@/components/site/home-sections";
+import { VideoSection } from "@/components/site/video-section";
 
 const MODULES = [
   { icon: Wind, label: "Paragliding" },
@@ -227,6 +229,10 @@ export default async function HomePage() {
         </Container>
       )}
 
+      <HowItWorks />
+
+      <VideoSection videoId={process.env.NEXT_PUBLIC_FLIGHT_VIDEO_ID} />
+
       {courses.items.length > 0 && (
         <div className="dot-grid-bg border-y border-border bg-surface py-24">
           <Container>
@@ -393,6 +399,8 @@ export default async function HomePage() {
           </StaggerGroup>
         </Container>
       )}
+
+      <BirBillingTeaser />
 
       <div className="dot-grid-bg border-y border-border bg-surface py-24">
         <Container className="grid items-center gap-12 md:grid-cols-2">

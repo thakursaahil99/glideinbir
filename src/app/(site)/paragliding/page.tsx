@@ -9,6 +9,7 @@ import { formatINR } from "@/lib/format";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { TiltCard } from "@/components/effects/tilt-card";
 import { ModuleHero } from "@/components/site/module-hero";
+import { ModuleInfo } from "@/components/site/module-info";
 import { CardArrow } from "@/components/site/card-arrow";
 import { RatingBadge } from "@/components/site/rating-badge";
 import { FlyingConditions } from "@/components/site/flying-conditions";
@@ -124,6 +125,16 @@ export default async function ParaglidingListPage({
           </StaggerGroup>
         )}
       </Container>
+
+      <ModuleInfo
+        heading="Tandem paragliding in Bir Billing"
+        faqCategory="PARAGLIDING"
+        paragraphs={[
+          "Bir Billing is the best-known paragliding site in India — a long, forgiving ridge with takeoff at Billing (~2,400 m) and a landing field beside Bir village about 1,000 m below. It hosted the country's first Paragliding World Cup in 2015 and flies 200+ days a year outside the monsoon.",
+          "A tandem flight needs no training. After a short briefing you are clipped to the front of a two-person harness, run a few steps down the slope with a licensed pilot behind you, and then you are flying. A standard flight is 15–30 minutes; cross-country and 'high' flights run an hour or more.",
+          "Every package below shows its real duration, price, and any age or weight limits, plus live slot availability. Pick one, choose an open slot, and pay — your seat is held straight away. If it is your first time, the Bir Billing guide covers the season, what to wear, and how to reach Bir.",
+        ]}
+      />
     </>
   );
 }

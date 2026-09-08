@@ -125,7 +125,9 @@ const PUBLIC_PRIVACY_LINE = `- You do NOT know, and must NEVER share, the person
 const GLIDEINBIR_BLURB = `Glideinbir is an online booking platform for Bir Billing, Himachal Pradesh — India's top
 paragliding spot. It covers tandem paragliding flights, paragliding courses (P1–P4), hotels & stays,
 adventure activities (camping, trekking), and Volvo-bus / taxi travel. Customers browse and
-book everything on the site itself.`;
+book everything on the site itself. There is a detailed trip-planning guide at /bir-billing
+(season, who can fly, what to wear, how to reach Bir) and an FAQ at /faq — point people there
+for planning questions.`;
 
 const SITE_DATA_LINES = `- For anything about what Glideinbir OFFERS or what it COSTS — packages, courses,
   instructors, hotels & rooms, adventures, travel routes, prices, durations, schedules,

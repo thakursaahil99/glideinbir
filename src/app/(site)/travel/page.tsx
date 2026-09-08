@@ -7,6 +7,7 @@ import { Card, Container, Badge } from "@/components/ui/card";
 import { formatINR } from "@/lib/format";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
+import { ModuleInfo } from "@/components/site/module-info";
 import { CardArrow } from "@/components/site/card-arrow";
 
 export const metadata: Metadata = {
@@ -102,6 +103,16 @@ export default async function TravelListPage({
           </StaggerGroup>
         )}
       </Container>
+
+      <ModuleInfo
+        heading="Getting to Bir Billing"
+        faqCategory="GENERAL"
+        paragraphs={[
+          "Bir has no airport or main railway station of its own. Most people take an overnight Volvo bus from Delhi to Baijnath or Bir (about 12–13 hours), or a taxi from Chandigarh (around 8 hours). The nearest airport is Gaggal / Kangra, roughly 70 km away; the nearest broad-gauge railhead is Pathankot, about 145 km.",
+          "The narrow-gauge Kangra Valley toy train runs from Pathankot to Ahju and Baijnath, close to Bir — slow but scenic.",
+          "Book a bus seat or a private taxi below and it goes in the same checkout as your flight and stay. Routes show the vehicle, pickup point, timing and price.",
+        ]}
+      />
     </>
   );
 }

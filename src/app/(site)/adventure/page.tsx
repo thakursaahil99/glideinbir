@@ -7,6 +7,7 @@ import { Card, Container, Badge } from "@/components/ui/card";
 import { formatINR } from "@/lib/format";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
+import { ModuleInfo } from "@/components/site/module-info";
 import { CardArrow } from "@/components/site/card-arrow";
 
 export const metadata: Metadata = {
@@ -106,6 +107,16 @@ export default async function AdventureListPage({
           </StaggerGroup>
         )}
       </Container>
+
+      <ModuleInfo
+        heading="Things to do around Bir Billing"
+        faqCategory="GENERAL"
+        paragraphs={[
+          "A flight is 20 minutes — most people come for two or three days and fill the rest with the valley. Camping under the Dhauladhar, the walk up to Triund, waterfall and hot-spring treks, mountain biking, and the Tibetan monasteries and café colony in Bir are all within easy reach.",
+          "The treks range from an easy half-day waterfall walk to multi-day routes to Rajgundha and the snow line. Guides and permits, where needed, are arranged for you.",
+          "Add any of these to the same checkout as your flight and stay. Each activity page shows the duration, difficulty, what is included and available dates.",
+        ]}
+      />
     </>
   );
 }
