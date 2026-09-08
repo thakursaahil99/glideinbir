@@ -23,9 +23,22 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          // microphone=(self) so the "Talk" voice assistant (Web Speech /
+          // Vapi) can use the mic on our own origin; camera/geolocation off.
+          { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" },
         ],
       },
+    ];
+  },
+
+  // The "School" area was renamed to "Courses" — keep old links / any
+  // already-indexed URLs alive.
+  async redirects() {
+    return [
+      { source: "/school", destination: "/courses", permanent: true },
+      { source: "/school/instructors", destination: "/courses/instructors", permanent: true },
+      { source: "/school/instructors/:slug", destination: "/courses/instructors/:slug", permanent: true },
+      { source: "/school/:slug", destination: "/courses/:slug", permanent: true },
     ];
   },
 };

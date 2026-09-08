@@ -16,10 +16,10 @@ export async function generateMetadata({
   try {
     const instructor = await instructorService.getBySlug(slug);
     return {
-      title: `${instructor.name} — Instructor, Bir Billing Paragliding School`,
+      title: `${instructor.name} — Instructor, Bir Billing Paragliding Courses`,
       description:
-        instructor.bio ?? `${instructor.name}, a paragliding instructor at Bir Billing's paragliding school.`,
-      alternates: { canonical: `/school/instructors/${slug}` },
+        instructor.bio ?? `${instructor.name}, a paragliding course instructor at Bir Billing.`,
+      alternates: { canonical: `/courses/instructors/${slug}` },
     };
   } catch {
     return { title: "Instructor" };
@@ -37,7 +37,7 @@ export default async function InstructorDetailPage({
 
   return (
     <Container className="py-12 md:py-16">
-      <Breadcrumbs items={[{ label: "School", href: "/school" }, { label: "Instructors", href: "/school/instructors" }, { label: instructor.name }]} />
+      <Breadcrumbs items={[{ label: "Courses", href: "/courses" }, { label: "Instructors", href: "/courses/instructors" }, { label: instructor.name }]} />
 
       <div className="grid gap-10 md:grid-cols-[1fr_2fr]">
         <div>
@@ -80,9 +80,9 @@ export default async function InstructorDetailPage({
           <Card className="mt-8 p-6">
             <p className="font-medium">Want to train with {instructor.name.split(" ")[0]}?</p>
             <p className="mt-1 text-sm text-muted">
-              Browse courses at the paragliding school — batches list their instructor before you book.
+              Browse paragliding courses — batches list their instructor before you book.
             </p>
-            <LinkButton href="/school" className="mt-4">
+            <LinkButton href="/courses" className="mt-4">
               View courses
             </LinkButton>
           </Card>

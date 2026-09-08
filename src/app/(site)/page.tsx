@@ -40,7 +40,7 @@ import { CardArrow } from "@/components/site/card-arrow";
 
 const MODULES = [
   { icon: Wind, label: "Paragliding" },
-  { icon: GraduationCap, label: "School" },
+  { icon: GraduationCap, label: "Courses" },
   { icon: Hotel, label: "Hotels" },
   { icon: Tent, label: "Adventure" },
   { icon: Bus, label: "Travel" },
@@ -154,7 +154,7 @@ export default async function HomePage() {
             </MagneticButton>
             <MagneticButton className="w-full sm:w-auto">
               <LinkButton
-                href="/school"
+                href="/courses"
                 variant="ghost"
                 size="lg"
                 className="w-full border-white/40 text-white hover:bg-white/10 sm:w-auto"
@@ -232,8 +232,8 @@ export default async function HomePage() {
           <Container>
             <ScrollReveal>
               <div className="flex flex-wrap items-end justify-between gap-4">
-                <SectionHeader eyebrow="Paragliding school" icon={GraduationCap} title="Learn to fly" tone="school" />
-                <Link href="/school" className="text-sm font-medium text-brand hover:underline">
+                <SectionHeader eyebrow="Learn to fly" icon={GraduationCap} title="Paragliding courses" tone="school" />
+                <Link href="/courses" className="text-sm font-medium text-brand hover:underline">
                   View all courses →
                 </Link>
               </div>
@@ -242,7 +242,7 @@ export default async function HomePage() {
             <StaggerGroup className="mt-10 grid gap-8 md:grid-cols-3">
               {courses.items.map((course) => (
                 <StaggerItem key={course.id}>
-                  <Link href={`/school/${course.slug}`} className="group">
+                  <Link href={`/courses/${course.slug}`} className="group">
                     <Card className="card-glow-hover h-full overflow-hidden bg-paper">
                       <div className="relative h-56 w-full">
                         <Image

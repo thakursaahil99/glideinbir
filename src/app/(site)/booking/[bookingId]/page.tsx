@@ -75,7 +75,7 @@ export default async function BookingPage({
     ...booking.schoolItems.map((item) => ({
       key: item.id,
       icon: GraduationCap,
-      category: "School",
+      category: "Course",
       image: item.course.media[0]?.url ?? "/placeholder.svg",
       title: item.course.title,
       description: item.course.description,

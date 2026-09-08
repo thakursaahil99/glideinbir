@@ -27,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: siteUrl, changeFrequency: "daily", priority: 1 },
     { url: `${siteUrl}/paragliding`, changeFrequency: "daily", priority: 0.9 },
-    { url: `${siteUrl}/school`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${siteUrl}/courses`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteUrl}/hotels`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteUrl}/adventure`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteUrl}/travel`, changeFrequency: "weekly", priority: 0.7 },
@@ -35,7 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/contact`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${siteUrl}/faq`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${siteUrl}/blog`, changeFrequency: "weekly", priority: 0.5 },
-    { url: `${siteUrl}/school/instructors`, changeFrequency: "monthly", priority: 0.4 },
+    { url: `${siteUrl}/courses/instructors`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${siteUrl}/terms`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${siteUrl}/privacy`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${siteUrl}/cancellation-policy`, changeFrequency: "yearly", priority: 0.3 },
@@ -49,7 +49,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     })),
     ...courses.items.map((course) => ({
-      url: `${siteUrl}/school/${course.slug}`,
+      url: `${siteUrl}/courses/${course.slug}`,
       lastModified: course.updatedAt,
       changeFrequency: "weekly" as const,
       priority: 0.7,
@@ -73,7 +73,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     })),
     ...instructors.map((instructor) => ({
-      url: `${siteUrl}/school/instructors/${instructor.slug}`,
+      url: `${siteUrl}/courses/instructors/${instructor.slug}`,
       changeFrequency: "monthly" as const,
       priority: 0.3,
     })),

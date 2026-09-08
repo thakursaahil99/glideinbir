@@ -12,8 +12,8 @@ import { blogService } from "@/server/modules/blog/service";
 const STATIC_PATHS = [
   "/",
   "/paragliding",
-  "/school",
-  "/school/instructors",
+  "/courses",
+  "/courses/instructors",
   "/hotels",
   "/adventure",
   "/travel",
@@ -46,11 +46,11 @@ export const POST = withErrorHandling(async () => {
   const urls = [
     ...STATIC_PATHS,
     ...flights.items.map((p) => `/paragliding/${p.slug}`),
-    ...courses.items.map((c) => `/school/${c.slug}`),
+    ...courses.items.map((c) => `/courses/${c.slug}`),
     ...hotels.items.map((h) => `/hotels/${h.slug}`),
     ...adventures.items.map((i) => `/adventure/${i.slug}`),
     ...routes.items.map((r) => `/travel/${r.slug}`),
-    ...instructors.map((i) => `/school/instructors/${i.slug}`),
+    ...instructors.map((i) => `/courses/instructors/${i.slug}`),
     ...posts.map((p) => `/blog/${p.slug}`),
   ].map((path) => `${env.NEXT_PUBLIC_SITE_URL}${path}`);
 

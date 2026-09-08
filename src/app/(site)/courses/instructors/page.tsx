@@ -8,10 +8,10 @@ import { ModuleHero } from "@/components/site/module-hero";
 import { Award } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Our Instructors — Bir Billing Paragliding School",
+  title: "Our Instructors — Bir Billing Paragliding Courses",
   description:
-    "Meet the BPA-certified instructors teaching paragliding at Bir Billing's paragliding school — experience, certifications, and who you'll actually fly and train with.",
-  alternates: { canonical: "/school/instructors" },
+    "Meet the BPA-certified instructors teaching paragliding courses at Bir Billing — experience, certifications, and who you'll actually fly and train with.",
+  alternates: { canonical: "/courses/instructors" },
 };
 
 export default async function InstructorsListPage() {
@@ -36,7 +36,7 @@ export default async function InstructorsListPage() {
           <StaggerGroup className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {instructors.map((instructor) => (
               <StaggerItem key={instructor.id}>
-                <Link href={`/school/instructors/${instructor.slug}`} className="group">
+                <Link href={`/courses/instructors/${instructor.slug}`} className="group">
                   <Card className="card-glow-hover h-full p-6 text-center">
                     <div className="relative mx-auto h-28 w-28 overflow-hidden rounded-full bg-surface">
                       <Image

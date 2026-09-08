@@ -22,16 +22,16 @@ export async function generateMetadata({
   try {
     const course = await courseService.getBySlug(slug);
     return {
-      title: `${course.title} — Paragliding School, Bir Billing`,
-      description: `${course.title} at Bir Billing's paragliding school. ${course.description.slice(0, 140)}`,
-      alternates: { canonical: `/school/${slug}` },
+      title: `${course.title} — Paragliding Course, Bir Billing`,
+      description: `${course.title} — a paragliding course at Bir Billing. ${course.description.slice(0, 140)}`,
+      alternates: { canonical: `/courses/${slug}` },
     };
   } catch {
-    return { title: "Paragliding School" };
+    return { title: "Paragliding Course" };
   }
 }
 
-export default async function SchoolDetailPage({
+export default async function CourseDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -51,7 +51,7 @@ export default async function SchoolDetailPage({
   return (
     <DetailSplit
       images={galleryImages}
-      breadcrumbs={[{ label: "School", href: "/school" }, { label: course.title }]}
+      breadcrumbs={[{ label: "Courses", href: "/courses" }, { label: course.title }]}
       imageAlt={course.title}
       badge={<Badge tone="purple">{course.level}</Badge>}
       title={course.title}

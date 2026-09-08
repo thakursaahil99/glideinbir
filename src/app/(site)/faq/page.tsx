@@ -6,14 +6,14 @@ import { FaqAccordion } from "@/components/site/faq-accordion";
 export const metadata: Metadata = {
   title: "Frequently Asked Questions — Glideinbir",
   description:
-    "Answers to common questions about paragliding, the paragliding school, hotels, and booking with Glideinbir in Bir Billing.",
+    "Answers to common questions about paragliding, courses, hotels, and booking with Glideinbir in Bir Billing.",
   alternates: { canonical: "/faq" },
 };
 
 const CATEGORY_LABEL: Record<string, string> = {
   GENERAL: "General",
   PARAGLIDING: "Paragliding",
-  SCHOOL: "Paragliding School",
+  SCHOOL: "Paragliding Courses",
   HOTEL: "Hotels",
 };
 

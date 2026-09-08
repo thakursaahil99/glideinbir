@@ -10,7 +10,7 @@ const COLUMNS: { title: string; links: { href: string; label: string; theme?: Mo
     title: "Explore",
     links: [
       { href: "/paragliding", label: "Paragliding", theme: "paragliding" },
-      { href: "/school", label: "Paragliding School", theme: "school" },
+      { href: "/courses", label: "Paragliding Courses", theme: "school" },
       { href: "/hotels", label: "Hotels", theme: "hotels" },
       { href: "/adventure", label: "Adventure", theme: "adventure" },
       { href: "/travel", label: "Travel", theme: "travel" },
@@ -23,7 +23,7 @@ const COLUMNS: { title: string; links: { href: string; label: string; theme?: Mo
       { href: "/contact", label: "Contact" },
       { href: "/faq", label: "FAQs" },
       { href: "/blog", label: "Blog" },
-      { href: "/school/instructors", label: "Instructors" },
+      { href: "/courses/instructors", label: "Instructors" },
     ],
   },
   {

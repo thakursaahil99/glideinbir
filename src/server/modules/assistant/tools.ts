@@ -119,14 +119,14 @@ export const SITE_API_TOOL: ChatTool = {
   function: {
     name: "site_api",
     description:
-      "Look up live public Glideinbir data: paragliding packages, school courses & instructors, hotels & rooms, adventure items, travel routes, and their prices / schedules / availability. GET only. Use this whenever the user asks what is offered or how much something costs.",
+      "Look up live public Glideinbir data: paragliding packages, paragliding courses & instructors, hotels & rooms, adventure items, travel routes, and their prices / schedules / availability. GET only. Use this whenever the user asks what is offered or how much something costs.",
     parameters: {
       type: "object",
       properties: {
         path: {
           type: "string",
           description:
-            'A public API path, e.g. "/api/paragliding/packages", "/api/hotels", "/api/school/courses", "/api/adventure/items", "/api/travel/routes". A "/<slug>" detail path or a "?" query string is allowed.',
+            'A public API path, e.g. "/api/paragliding/packages", "/api/hotels", "/api/courses", "/api/instructors", "/api/adventure/items", "/api/travel/routes". A "/<slug>" detail path or a "?" query string is allowed.',
         },
       },
       required: ["path"],
@@ -135,7 +135,7 @@ export const SITE_API_TOOL: ChatTool = {
   },
 };
 
-const SITE_PATH_RE = /^\/api\/(paragliding|school|hotels|adventure|travel)\/[A-Za-z0-9\-_/]*$/;
+const SITE_PATH_RE = /^\/api\/(paragliding|courses|instructors|hotels|adventure|travel)(\/[A-Za-z0-9\-_/]*)?$/;
 
 export async function executeSiteApi(args: {
   raw: unknown;
@@ -148,7 +148,7 @@ export async function executeSiteApi(args: {
   if (!clean.startsWith("/") || clean.includes("..") || !SITE_PATH_RE.test(clean)) {
     return {
       result: JSON.stringify({
-        error: `"${path}" is not an allowed public path. Use /api/paragliding/packages, /api/hotels, /api/school/courses, /api/adventure/items or /api/travel/routes (optionally + "/<slug>").`,
+        error: `"${path}" is not an allowed public path. Use /api/paragliding/packages, /api/hotels, /api/courses, /api/instructors, /api/adventure/items or /api/travel/routes (optionally + "/<slug>").`,
       }),
       action: null,
     };

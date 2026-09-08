@@ -60,13 +60,13 @@ export default function AboutPage() {
               <p className="mt-4 text-muted">
                 Bir Billing is one of the best paragliding sites in the world, but booking a trip
                 here has always meant juggling half a dozen separate contacts — a pilot for the
-                flight, a school for the course, a guesthouse for the stay, someone else again for
+                flight, an instructor for a course, a guesthouse for the stay, someone else again for
                 camping or a trek, and a bus or taxi operator on top of all of it.
               </p>
               <p className="mt-4 text-muted">
                 Glideinbir was founded by <strong className="text-ink">Sahil Thakur</strong> to fix
                 that: one platform where you can see real availability, real pricing, and book
-                everything — paragliding, the school, hotels, adventures like camping and trekking,
+                everything — paragliding, courses, hotels, adventures like camping and trekking,
                 and Volvo bus or taxi transport — in a single checkout.
               </p>
               <p className="mt-4 text-muted">

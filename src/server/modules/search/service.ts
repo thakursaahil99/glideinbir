@@ -56,9 +56,9 @@ export const searchService = {
       })),
       ...courses.map((c) => ({
         type: "SCHOOL" as const,
-        typeLabel: "School",
+        typeLabel: "Courses",
         title: c.title,
-        href: `/school/${c.slug}`,
+        href: `/courses/${c.slug}`,
         image: c.media[0]?.url ?? "/placeholder.svg",
         meta: `${c.durationDays} days`,
       })),

@@ -11,13 +11,13 @@ import { RatingBadge } from "@/components/site/rating-badge";
 import { reviewService } from "@/server/modules/review/service";
 
 export const metadata: Metadata = {
-  title: "Paragliding School in Bir Billing — P1 to P4 Certification",
+  title: "Paragliding Courses in Bir Billing — P1 to P4 Certification",
   description:
-    "Learn to fly at Bir Billing's paragliding school — P1 to P4 certification courses with experienced, BPA-certified instructors on real Himalayan terrain.",
-  alternates: { canonical: "/school" },
+    "Learn to fly with a paragliding course at Bir Billing — P1 to P4 certification with experienced, BPA-certified instructors on real Himalayan terrain.",
+  alternates: { canonical: "/courses" },
 };
 
-export default async function SchoolListPage() {
+export default async function CoursesListPage() {
   const { items } = await courseService.listPublic({ page: 1, pageSize: 50 });
   const ratings = await reviewService.getRatingSummaries(
     "SCHOOL",
@@ -30,7 +30,7 @@ export default async function SchoolListPage() {
         image="https://images.unsplash.com/photo-1506976697767-6c29c943ecbf?q=80&w=1920&h=1080&auto=format&fit=crop"
         imageAlt="A paraglider soaring over a forested mountain ridge at golden hour"
         eyebrow="Learn to fly"
-        title="Paragliding School"
+        title="Paragliding Courses"
         subtitle="From your first solo flight to full certification — learn from experienced, BPA-certified instructors on real Bir Billing terrain."
         highlights={["P1 to P4 certification", "8-14 day courses", "Small batch sizes"]}
         effect="dust"
@@ -38,7 +38,7 @@ export default async function SchoolListPage() {
 
       <Container className="py-16">
         <div className="flex justify-end">
-          <Link href="/school/instructors" className="text-sm font-medium text-brand hover:underline">
+          <Link href="/courses/instructors" className="text-sm font-medium text-brand hover:underline">
             Meet our instructors →
           </Link>
         </div>
@@ -49,7 +49,7 @@ export default async function SchoolListPage() {
           <StaggerGroup className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {items.map((course) => (
               <StaggerItem key={course.id}>
-                <Link href={`/school/${course.slug}`} className="group">
+                <Link href={`/courses/${course.slug}`} className="group">
                   <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
                     <div className="relative h-44 w-full">
                       <Image

@@ -11,7 +11,7 @@ import { MODULE_THEME, type ModuleKey } from "@/lib/module-theme";
 
 const NAV_LINKS: { href: string; label: string; theme?: ModuleKey }[] = [
   { href: "/paragliding", label: "Paragliding", theme: "paragliding" },
-  { href: "/school", label: "School", theme: "school" },
+  { href: "/courses", label: "Courses", theme: "school" },
   { href: "/hotels", label: "Hotels", theme: "hotels" },
   { href: "/adventure", label: "Adventure", theme: "adventure" },
   { href: "/travel", label: "Travel", theme: "travel" },

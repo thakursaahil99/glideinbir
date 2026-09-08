@@ -24,7 +24,7 @@ export default async function Image() {
           Glide<span style={{ color: "#ff6a00" }}>in</span>bir
         </div>
         <div style={{ display: "flex", marginTop: 24, fontSize: 34, color: "rgba(255,255,255,0.75)" }}>
-          Paragliding · School · Hotels · Adventure · Travel
+          Paragliding · Courses · Hotels · Adventure · Travel
         </div>
         <div style={{ display: "flex", marginTop: 16, fontSize: 26, color: "#ff6a00" }}>
           Bir Billing, Himachal Pradesh

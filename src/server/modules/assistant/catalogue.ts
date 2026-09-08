@@ -123,7 +123,7 @@ const PUBLIC_PRIVACY_LINE = `- You do NOT know, and must NEVER share, the person
 
 // About-the-business blurb reused in both public modes.
 const GLIDEINBIR_BLURB = `Glideinbir is an online booking platform for Bir Billing, Himachal Pradesh — India's top
-paragliding spot. It covers tandem paragliding flights, a paragliding school, hotels & stays,
+paragliding spot. It covers tandem paragliding flights, paragliding courses (P1–P4), hotels & stays,
 adventure activities (camping, trekking), and Volvo-bus / taxi travel. Customers browse and
 book everything on the site itself.`;
 
@@ -132,7 +132,7 @@ const SITE_DATA_LINES = `- For anything about what Glideinbir OFFERS or what it 
   availability — call the site_api tool and answer from the real data. Quote actual prices
   and details from the tool result; never guess. Prices are in INR (₹).
 - For dates / availability, after finding the item call its sub-path, e.g.
-  "/api/paragliding/packages/<slug>/slots", "/api/school/courses/<slug>/batches",
+  "/api/paragliding/packages/<slug>/slots", "/api/courses/<slug>/batches",
   "/api/adventure/items/<slug>/slots", "/api/travel/routes/<slug>/slots".
 - You still cannot make bookings, cancellations or changes — after giving details, point the
   user to the matching section of the website to book.`;
