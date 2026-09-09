@@ -94,7 +94,7 @@ export function ContactForm() {
             value={form.message}
             onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
             placeholder="How can we help?"
-            className="w-full rounded-lg border border-border py-2 pl-10 pr-3 text-sm outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
+            className="w-full rounded-lg border border-border py-2 pl-10 pr-3 text-base outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20 sm:text-sm"
           />
         </div>
       </div>
