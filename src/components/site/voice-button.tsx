@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { clsx } from "clsx";
-import { Mic, PhoneOff, Loader2, X } from "lucide-react";
+import { Mic, PhoneOff, Loader2, X, Ear } from "lucide-react";
+
+// Spoken persona name for the voice call only — text chat stays "Sahu Bhai".
+// Also the wake word: with "Always listen" on, saying this starts the call.
+const VOICE_NAME = "Friday";
 
 // One "Talk" button with two engines:
 //   • Vapi  — used when NEXT_PUBLIC_VAPI_PUBLIC_KEY + NEXT_PUBLIC_VAPI_ASSISTANT_ID
@@ -48,7 +52,7 @@ function TalkButton({
     <button
       type="button"
       onClick={onClick}
-      aria-label={busy ? "End voice call" : "Talk to Sahu Bhai"}
+      aria-label={busy ? "End voice call" : `Talk to ${VOICE_NAME}`}
       className={clsx(
         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
         busy ? "bg-red-600 text-white hover:bg-red-700" : "text-muted hover:bg-black/5 hover:text-ink",
@@ -201,7 +205,7 @@ function VapiVoice({ className }: { className?: string }) {
             phase === "connecting"
               ? "Connecting…"
               : speaking
-                ? "Sahu Bhai is speaking…"
+                ? `${VOICE_NAME} is speaking…`
                 : "Listening — go ahead"
           }
           pulsing={speaking}
@@ -257,12 +261,24 @@ function BrowserVoice({ endpoint, className }: { endpoint: string; className?: s
   const [phase, setPhase] = useState<BrowserPhase>("idle");
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [wakeOn, setWakeOn] = useState(false);
 
   const recRef = useRef<SpeechRecognitionLike | null>(null);
   const activeRef = useRef(false); // the user wants the conversation to continue
   const historyRef = useRef<{ role: "user" | "assistant"; content: string }[]>([]);
   const endpointRef = useRef(endpoint);
-  endpointRef.current = endpoint;
+  useEffect(() => {
+    endpointRef.current = endpoint;
+  }, [endpoint]);
+
+  // "Always listen" — a separate, lightweight recognizer that only watches
+  // for the wake word, so it can hand off to the real call without a click.
+  const wakeRecRef = useRef<SpeechRecognitionLike | null>(null);
+  const wakeOnRef = useRef(false);
+  useEffect(() => {
+    wakeOnRef.current = wakeOn;
+  }, [wakeOn]);
+  const mountedRef = useRef(true);
 
   // Plain hoisted functions so listen() ↔ ask() can call each other; all
   // mutable state lives in refs, so a stale closure is never an issue.
@@ -281,6 +297,69 @@ function BrowserVoice({ endpoint, className }: { endpoint: string; className?: s
     }
     setPhase("idle");
     setTranscript("");
+    // Call's over — go back to watching for the wake word, if it's on.
+    if (mountedRef.current && wakeOnRef.current) startWakeListening();
+  }
+
+  function stopWakeListening() {
+    try {
+      wakeRecRef.current?.abort();
+    } catch {
+      /* noop */
+    }
+    wakeRecRef.current = null;
+  }
+
+  function startWakeListening() {
+    if (activeRef.current || wakeRecRef.current) return; // a call's already live, or already watching
+    const Ctor = getRecognitionCtor();
+    if (!Ctor) return;
+    const rec = new Ctor();
+    wakeRecRef.current = rec;
+    rec.lang = "en-IN";
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.onresult = (e) => {
+      for (let i = 0; i < e.results.length; i++) {
+        const chunk = (e.results[i]?.[0]?.transcript ?? "").toLowerCase();
+        if (chunk.includes(VOICE_NAME.toLowerCase())) {
+          stopWakeListening();
+          start();
+          return;
+        }
+      }
+    };
+    rec.onerror = (ev) => {
+      if (ev.error === "not-allowed") {
+        setWakeOn(false);
+        setError("Microphone permission is blocked. Allow it in your browser and try again.");
+      }
+      // "no-speech" / "aborted" — onend below restarts it.
+    };
+    rec.onend = () => {
+      wakeRecRef.current = null;
+      if (mountedRef.current && wakeOnRef.current && !activeRef.current) startWakeListening();
+    };
+    try {
+      rec.start();
+    } catch {
+      /* start() throws if called twice in a row — ignore */
+    }
+  }
+
+  function toggleWake() {
+    if (wakeOn) {
+      setWakeOn(false);
+      stopWakeListening();
+      return;
+    }
+    if (!getRecognitionCtor()) {
+      setError("Voice isn't supported in this browser. Try Chrome, Edge, or the chat box.");
+      return;
+    }
+    setError(null);
+    setWakeOn(true);
+    if (!activeRef.current) startWakeListening();
   }
 
   function speak(text: string, then: () => void) {
@@ -362,6 +441,7 @@ function BrowserVoice({ endpoint, className }: { endpoint: string; className?: s
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           lang: hasDevanagari(text) ? "hi" : "en",
+          voice: true,
           messages: historyRef.current.slice(-8),
         }),
       });
@@ -425,11 +505,17 @@ function BrowserVoice({ endpoint, className }: { endpoint: string; className?: s
 
   // Stop audio + recognition if the component unmounts mid-call.
   useEffect(() => {
-    return () => stopEverything();
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      stopEverything();
+      stopWakeListening();
+    };
   }, []);
 
   function start() {
     setError(null);
+    stopWakeListening();
     if (!getRecognitionCtor()) {
       setError("Voice isn't supported in this browser. Try Chrome, Edge, or the chat box.");
       return;
@@ -456,13 +542,30 @@ function BrowserVoice({ endpoint, className }: { endpoint: string; className?: s
         ? `“${transcript}”`
         : "Listening — go ahead"
       : phase === "thinking"
-        ? "Sahu Bhai is thinking…"
+        ? `${VOICE_NAME} is thinking…`
         : phase === "speaking"
-          ? "Sahu Bhai is speaking…"
+          ? `${VOICE_NAME} is speaking…`
           : "";
 
   return (
     <>
+      <button
+        type="button"
+        onClick={toggleWake}
+        aria-pressed={wakeOn}
+        disabled={busy}
+        title={
+          wakeOn
+            ? `Wake word on — say "${VOICE_NAME}" to start talking`
+            : `Say "${VOICE_NAME}" to start talking, hands-free`
+        }
+        className={clsx(
+          "inline-flex items-center justify-center rounded-full p-1.5 transition-colors disabled:opacity-40",
+          wakeOn ? "bg-brand/15 text-brand" : "text-muted hover:bg-black/5 hover:text-ink",
+        )}
+      >
+        <Ear className="h-4 w-4" />
+      </button>
       <TalkButton
         busy={busy}
         onClick={busy ? stopEverything : start}

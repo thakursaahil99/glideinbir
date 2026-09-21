@@ -22,6 +22,7 @@ const bodySchema = z.object({
   mode: z.enum(["readonly", "act"]).default("readonly"),
   lang: z.enum(["en", "hi"]).default("en"),
   newChat: z.boolean().optional(),
+  voice: z.boolean().optional(),
   messages: z
     .array(
       z.object({
@@ -47,7 +48,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     throw new RateLimitedError("Sahu Bhai needs a breather — try again in a minute.");
   }
 
-  const { mode, lang, newChat, messages } = bodySchema.parse(await request.json());
+  const { mode, lang, newChat, voice, messages } = bodySchema.parse(await request.json());
 
   // Drop empty turns, cap each turn's length, keep the most recent slice.
   const history = messages
@@ -79,6 +80,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
         // Only SUPER_ADMIN can drive admin changes through the AI; every
         // other role gets a chat-only assistant.
         tools: user.role === "SUPER_ADMIN" ? "admin" : "none",
+        voice,
         lang,
         mode,
         origin,

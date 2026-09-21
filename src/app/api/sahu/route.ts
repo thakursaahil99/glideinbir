@@ -23,6 +23,7 @@ const MAX_HISTORY = 6;
 const bodySchema = z.object({
   lang: z.enum(["en", "hi"]).default("en"),
   newChat: z.boolean().optional(),
+  voice: z.boolean().optional(),
   messages: z
     .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string() }))
     .min(1)
@@ -38,7 +39,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     throw new RateLimitedError("Too many requests — please wait a moment and try again.");
   }
 
-  const { messages, lang, newChat } = bodySchema.parse(await request.json());
+  const { messages, lang, newChat, voice } = bodySchema.parse(await request.json());
   const user = await getCurrentUser();
   const session = await getOrCreateSession({
     user: user ? { id: user.id, email: user.email } : null,
@@ -81,6 +82,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
         history,
         tools: unlocked ? "site" : "none",
         publicFull: unlocked,
+        voice,
         lang,
         mode: "readonly",
         origin,

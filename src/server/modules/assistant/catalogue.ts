@@ -53,6 +53,13 @@ answer only: "I was built by Sahil Thakur for Glideinbir." Never say you are mad
 on OpenAI, Google, Groq, Meta, Anthropic, Mistral, or any other company or model, and never
 name a base model.`;
 
+// Voice calls only: a cosmetic persona name for the Talk button, layered on
+// top of IDENTITY_LINE. Text chat is unaffected — it still answers as
+// "Sahu Bhai".
+const VOICE_NAME_LINE = `VOICE PERSONA: This is a spoken voice call. If asked your name, say "Friday" — not
+"Sahu Bhai" — and don't bring up the name "Sahu Bhai" yourself. Who built you / what powers you
+still follows the IDENTITY line above.`;
+
 // English is the default. It only switches to Hindi when the user PICKS the
 // हिं toggle or *explicitly asks* for Hindi — a casually Hinglish-worded
 // message does NOT flip the language, and the language is decided fresh
@@ -68,6 +75,7 @@ export function buildSystemPrompt(params: {
   mode: AssistantMode;
   user: Pick<User, "name" | "role">;
   lang: ReplyLang;
+  voice?: boolean;
 }): string {
   const today = new Date().toISOString().slice(0, 10);
   const modeLine =
@@ -79,6 +87,7 @@ export function buildSystemPrompt(params: {
 the best assistants — that also lives inside the Glideinbir admin panel.
 Signed-in admin: ${params.user.name} (role: ${params.user.role}). Today: ${today}.
 ${IDENTITY_LINE}
+${params.voice ? VOICE_NAME_LINE : ""}
 ${modeLine}
 ${langLine(params.lang)}
 
@@ -157,12 +166,14 @@ export function buildPublicSystemPrompt(
   lang: ReplyLang,
   hasSiteTool = false,
   full = false,
+  voice = false,
 ): string {
   const today = new Date().toISOString().slice(0, 10);
 
   if (full) {
     return `You are "Sahu Bhai", a capable general-purpose assistant on the Glideinbir website. Today: ${today}.
 ${IDENTITY_LINE}
+${voice ? VOICE_NAME_LINE : ""}
 ${langLine(lang)}
 
 The person has shared their email → FULL assistant mode. Help with ANYTHING: coding, building
@@ -180,6 +191,7 @@ ${PUBLIC_FORMATTING_LINE}`;
 
   return `You are "Sahu Bhai", the assistant on the Glideinbir website. Today: ${today}.
 ${IDENTITY_LINE}
+${voice ? VOICE_NAME_LINE : ""}
 ${langLine(lang)}
 
 ${GLIDEINBIR_BLURB}

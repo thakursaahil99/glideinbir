@@ -36,6 +36,9 @@ export async function runSahuBhai(params: {
   // Public bot only: the visitor has shared an email (or is a logged-in
   // customer) → run the full general-purpose assistant prompt.
   publicFull?: boolean;
+  // Set by the Talk (voice) button — layers the "Friday" voice persona on
+  // top of the normal system prompt.
+  voice?: boolean;
   // When set, reply text is streamed delta-by-delta as it's generated.
   onText?: (delta: string) => void;
   // Notified when a tool call completes (for live action chips).
@@ -48,8 +51,18 @@ export async function runSahuBhai(params: {
 
   const systemPrompt =
     params.tools === "admin" && params.user
-      ? buildSystemPrompt({ mode: params.mode, user: params.user, lang: params.lang })
-      : buildPublicSystemPrompt(params.lang, params.tools === "site", params.publicFull ?? false);
+      ? buildSystemPrompt({
+          mode: params.mode,
+          user: params.user,
+          lang: params.lang,
+          voice: params.voice,
+        })
+      : buildPublicSystemPrompt(
+          params.lang,
+          params.tools === "site",
+          params.publicFull ?? false,
+          params.voice ?? false,
+        );
 
   const messages: ChatMessage[] = [
     { role: "system", content: systemPrompt },
