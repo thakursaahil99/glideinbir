@@ -255,6 +255,29 @@ function forSpeech(md: string): string {
 
 const hasDevanagari = (s: string) => /[ऀ-ॿ]/.test(s);
 
+// The Web Speech API doesn't expose a gender field, so this is a name-sniff
+// heuristic over common female voice names shipped by Chrome/Edge/Android/
+// iOS — good enough to make "Friday" sound like a woman on most devices
+// without needing a paid voice provider.
+const FEMALE_VOICE_HINTS = [
+  "female", "woman", "zira", "samantha", "victoria", "susan", "karen", "moira",
+  "tessa", "fiona", "kate", "serena", "salli", "joanna", "ivy", "kendra",
+  "kimberly", "salma", "aditi", "veena", "lekha", "heera", "swara", "neerja",
+];
+
+function pickFemaleVoice(
+  voices: SpeechSynthesisVoice[],
+  lang: string,
+): SpeechSynthesisVoice | undefined {
+  const langMatches = voices.filter(
+    (v) => v.lang === lang || v.lang.startsWith(lang.split("-")[0]!),
+  );
+  const female = langMatches.find((v) =>
+    FEMALE_VOICE_HINTS.some((hint) => v.name.toLowerCase().includes(hint)),
+  );
+  return female ?? langMatches[0];
+}
+
 type BrowserPhase = "idle" | "listening" | "thinking" | "speaking";
 
 function BrowserVoice({ endpoint, className }: { endpoint: string; className?: string }) {
@@ -358,6 +381,7 @@ function BrowserVoice({ endpoint, className }: { endpoint: string; className?: s
       return;
     }
     setError(null);
+    primeSpeech(); // this tap is the real user gesture — a later wake-word start() isn't
     setWakeOn(true);
     if (!activeRef.current) startWakeListening();
   }
@@ -371,10 +395,7 @@ function BrowserVoice({ endpoint, className }: { endpoint: string; className?: s
     const utter = new SpeechSynthesisUtterance(text);
     const lang = hasDevanagari(text) ? "hi-IN" : "en-IN";
     utter.lang = lang;
-    const voices = synth.getVoices();
-    const match =
-      voices.find((v) => v.lang === lang) ??
-      voices.find((v) => v.lang.startsWith(lang.split("-")[0]!));
+    const match = pickFemaleVoice(synth.getVoices(), lang);
     if (match) utter.voice = match;
     utter.onend = then;
     utter.onerror = then;
@@ -513,16 +534,12 @@ function BrowserVoice({ endpoint, className }: { endpoint: string; className?: s
     };
   }, []);
 
-  function start() {
-    setError(null);
-    stopWakeListening();
-    if (!getRecognitionCtor()) {
-      setError("Voice isn't supported in this browser. Try Chrome, Edge, or the chat box.");
-      return;
-    }
+  // iOS Safari only allows speechSynthesis.speak() if it was first touched
+  // inside a real user gesture (a tap) — a wake-word start() runs from a
+  // SpeechRecognition callback, not a tap, so priming has to happen here too,
+  // at the moment "Always listen" is switched on by an actual tap.
+  function primeSpeech() {
     try {
-      // Prime TTS inside the click gesture — iOS Safari won't speak later
-      // (outside a gesture) unless speechSynthesis was touched here first.
       const s = window.speechSynthesis;
       s?.getVoices();
       s?.speak(new SpeechSynthesisUtterance(""));
@@ -530,6 +547,16 @@ function BrowserVoice({ endpoint, className }: { endpoint: string; className?: s
     } catch {
       /* noop */
     }
+  }
+
+  function start() {
+    setError(null);
+    stopWakeListening();
+    if (!getRecognitionCtor()) {
+      setError("Voice isn't supported in this browser. Try Chrome, Edge, or the chat box.");
+      return;
+    }
+    primeSpeech();
     historyRef.current = [];
     activeRef.current = true;
     listen();
