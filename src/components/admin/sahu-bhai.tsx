@@ -6,6 +6,7 @@ import { X, Maximize2 } from "lucide-react";
 import { SahuBhaiChat } from "@/components/admin/sahu-bhai-chat";
 import { SahuMark, SahuBadge } from "@/components/sahu-mark";
 import { PwaInstallButton } from "@/components/pwa-install-button";
+import { VoiceButton } from "@/components/site/voice-button";
 
 // Floating launcher + slide-up panel. The chat itself lives in
 // <SahuBhaiChat> so the installable full-screen page at /sahu can reuse it.
@@ -38,6 +39,7 @@ export function SahuBhai() {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <VoiceButton endpoint="/api/admin/assistant" />
           <Link
             href="/sahu"
             title="Open full screen"
