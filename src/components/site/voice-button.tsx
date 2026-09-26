@@ -8,6 +8,11 @@ import { Mic, PhoneOff, Loader2, X, Ear } from "lucide-react";
 // Also the wake word: with "Always listen" on, saying this starts the call.
 const VOICE_NAME = "Friday";
 
+// Spoken once, immediately, at the start of every call — hardcoded so it's
+// instant (no LLM round-trip) and a predictable ~10-15s at a natural pace.
+const VOICE_INTRO =
+  "Hi, I'm Friday — Sahu Bhai's voice assistant for Glideinbir. I can help with paragliding packages, Bir Billing trip planning, courses, hotels, and travel. What would you like to know?";
+
 // One "Talk" button with two engines:
 //   • Vapi  — used when NEXT_PUBLIC_VAPI_PUBLIC_KEY + NEXT_PUBLIC_VAPI_ASSISTANT_ID
 //             are set (natural voice, paid after trial credit).
@@ -559,7 +564,9 @@ function BrowserVoice({ endpoint, className }: { endpoint: string; className?: s
     primeSpeech();
     historyRef.current = [];
     activeRef.current = true;
-    listen();
+    speak(VOICE_INTRO, () => {
+      if (activeRef.current) listen();
+    });
   }
 
   const busy = phase !== "idle";
