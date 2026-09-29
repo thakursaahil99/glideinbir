@@ -9,7 +9,7 @@ export function VideoSection({ videoId }: { videoId?: string }) {
   if (!videoId) return null;
 
   return (
-    <div className="border-y border-border bg-ink text-white">
+    <div className="border-y border-border bg-night text-white">
       <Container className="py-16">
         <SectionHeader
           eyebrow="See it first"

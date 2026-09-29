@@ -6,6 +6,7 @@ import { Card, Container, Badge } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { Award, Mail, Phone } from "lucide-react";
+import { stockPhoto } from "@/lib/stock-photos";
 
 export async function generateMetadata({
   params,
@@ -42,7 +43,7 @@ export default async function InstructorDetailPage({
       <div className="grid gap-10 md:grid-cols-[1fr_2fr]">
         <div>
           <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-surface">
-            <Image src={instructor.photoUrl ?? "/placeholder.svg"} alt={instructor.name} fill className="object-cover" />
+            <Image src={instructor.photoUrl ?? stockPhoto("instructor", instructor.name)} alt={instructor.name} fill className="object-cover" />
           </div>
           <div className="mt-4 space-y-2">
             {instructor.contactEmail && (

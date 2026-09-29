@@ -1,8 +1,12 @@
 import Link from "next/link";
-import { Phone, Mail, MapPin } from "lucide-react";
+import { Phone, Mail, MapPin, ArrowRight } from "lucide-react";
 import { clsx } from "clsx";
 import { Container } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/button";
+import { AuroraBackground } from "@/components/effects/aurora-background";
+import { NoiseOverlay } from "@/components/effects/noise-overlay";
+import { MagneticButton } from "@/components/effects/magnetic-button";
+import { ScrollReveal } from "@/components/effects/scroll-reveal";
 import { MODULE_THEME, type ModuleKey } from "@/lib/module-theme";
 
 const COLUMNS: { title: string; links: { href: string; label: string; theme?: ModuleKey }[] }[] = [
@@ -40,18 +44,41 @@ const COLUMNS: { title: string; links: { href: string; label: string; theme?: Mo
 export function SiteFooter() {
   return (
     <footer className="border-t border-border">
-      <div className="bg-ink text-white">
-        <Container className="flex flex-col items-center justify-between gap-6 py-12 text-center md:flex-row md:text-left">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Ready to fly?</h2>
-            <p className="mt-1 text-white/70">
+      <div className="relative overflow-hidden bg-night text-white">
+        <AuroraBackground className="opacity-40" />
+        <NoiseOverlay opacity={0.05} />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+            maskImage: "radial-gradient(ellipse at center, #000 30%, transparent 75%)",
+            WebkitMaskImage: "radial-gradient(ellipse at center, #000 30%, transparent 75%)",
+          }}
+        />
+        <Container className="relative z-10 flex flex-col items-center justify-between gap-8 py-20 text-center md:flex-row md:text-left">
+          <ScrollReveal>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/50">
+              Your seat in the sky is waiting
+            </p>
+            <h2 className="mt-3 text-4xl font-bold tracking-tight md:text-6xl">
+              Ready to <span className="gradient-text">fly?</span>
+            </h2>
+            <p className="mt-3 max-w-lg text-white/70">
               Book your Bir Billing trip — flights, courses, stays, adventures, and travel, all
               in one place.
             </p>
-          </div>
-          <LinkButton href="/paragliding" size="lg">
-            Start planning
-          </LinkButton>
+          </ScrollReveal>
+          <ScrollReveal delay={0.15}>
+            <MagneticButton>
+              <LinkButton href="/paragliding" size="lg" className="px-8 py-4 text-lg">
+                Start planning
+                <ArrowRight className="h-5 w-5" />
+              </LinkButton>
+            </MagneticButton>
+          </ScrollReveal>
         </Container>
       </div>
 

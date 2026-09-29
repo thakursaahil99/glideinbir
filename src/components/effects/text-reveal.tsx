@@ -10,11 +10,14 @@ export function TextReveal({
   className,
   delay = 0,
   as: Tag = "span",
+  highlightFrom,
 }: {
   text: string;
   className?: string;
   delay?: number;
   as?: "span" | "h1" | "h2" | "h3";
+  /** Word index from which the rest of the line gets the animated brand gradient. */
+  highlightFrom?: number;
 }) {
   const words = text.split(" ");
 
@@ -23,7 +26,9 @@ export function TextReveal({
       {words.map((word, i) => (
         <span key={i} className="inline-block overflow-hidden pb-1">
           <motion.span
-            className="inline-block"
+            className={
+              highlightFrom !== undefined && i >= highlightFrom ? "gradient-text inline-block" : "inline-block"
+            }
             initial={{ y: "110%" }}
             whileInView={{ y: 0 }}
             viewport={{ once: true }}

@@ -9,6 +9,7 @@ import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
 import { ModuleInfo } from "@/components/site/module-info";
 import { CardArrow } from "@/components/site/card-arrow";
+import { stockPhoto } from "@/lib/stock-photos";
 
 export const metadata: Metadata = {
   title: "Travel to Bir Billing — Volvo Bus & Taxi from Delhi",
@@ -78,7 +79,7 @@ export default async function TravelListPage({
                   <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
                     <div className="relative h-44 w-full">
                       <Image
-                        src={route.media[0]?.url ?? "/placeholder.svg"}
+                        src={route.media[0]?.url ?? stockPhoto("travel", route.title)}
                         alt={route.title}
                         fill
                         className="object-cover"

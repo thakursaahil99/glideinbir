@@ -20,6 +20,10 @@ import { TiltCard } from "@/components/effects/tilt-card";
 import { GradientOrb } from "@/components/effects/gradient-orb";
 import { RubiksCubeLazy } from "@/components/effects/rubiks-cube-lazy";
 import { BrandColorPicker } from "@/components/effects/brand-color-picker";
+import { HeroParallax } from "@/components/effects/hero-parallax";
+import { CountUp } from "@/components/effects/count-up";
+import { Marquee } from "@/components/effects/marquee";
+import { SpotlightCard } from "@/components/effects/spotlight-card";
 import {
   Wind,
   GraduationCap,
@@ -34,12 +38,15 @@ import {
   Lock,
   RefreshCw,
   MapPin,
+  ArrowRight,
+  Sparkle,
 } from "lucide-react";
 import { SectionHeader } from "@/components/site/section-header";
 import { CardArrow } from "@/components/site/card-arrow";
 import { HowItWorks, BirBillingTeaser, PlanningGuides } from "@/components/site/home-sections";
 import { VideoSection } from "@/components/site/video-section";
 import { HeroMedia } from "@/components/site/hero-media";
+import { stockPhoto } from "@/lib/stock-photos";
 
 const MODULES = [
   { icon: Wind, label: "Paragliding" },
@@ -53,6 +60,17 @@ const STATS = [
   { value: "10,000+", label: "Flights flown" },
   { value: "500+", label: "Pilots certified" },
   { value: "4.8/5", label: "Average rating" },
+];
+
+const TICKER = [
+  "Tandem flights",
+  "P1 & P2 courses",
+  "2,400 m takeoff",
+  "BPA-certified pilots",
+  "200+ flyable days",
+  "Stays near the launch",
+  "Camping & treks",
+  "Volvo & taxi to Bir",
 ];
 
 const WHY_US = [
@@ -107,49 +125,91 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="relative flex min-h-[90vh] items-center overflow-hidden">
-        <HeroMedia alt="Misty forested mountain ridge above Bir Billing" />
-        {/* Darken the left, where the headline sits, and the bottom for the
-            stats row — keep the ridge on the right readable. */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-        <ParticleField variant="dust" density={50} />
-        <SpotlightCursor color="255,255,255" />
+      <HeroParallax
+        className="flex min-h-[92vh] items-center"
+        media={<HeroMedia alt="Misty forested mountain ridge above Bir Billing" />}
+        overlay={
+          <>
+            {/* Darken the left, where the headline sits, and the bottom for the
+                stats row — keep the ridge on the right readable. */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/30" />
+            {/* Brand wash — the hero takes on whatever colour the site is tuned to. */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-brand/45 via-brand/10 to-transparent mix-blend-soft-light" />
+            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-brand/25 to-transparent" />
+            <ParticleField variant="dust" density={50} />
+            <SpotlightCursor />
 
-        <div className="absolute right-6 top-24 z-10 hidden flex-col gap-3 md:flex lg:right-16">
-          <div className="glass flex items-center gap-2 rounded-2xl px-4 py-3 text-white">
-            <ShieldCheck className="h-5 w-5 text-brand" />
-            <div className="leading-tight">
-              <p className="text-sm font-semibold">BPA-certified pilots</p>
-              <p className="text-xs text-white/60">Every flight, every time</p>
+            <div className="absolute right-6 top-24 z-20 hidden flex-col gap-3 md:flex lg:right-16">
+              <ScrollReveal direction="left" delay={0.6}>
+                <div className="glass float-y flex items-center gap-3 rounded-2xl px-4 py-3 text-white">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/20">
+                    <ShieldCheck className="h-5 w-5 text-brand" />
+                  </span>
+                  <div className="leading-tight">
+                    <p className="text-sm font-semibold">BPA-certified pilots</p>
+                    <p className="text-xs text-white/60">Every flight, every time</p>
+                  </div>
+                </div>
+              </ScrollReveal>
+              <ScrollReveal direction="left" delay={0.8}>
+                <div
+                  className="glass float-y ml-10 flex items-center gap-3 rounded-2xl px-4 py-3 text-white"
+                  style={{ animationDelay: "-2.5s" }}
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/20">
+                    <Plane className="h-5 w-5 text-brand" />
+                  </span>
+                  <div className="leading-tight">
+                    <p className="text-sm font-semibold">10,000+ flights flown</p>
+                    <p className="text-xs text-white/60">Since day one</p>
+                  </div>
+                </div>
+              </ScrollReveal>
             </div>
-          </div>
-          <div className="glass ml-8 flex items-center gap-2 rounded-2xl px-4 py-3 text-white">
-            <Plane className="h-5 w-5 text-brand" />
-            <div className="leading-tight">
-              <p className="text-sm font-semibold">10,000+ flights flown</p>
-              <p className="text-xs text-white/60">Since day one</p>
-            </div>
-          </div>
-        </div>
 
-        <Container className="relative z-10 py-24 text-white">
-          <p className="text-sm font-semibold uppercase tracking-widest text-white/70">
-            Bir Billing, Himachal Pradesh
-          </p>
+            <a
+              href="#explore"
+              aria-label="Scroll to explore"
+              className="absolute bottom-8 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-2 text-white/70 transition-colors hover:text-white md:flex"
+            >
+              <span className="flex h-10 w-6 justify-center rounded-full border-2 border-current pt-2">
+                <span className="scroll-dot h-2 w-1 rounded-full bg-current" />
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.3em]">Scroll</span>
+            </a>
+          </>
+        }
+      >
+        <Container className="py-24 text-white">
+          <ScrollReveal>
+            <p className="glass inline-flex items-center gap-2.5 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/90">
+              <span className="relative flex h-2 w-2">
+                <span className="ping-soft absolute inline-flex h-full w-full rounded-full bg-emerald-400" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+              Bir Billing, Himachal Pradesh · Now booking
+            </p>
+          </ScrollReveal>
           <TextReveal
             as="h1"
             text="Fly, learn, and stay — all in one place"
-            className="mt-4 max-w-3xl text-5xl font-bold tracking-tight md:text-7xl"
+            highlightFrom={5}
+            delay={0.15}
+            className="mt-6 max-w-3xl text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl"
           />
-          <p className="mt-6 max-w-2xl text-xl text-white/85">
-            Book tandem paragliding flights, certification courses, and hotel stays at
-            India&apos;s home of paragliding.
-          </p>
+          <ScrollReveal delay={0.45}>
+            <p className="mt-6 max-w-2xl text-xl text-white/85">
+              Book tandem paragliding flights, certification courses, and hotel stays at
+              India&apos;s home of paragliding.
+            </p>
+          </ScrollReveal>
+          <ScrollReveal delay={0.6}>
           <div className="mt-10 flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
             <MagneticButton className="w-full sm:w-auto">
               <LinkButton href="/paragliding" size="lg" className="w-full sm:w-auto">
                 Book a flight
+                <ArrowRight className="h-4 w-4" />
               </LinkButton>
             </MagneticButton>
             <MagneticButton className="w-full sm:w-auto">
@@ -157,23 +217,39 @@ export default async function HomePage() {
                 href="/courses"
                 variant="ghost"
                 size="lg"
-                className="w-full border-white/40 text-white hover:bg-white/10 sm:w-auto"
+                className="w-full border-white/40 text-white backdrop-blur-sm hover:bg-white/10 sm:w-auto"
               >
                 Explore courses
               </LinkButton>
             </MagneticButton>
           </div>
+          </ScrollReveal>
 
-          <div className="mt-20 grid max-w-lg grid-cols-3 gap-8 border-t border-white/20 pt-10">
-            {STATS.map((stat) => (
-              <div key={stat.label}>
-                <div className="text-3xl font-bold md:text-4xl">{stat.value}</div>
-                <div className="mt-1 text-sm text-white/70">{stat.label}</div>
-              </div>
-            ))}
-          </div>
+          <ScrollReveal delay={0.75}>
+            <div className="mt-20 grid max-w-lg grid-cols-3 gap-8 border-t border-white/20 pt-10">
+              {STATS.map((stat) => (
+                <div key={stat.label}>
+                  <div className="text-3xl font-bold tabular-nums md:text-4xl">
+                    <CountUp value={stat.value} />
+                  </div>
+                  <div className="mt-1 text-sm text-white/70">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </ScrollReveal>
         </Container>
-      </section>
+      </HeroParallax>
+
+      <div id="explore" className="relative z-10 -mt-px scroll-mt-14 border-y border-white/10 bg-night py-5 text-white">
+        <Marquee
+          items={TICKER.map((t) => (
+            <>
+              <span className="px-6 text-lg font-semibold tracking-tight md:text-2xl">{t}</span>
+              <Sparkle className="h-4 w-4 text-brand" fill="currentColor" />
+            </>
+          ))}
+        />
+      </div>
 
       {flights.items.length > 0 && (
         <Container className="bg-gradient-to-b from-brand/5 to-transparent py-24">
@@ -194,7 +270,7 @@ export default async function HomePage() {
                     <Card className="card-glow-hover h-full overflow-hidden">
                       <div className="relative h-64 w-full">
                         <Image
-                          src={pkg.media[0]?.url ?? "/placeholder.svg"}
+                          src={pkg.media[0]?.url ?? stockPhoto("paragliding", pkg.title)}
                           alt={pkg.title}
                           fill
                           className="object-cover"
@@ -250,7 +326,7 @@ export default async function HomePage() {
                     <Card className="card-glow-hover h-full overflow-hidden bg-paper">
                       <div className="relative h-56 w-full">
                         <Image
-                          src={course.media[0]?.url ?? "/placeholder.svg"}
+                          src={course.media[0]?.url ?? stockPhoto("course", course.title)}
                           alt={course.title}
                           fill
                           className="object-cover"
@@ -282,7 +358,7 @@ export default async function HomePage() {
             <div className="mt-8 grid items-center gap-10 overflow-hidden rounded-3xl border border-border md:grid-cols-2">
               <div className="relative h-72 md:h-full md:min-h-[24rem]">
                 <Image
-                  src={hotel.media[0]?.url ?? "/placeholder.svg"}
+                  src={hotel.media[0]?.url ?? stockPhoto("hotel", hotel.name)}
                   alt={hotel.name}
                   fill
                   className="object-cover"
@@ -325,7 +401,7 @@ export default async function HomePage() {
                     <Card className="card-glow-hover h-full overflow-hidden">
                       <div className="relative h-56 w-full">
                         <Image
-                          src={item.media[0]?.url ?? "/placeholder.svg"}
+                          src={item.media[0]?.url ?? stockPhoto("adventure", item.title)}
                           alt={item.title}
                           fill
                           className="object-cover"
@@ -370,7 +446,7 @@ export default async function HomePage() {
                   <Card className="card-glow-hover h-full overflow-hidden">
                     <div className="relative h-56 w-full">
                       <Image
-                        src={route.media[0]?.url ?? "/placeholder.svg"}
+                        src={route.media[0]?.url ?? stockPhoto("travel", route.title)}
                         alt={route.title}
                         fill
                         className="object-cover"
@@ -435,7 +511,7 @@ export default async function HomePage() {
           </ScrollReveal>
 
           <div>
-            <div className="relative overflow-hidden rounded-3xl border border-border bg-ink">
+            <div className="relative overflow-hidden rounded-3xl border border-border bg-night">
               <AuroraBackground className="opacity-50" />
               <NoiseOverlay opacity={0.04} />
               <div className="relative z-10 h-[24rem] md:h-[30rem]">
@@ -467,13 +543,15 @@ export default async function HomePage() {
           <StaggerGroup className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {WHY_US.map((item) => (
               <StaggerItem key={item.title}>
-                <Card className="card-glow-hover h-full p-6">
-                  <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${item.color}`}>
+                <SpotlightCard className="group h-full p-6 transition-transform duration-300 hover:-translate-y-1">
+                  <div
+                    className={`inline-flex h-11 w-11 items-center justify-center rounded-xl transition-transform duration-500 group-hover:rotate-[-8deg] group-hover:scale-110 ${item.color}`}
+                  >
                     <item.icon className="h-5 w-5" strokeWidth={2} />
                   </div>
                   <h3 className="mt-4 font-semibold">{item.title}</h3>
                   <p className="mt-2 text-sm text-muted">{item.description}</p>
-                </Card>
+                </SpotlightCard>
               </StaggerItem>
             ))}
           </StaggerGroup>

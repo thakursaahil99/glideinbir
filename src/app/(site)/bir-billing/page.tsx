@@ -44,7 +44,7 @@ export default function BirBillingGuidePage() {
   return (
     <>
       <ModuleHero
-        image="https://images.unsplash.com/photo-1506976697767-6c29c943ecbf?q=80&w=1920&h=1080&auto=format&fit=crop"
+        image="/stock/hero-bir.webp"
         imageAlt="A paraglider high above the green Bir Billing valley"
         eyebrow="Bir Billing, Himachal Pradesh"
         title="The Bir Billing paragliding guide"

@@ -1,4 +1,5 @@
 import { prisma } from "@/server/db/prisma";
+import { stockPhoto } from "@/lib/stock-photos";
 
 export type SearchResult = {
   type: "PARAGLIDING" | "SCHOOL" | "HOTEL" | "ADVENTURE" | "TRAVEL";
@@ -51,7 +52,7 @@ export const searchService = {
         typeLabel: "Paragliding",
         title: p.title,
         href: `/paragliding/${p.slug}`,
-        image: p.media[0]?.url ?? "/placeholder.svg",
+        image: p.media[0]?.url ?? stockPhoto("paragliding", p.title),
         meta: p.location,
       })),
       ...courses.map((c) => ({
@@ -59,7 +60,7 @@ export const searchService = {
         typeLabel: "Courses",
         title: c.title,
         href: `/courses/${c.slug}`,
-        image: c.media[0]?.url ?? "/placeholder.svg",
+        image: c.media[0]?.url ?? stockPhoto("course", c.title),
         meta: `${c.durationDays} days`,
       })),
       ...hotels.map((h) => ({
@@ -67,7 +68,7 @@ export const searchService = {
         typeLabel: "Hotel",
         title: h.name,
         href: `/hotels/${h.slug}`,
-        image: h.media[0]?.url ?? "/placeholder.svg",
+        image: h.media[0]?.url ?? stockPhoto("hotel", h.name),
         meta: h.city,
       })),
       ...items.map((i) => ({
@@ -75,7 +76,7 @@ export const searchService = {
         typeLabel: "Adventure",
         title: i.title,
         href: `/adventure/${i.slug}`,
-        image: i.media[0]?.url ?? "/placeholder.svg",
+        image: i.media[0]?.url ?? stockPhoto("adventure", i.title),
         meta: i.location,
       })),
       ...routes.map((r) => ({
@@ -83,7 +84,7 @@ export const searchService = {
         typeLabel: "Travel",
         title: r.title,
         href: `/travel/${r.slug}`,
-        image: r.media[0]?.url ?? "/placeholder.svg",
+        image: r.media[0]?.url ?? stockPhoto("travel", r.title),
         meta: `${r.fromLocation} → ${r.toLocation}`,
       })),
     ];

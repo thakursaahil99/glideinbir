@@ -7,6 +7,7 @@ import { BookAdventureWidget } from "@/components/site/book-adventure-widget";
 import { DetailSplit } from "@/components/site/detail-split";
 import { formatINR } from "@/lib/format";
 import { GradientText } from "@/components/effects/gradient-text";
+import { withStockGallery } from "@/lib/stock-photos";
 
 export async function generateMetadata({
   params,
@@ -41,7 +42,7 @@ export default async function AdventureDetailPage({
   ]);
   if (!item) notFound();
 
-  const galleryImages = item.media.length > 0 ? item.media.map((m) => m.url) : ["/placeholder.svg"];
+  const galleryImages = withStockGallery(item.media.map((m) => m.url), "adventure", item.title);
 
   return (
     <DetailSplit

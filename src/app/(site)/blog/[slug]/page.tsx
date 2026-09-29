@@ -9,6 +9,7 @@ import { JsonLd, breadcrumbJsonLd } from "@/components/site/json-ld";
 import { formatDate } from "@/lib/format";
 import { SEED_POSTS } from "@/content/blog";
 import { env } from "@/config/env";
+import { stockPhoto } from "@/lib/stock-photos";
 
 const siteUrl = env.NEXT_PUBLIC_SITE_URL;
 
@@ -28,7 +29,7 @@ async function getArticle(slug: string): Promise<Article | null> {
       excerpt: post.excerpt,
       body: post.body,
       publishedAt: post.publishedAt,
-      coverImage: post.coverImage,
+      coverImage: post.coverImage ?? stockPhoto("blog", post.title),
     };
   }
   const seed = SEED_POSTS.find((p) => p.slug === slug);
@@ -38,7 +39,7 @@ async function getArticle(slug: string): Promise<Article | null> {
       excerpt: seed.excerpt,
       body: seed.body,
       publishedAt: new Date(seed.publishedAt),
-      coverImage: null,
+      coverImage: stockPhoto("blog", seed.title),
     };
   }
   return null;

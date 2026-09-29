@@ -14,6 +14,7 @@ import { CardArrow } from "@/components/site/card-arrow";
 import { RatingBadge } from "@/components/site/rating-badge";
 import { FlyingConditions } from "@/components/site/flying-conditions";
 import { reviewService } from "@/server/modules/review/service";
+import { stockPhoto } from "@/lib/stock-photos";
 
 export const metadata: Metadata = {
   title: "Tandem Paragliding in Bir Billing",
@@ -94,7 +95,7 @@ export default async function ParaglidingListPage({
                     <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
                       <div className="relative h-44 w-full">
                         <Image
-                          src={pkg.media[0]?.url ?? "/placeholder.svg"}
+                          src={pkg.media[0]?.url ?? stockPhoto("paragliding", pkg.title)}
                           alt={pkg.title}
                           fill
                           className="object-cover"

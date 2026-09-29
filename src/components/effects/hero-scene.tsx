@@ -4,6 +4,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Float } from "@react-three/drei";
 import { useRef } from "react";
 import type { Mesh } from "three";
+import { useBrandColor } from "./use-brand-color";
 
 export type ShapeVariant = "icosahedron" | "octahedron" | "torus" | "dodecahedron" | "sphere";
 
@@ -65,19 +66,20 @@ function FloatingShape({
 // re-downloaded per page.
 export function HeroScene({
   variant = "icosahedron",
-  color = "#ff6a00",
-  emissive = "#c94f00",
+  color,
+  emissive,
 }: {
   variant?: ShapeVariant;
   color?: string;
   emissive?: string;
 }) {
+  const brand = useBrandColor();
   return (
     <Canvas camera={{ position: [0, 0, 5], fov: 45 }} dpr={[1, 1.5]} gl={{ antialias: true, alpha: true }}>
       <ambientLight intensity={0.7} />
       <directionalLight position={[3, 3, 4]} intensity={1.4} />
       <pointLight position={[-4, -2, 2]} intensity={0.6} color="#22d3ee" />
-      <FloatingShape variant={variant} color={color} emissive={emissive} />
+      <FloatingShape variant={variant} color={color ?? brand} emissive={emissive ?? brand} />
     </Canvas>
   );
 }

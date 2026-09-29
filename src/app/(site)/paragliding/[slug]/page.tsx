@@ -11,6 +11,7 @@ import { FaqSection } from "@/components/site/faq-section";
 import { SectionSkeleton } from "@/components/site/section-skeleton";
 import { formatINR } from "@/lib/format";
 import { GradientText } from "@/components/effects/gradient-text";
+import { withStockGallery } from "@/lib/stock-photos";
 
 export async function generateMetadata({
   params,
@@ -45,7 +46,7 @@ export default async function ParaglidingDetailPage({
   ]);
   if (!pkg) notFound();
 
-  const galleryImages = pkg.media.length > 0 ? pkg.media.map((m) => m.url) : ["/placeholder.svg"];
+  const galleryImages = withStockGallery(pkg.media.map((m) => m.url), "paragliding", pkg.title);
 
   return (
     <DetailSplit

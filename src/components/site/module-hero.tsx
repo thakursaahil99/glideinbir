@@ -39,8 +39,10 @@ export function ModuleHero({
 }) {
   return (
     <section className="relative flex min-h-[60vh] items-center overflow-hidden md:min-h-[68vh]">
-      <Image src={image} alt={imageAlt} fill priority className="object-cover" />
+      <Image src={image} alt={imageAlt} fill priority className="ken-burns object-cover" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-brand/40 via-brand/5 to-transparent mix-blend-soft-light" />
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-brand/20 to-transparent" />
 
       {effect === "stars" && (
         <>

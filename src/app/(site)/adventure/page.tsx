@@ -9,6 +9,7 @@ import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
 import { ModuleInfo } from "@/components/site/module-info";
 import { CardArrow } from "@/components/site/card-arrow";
+import { stockPhoto } from "@/lib/stock-photos";
 
 export const metadata: Metadata = {
   title: "Adventure in Bir Billing — Camping, Trekking & Cottages",
@@ -82,7 +83,7 @@ export default async function AdventureListPage({
                   <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
                     <div className="relative h-44 w-full">
                       <Image
-                        src={item.media[0]?.url ?? "/placeholder.svg"}
+                        src={item.media[0]?.url ?? stockPhoto("adventure", item.title)}
                         alt={item.title}
                         fill
                         className="object-cover"

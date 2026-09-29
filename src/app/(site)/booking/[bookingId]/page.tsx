@@ -11,6 +11,7 @@ import { formatDate, formatINR } from "@/lib/format";
 import { ParticleField } from "@/components/effects/particle-field";
 import { HeroSceneLazy } from "@/components/effects/hero-scene-lazy";
 import { ScrollReveal } from "@/components/effects/scroll-reveal";
+import { stockPhoto } from "@/lib/stock-photos";
 import {
   Wind,
   GraduationCap,
@@ -66,7 +67,7 @@ export default async function BookingPage({
       key: item.id,
       icon: Wind,
       category: "Paragliding",
-      image: item.package.media[0]?.url ?? "/placeholder.svg",
+      image: item.package.media[0]?.url ?? stockPhoto("paragliding", item.package.title),
       title: item.package.title,
       description: item.package.shortDescription ?? item.package.description,
       meta: `${formatDate(item.slot.date)} · ${item.slot.startTime} · ${item.passengers} passenger(s)`,
@@ -76,7 +77,7 @@ export default async function BookingPage({
       key: item.id,
       icon: GraduationCap,
       category: "Course",
-      image: item.course.media[0]?.url ?? "/placeholder.svg",
+      image: item.course.media[0]?.url ?? stockPhoto("course", item.course.title),
       title: item.course.title,
       description: item.course.description,
       meta: `${formatDate(item.batch.startDate)} – ${formatDate(item.batch.endDate)} · ${item.students} student(s)`,
@@ -86,7 +87,7 @@ export default async function BookingPage({
       key: item.id,
       icon: Hotel,
       category: "Hotel",
-      image: item.room.media[0]?.url ?? item.hotel.media[0]?.url ?? "/placeholder.svg",
+      image: item.room.media[0]?.url ?? item.hotel.media[0]?.url ?? stockPhoto("room", item.room.name),
       title: `${item.hotel.name} · ${item.room.name}`,
       description: item.hotel.description,
       meta: `${formatDate(item.checkIn)} – ${formatDate(item.checkOut)} · ${item.nights} night(s) · ${item.rooms} room(s)`,
@@ -96,7 +97,7 @@ export default async function BookingPage({
       key: item.id,
       icon: Tent,
       category: "Adventure",
-      image: item.item.media[0]?.url ?? "/placeholder.svg",
+      image: item.item.media[0]?.url ?? stockPhoto("adventure", item.item.title),
       title: item.item.title,
       description: item.item.shortDescription ?? item.item.description,
       meta: `${formatDate(item.slot.date)} · ${item.quantity} unit(s)`,
@@ -106,7 +107,7 @@ export default async function BookingPage({
       key: item.id,
       icon: Bus,
       category: "Travel",
-      image: item.route.media[0]?.url ?? "/placeholder.svg",
+      image: item.route.media[0]?.url ?? stockPhoto("travel", item.route.title),
       title: item.route.title,
       description: item.route.description,
       meta: `${formatDate(item.slot.date)} · ${item.slot.departureTime} · ${item.passengers} passenger(s)`,
@@ -145,7 +146,7 @@ export default async function BookingPage({
 
   return (
     <>
-      <section className="relative overflow-hidden bg-ink py-20 text-white md:py-28">
+      <section className="relative overflow-hidden bg-night py-20 text-white md:py-28">
         <Image
           src="https://images.unsplash.com/photo-1722253991955-7359db2e7e5e?q=80&w=1920&h=1080&auto=format&fit=crop"
           alt=""

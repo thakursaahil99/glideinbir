@@ -12,6 +12,7 @@ import { SectionSkeleton } from "@/components/site/section-skeleton";
 import { formatINR } from "@/lib/format";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { GradientText } from "@/components/effects/gradient-text";
+import { withStockGallery } from "@/lib/stock-photos";
 
 export async function generateMetadata({
   params,
@@ -46,7 +47,7 @@ export default async function CourseDetailPage({
   if (!course) notFound();
   const syllabus = course.syllabus as { title: string; description: string }[];
 
-  const galleryImages = course.media.length > 0 ? course.media.map((m) => m.url) : ["/placeholder.svg"];
+  const galleryImages = withStockGallery(course.media.map((m) => m.url), "course", course.title);
 
   return (
     <DetailSplit

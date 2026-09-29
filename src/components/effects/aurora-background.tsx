@@ -11,11 +11,11 @@ export function AuroraBackground({ className }: { className?: string }) {
       />
       <div
         className="aurora-blob aurora-blob-2 h-[55%] w-[55%] top-[10%] right-[-10%]"
-        style={{ background: "radial-gradient(circle, #6366f1 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--color-brand) 55%, #6366f1) 0%, transparent 70%)" }}
       />
       <div
         className="aurora-blob aurora-blob-3 h-[50%] w-[50%] bottom-[-15%] left-[20%]"
-        style={{ background: "radial-gradient(circle, #22d3ee 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--color-brand-dark) 55%, #22d3ee) 0%, transparent 70%)" }}
       />
     </div>
   );

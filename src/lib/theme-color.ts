@@ -7,6 +7,29 @@
 // it survives navigation/reload; a tiny inline script in the root layout
 // re-applies it before first paint to avoid a flash of the default color.
 const STORAGE_KEY = "glideinbir-brand-color";
+export const DEFAULT_BRAND = "#ff6a00";
+
+// Fired on window whenever the brand colour changes, so canvas / WebGL
+// effects (which can't read CSS variables by themselves) can repaint.
+export const BRAND_CHANGE_EVENT = "glideinbir:brandchange";
+
+// Mobile browsers tint their address bar from <meta name="theme-color">.
+function setThemeMeta(hex: string) {
+  let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.name = "theme-color";
+    document.head.appendChild(meta);
+  }
+  meta.content = hex;
+}
+
+// Briefly enables a transition on the colour variables (see .brand-anim in
+// globals.css) so a new pick washes across the page instead of snapping.
+function animateSwap(root: HTMLElement) {
+  root.classList.add("brand-anim");
+  window.setTimeout(() => root.classList.remove("brand-anim"), 800);
+}
 
 // The swatches offered on the homepage. These are the site's own
 // module-theme hues (src/lib/module-theme.ts) plus the brand orange, so
@@ -34,8 +57,11 @@ export function applyBrandColor(hex: string) {
   if (typeof document === "undefined") return;
   const dark = darken(hex, 0.18);
   const root = document.documentElement;
+  animateSwap(root);
   root.style.setProperty("--color-brand", hex);
   root.style.setProperty("--color-brand-dark", dark);
+  setThemeMeta(hex);
+  window.dispatchEvent(new Event(BRAND_CHANGE_EVENT));
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ brand: hex, dark }));
   } catch {
@@ -46,8 +72,11 @@ export function applyBrandColor(hex: string) {
 export function resetBrandColor() {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
+  animateSwap(root);
   root.style.removeProperty("--color-brand");
   root.style.removeProperty("--color-brand-dark");
+  setThemeMeta(DEFAULT_BRAND);
+  window.dispatchEvent(new Event(BRAND_CHANGE_EVENT));
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch {
@@ -65,6 +94,10 @@ try {
     if (c && c.brand && c.dark) {
       document.documentElement.style.setProperty("--color-brand", c.brand);
       document.documentElement.style.setProperty("--color-brand-dark", c.dark);
+      var m = document.createElement("meta");
+      m.name = "theme-color";
+      m.content = c.brand;
+      document.head.appendChild(m);
     }
   }
 } catch (e) {}

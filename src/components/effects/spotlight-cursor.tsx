@@ -6,7 +6,8 @@ import { clsx } from "clsx";
 // A radial glow that follows the pointer. Position is written straight to
 // CSS custom properties via a ref on every mousemove — no React state, so
 // it never triggers a re-render no matter how fast the mouse moves.
-export function SpotlightCursor({ className, color = "255,106,0" }: { className?: string; color?: string }) {
+// `color` is an "r,g,b" string; leave it out to follow the live brand colour.
+export function SpotlightCursor({ className, color }: { className?: string; color?: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,8 +41,9 @@ export function SpotlightCursor({ className, color = "255,106,0" }: { className?
       style={{
         opacity: 0,
         background:
-          "radial-gradient(500px circle at var(--spot-x, 50%) var(--spot-y, 50%), rgba(var(--spot-color), 0.15), transparent 70%)",
-        ["--spot-color" as string]: color,
+          `radial-gradient(500px circle at var(--spot-x, 50%) var(--spot-y, 50%), ${
+            color ? `rgba(${color}, 0.15)` : "color-mix(in srgb, var(--color-brand) 18%, transparent)"
+          }, transparent 70%)`,
       }}
     />
   );

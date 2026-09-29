@@ -9,6 +9,7 @@ import { ModuleInfo } from "@/components/site/module-info";
 import { CardArrow } from "@/components/site/card-arrow";
 import { RatingBadge } from "@/components/site/rating-badge";
 import { reviewService } from "@/server/modules/review/service";
+import { stockPhoto } from "@/lib/stock-photos";
 
 export const metadata: Metadata = {
   title: "Hotels in Bir Billing — Stay Near the Landing Site",
@@ -47,7 +48,7 @@ export default async function HotelsListPage() {
                   <Card className="card-glow-hover h-full overflow-hidden">
                     <div className="relative h-44 w-full">
                       <Image
-                        src={hotel.media[0]?.url ?? "/placeholder.svg"}
+                        src={hotel.media[0]?.url ?? stockPhoto("hotel", hotel.name)}
                         alt={hotel.name}
                         fill
                         className="object-cover"

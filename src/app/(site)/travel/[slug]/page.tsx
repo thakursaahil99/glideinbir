@@ -7,6 +7,7 @@ import { BookTravelWidget } from "@/components/site/book-travel-widget";
 import { DetailSplit } from "@/components/site/detail-split";
 import { formatINR } from "@/lib/format";
 import { GradientText } from "@/components/effects/gradient-text";
+import { withStockGallery } from "@/lib/stock-photos";
 
 export async function generateMetadata({
   params,
@@ -40,7 +41,7 @@ export default async function TravelDetailPage({
   ]);
   if (!route) notFound();
 
-  const galleryImages = route.media.length > 0 ? route.media.map((m) => m.url) : ["/placeholder.svg"];
+  const galleryImages = withStockGallery(route.media.map((m) => m.url), "travel", route.title);
 
   return (
     <DetailSplit

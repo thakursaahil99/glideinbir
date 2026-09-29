@@ -10,6 +10,7 @@ import { ModuleInfo } from "@/components/site/module-info";
 import { CardArrow } from "@/components/site/card-arrow";
 import { RatingBadge } from "@/components/site/rating-badge";
 import { reviewService } from "@/server/modules/review/service";
+import { stockPhoto } from "@/lib/stock-photos";
 
 export const metadata: Metadata = {
   title: "Paragliding Courses in Bir Billing — P1 to P4 Certification",
@@ -54,7 +55,7 @@ export default async function CoursesListPage() {
                   <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
                     <div className="relative h-44 w-full">
                       <Image
-                        src={course.media[0]?.url ?? "/placeholder.svg"}
+                        src={course.media[0]?.url ?? stockPhoto("course", course.title)}
                         alt={course.title}
                         fill
                         className="object-cover"

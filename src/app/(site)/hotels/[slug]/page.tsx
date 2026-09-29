@@ -13,6 +13,7 @@ import { MobileBookBar } from "@/components/site/mobile-book-bar";
 import { ScrollReveal } from "@/components/effects/scroll-reveal";
 import { formatINR } from "@/lib/format";
 import { Clock, MapPin, Sparkles } from "lucide-react";
+import { stockPhoto, withStockGallery } from "@/lib/stock-photos";
 
 export async function generateMetadata({
   params,
@@ -45,7 +46,7 @@ export default async function HotelDetailPage({
   ]);
   if (!hotel) notFound();
 
-  const galleryImages = hotel.media.length > 0 ? hotel.media.map((m) => m.url) : ["/placeholder.svg"];
+  const galleryImages = withStockGallery(hotel.media.map((m) => m.url), "hotel", hotel.name);
   const cheapestRoom =
     hotel.rooms.length > 0
       ? hotel.rooms.reduce((min, r) => (r.pricePerNight.lt(min.pricePerNight) ? r : min))
@@ -110,7 +111,7 @@ export default async function HotelDetailPage({
                   occupancyChildren: room.occupancyChildren,
                   pricePerNight: room.pricePerNight.toNumber(),
                   totalRooms: room.totalRooms,
-                  image: room.media[0]?.url ?? "/placeholder.svg",
+                  image: room.media[0]?.url ?? stockPhoto("room", room.name),
                 }))}
               />
             )}

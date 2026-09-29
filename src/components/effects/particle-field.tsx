@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePrefersReducedMotion } from "./use-reduced-motion";
+import { useBrandColor, hexToRgb } from "./use-brand-color";
 
 type Variant = "stars" | "dust" | "sparkles";
 
@@ -18,7 +19,8 @@ interface Particle {
 const VARIANT_CONFIG: Record<Variant, { color: string; speed: number; size: [number, number] }> = {
   stars: { color: "255,255,255", speed: 0.02, size: [0.6, 1.8] },
   dust: { color: "255,255,255", speed: 0.08, size: [1, 2.5] },
-  sparkles: { color: "255,170,80", speed: 0.05, size: [1.5, 3] },
+  // "brand" = follows the live brand colour.
+  sparkles: { color: "brand", speed: 0.05, size: [1.5, 3] },
 };
 
 // Lightweight canvas particle system — no dependency, capped particle count,
@@ -35,6 +37,7 @@ export function ParticleField({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reducedMotion = usePrefersReducedMotion();
+  const brand = useBrandColor();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -42,7 +45,8 @@ export function ParticleField({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const config = VARIANT_CONFIG[variant];
+    const base = VARIANT_CONFIG[variant];
+    const config = { ...base, color: base.color === "brand" ? hexToRgb(brand) : base.color };
     let particles: Particle[] = [];
     let width = 0;
     let height = 0;
@@ -116,7 +120,7 @@ export function ParticleField({
       resizeObserver.disconnect();
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [variant, density, reducedMotion]);
+  }, [variant, density, reducedMotion, brand]);
 
   return (
     <canvas

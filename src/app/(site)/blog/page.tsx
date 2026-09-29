@@ -6,6 +6,7 @@ import { Card, Container } from "@/components/ui/card";
 import { formatDate } from "@/lib/format";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { SEED_POSTS } from "@/content/blog";
+import { stockPhoto } from "@/lib/stock-photos";
 
 export const metadata: Metadata = {
   title: "Blog — Bir Billing Travel & Paragliding Guides",
@@ -26,14 +27,14 @@ export default async function BlogListPage() {
       title: p.title,
       excerpt: p.excerpt,
       publishedAt: p.publishedAt,
-      coverImage: p.coverImage,
+      coverImage: p.coverImage ?? stockPhoto("blog", p.title),
     })),
     ...SEED_POSTS.filter((p) => !dbSlugs.has(p.slug)).map((p) => ({
       slug: p.slug,
       title: p.title,
       excerpt: p.excerpt,
       publishedAt: new Date(p.publishedAt),
-      coverImage: null,
+      coverImage: stockPhoto("blog", p.title),
     })),
   ].sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
 

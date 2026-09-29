@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePrefersReducedMotion } from "./use-reduced-motion";
+import { useBrandColor } from "./use-brand-color";
 
 interface Piece {
   x: number;
@@ -15,7 +16,8 @@ interface Piece {
   shape: "rect" | "circle";
 }
 
-const COLORS = ["#ff6a00", "#22d3ee", "#6366f1", "#f472b6", "#facc15", "#34d399"];
+// Accent colours; the live brand colour is added (twice, so it dominates).
+const COLORS = ["#22d3ee", "#f472b6", "#facc15", "#34d399"];
 const GRAVITY = 0.16;
 const DURATION_MS = 2600;
 
@@ -27,6 +29,7 @@ const DURATION_MS = 2600;
 export function ConfettiBurst({ pieceCount = 140 }: { pieceCount?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reducedMotion = usePrefersReducedMotion();
+  const brand = useBrandColor();
 
   useEffect(() => {
     if (reducedMotion) return;
@@ -34,6 +37,7 @@ export function ConfettiBurst({ pieceCount = 140 }: { pieceCount?: number }) {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    const palette = [brand, brand, ...COLORS];
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     let width = window.innerWidth;
@@ -66,7 +70,7 @@ export function ConfettiBurst({ pieceCount = 140 }: { pieceCount?: number }) {
         size: 5 + Math.random() * 6,
         rotation: Math.random() * Math.PI * 2,
         spin: (Math.random() - 0.5) * 0.35,
-        color: COLORS[Math.floor(Math.random() * COLORS.length)] ?? "#ff6a00",
+        color: palette[Math.floor(Math.random() * palette.length)] ?? brand,
         shape: Math.random() > 0.5 ? "rect" : "circle",
       };
     });
@@ -113,7 +117,7 @@ export function ConfettiBurst({ pieceCount = 140 }: { pieceCount?: number }) {
       cancelAnimationFrame(animationFrame);
       window.removeEventListener("resize", resize);
     };
-  }, [pieceCount, reducedMotion]);
+  }, [pieceCount, reducedMotion, brand]);
 
   if (reducedMotion) return null;
 

@@ -6,6 +6,7 @@ import { Card, Container, Badge } from "@/components/ui/card";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
 import { Award } from "lucide-react";
+import { stockPhoto } from "@/lib/stock-photos";
 
 export const metadata: Metadata = {
   title: "Our Instructors — Bir Billing Paragliding Courses",
@@ -20,7 +21,7 @@ export default async function InstructorsListPage() {
   return (
     <>
       <ModuleHero
-        image="https://images.unsplash.com/photo-1722253991955-7359db2e7e5e?q=80&w=1920&h=1080&auto=format&fit=crop"
+        image="/stock/hero-instructors.webp"
         imageAlt="A certified pilot briefing a student before a paragliding flight"
         eyebrow="Who you'll fly with"
         title="Our instructors"
@@ -40,7 +41,7 @@ export default async function InstructorsListPage() {
                   <Card className="card-glow-hover h-full p-6 text-center">
                     <div className="relative mx-auto h-28 w-28 overflow-hidden rounded-full bg-surface">
                       <Image
-                        src={instructor.photoUrl ?? "/placeholder.svg"}
+                        src={instructor.photoUrl ?? stockPhoto("instructor", instructor.name)}
                         alt={instructor.name}
                         fill
                         className="object-cover"
