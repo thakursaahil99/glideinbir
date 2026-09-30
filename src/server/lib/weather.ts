@@ -13,19 +13,28 @@ const WEATHER_LABELS: Record<number, string> = {
   3: "Overcast",
   45: "Foggy",
   48: "Foggy",
+  56: "Freezing drizzle",
+  57: "Freezing drizzle",
   51: "Light drizzle",
   53: "Drizzle",
   55: "Heavy drizzle",
   61: "Light rain",
   63: "Rain",
   65: "Heavy rain",
+  66: "Freezing rain",
+  67: "Freezing rain",
   71: "Light snow",
   73: "Snow",
   75: "Heavy snow",
+  77: "Snow grains",
   80: "Rain showers",
   81: "Rain showers",
   82: "Heavy showers",
+  85: "Snow showers",
+  86: "Heavy snow showers",
   95: "Thunderstorm",
+  96: "Thunderstorm with hail",
+  99: "Thunderstorm with hail",
 };
 
 export type FlyingConditions = {
@@ -69,5 +78,85 @@ export async function getFlyingConditions(): Promise<FlyingConditions | null> {
     };
   } catch {
     return null; // weather is a nice-to-have — never break the page over it
+  }
+}
+
+// --- Site-wide weather overlay ---------------------------------------------
+// Drives the rain / snow / fog layer drawn over every page, so the site
+// shows what the sky over Bir is actually doing right now.
+
+export type SkyEffect = "sun" | "night" | "clouds" | "rain" | "snow" | "storm" | "fog" | "none";
+export type SkyIntensity = "light" | "moderate" | "heavy";
+
+export type SkyNow = {
+  effect: SkyEffect;
+  intensity: SkyIntensity;
+  /** 0…1 — how much to draw. From measured rain/snow when there is any, else from the weather code. */
+  level: number;
+  label: string;
+  temperatureC: number;
+  isDay: boolean;
+  observedAt: string;
+};
+
+const LEVEL: Record<SkyIntensity, number> = { light: 0.3, moderate: 0.6, heavy: 1 };
+
+// WMO code → overlay. Drizzle and freezing rain draw as rain; showers and
+// plain rain scale by the code's own light / moderate / heavy step. Clear
+// skies are sunshine by day and a starry sky by night.
+function skyFromCode(code: number, isDay: boolean): { effect: SkyEffect; intensity: SkyIntensity } {
+  if (code >= 95) return { effect: "storm", intensity: code === 95 ? "moderate" : "heavy" };
+  if ([71, 77, 85].includes(code)) return { effect: "snow", intensity: "light" };
+  if (code === 73) return { effect: "snow", intensity: "moderate" };
+  if ([75, 86].includes(code)) return { effect: "snow", intensity: "heavy" };
+  if ([51, 53, 56, 61, 80].includes(code)) return { effect: "rain", intensity: "light" };
+  if ([55, 57, 63, 66, 81].includes(code)) return { effect: "rain", intensity: "moderate" };
+  if ([65, 67, 82].includes(code)) return { effect: "rain", intensity: "heavy" };
+  if (code === 45 || code === 48) return { effect: "fog", intensity: "moderate" };
+  if (code === 2) return { effect: "clouds", intensity: "light" };
+  if (code === 3) return { effect: "clouds", intensity: "heavy" };
+  // 0 clear, 1 mostly clear
+  return { effect: isDay ? "sun" : "night", intensity: code === 0 ? "heavy" : "moderate" };
+}
+
+// Measured precipitation → 0…1. Open-Meteo's "current" amounts cover the
+// last 15 minutes, so ×4 gives an hourly rate: ~0.5 mm/h is a drizzle,
+// ~8 mm/h and up is a downpour. Snow is in cm, ~3 cm/h is heavy.
+function levelFromAmount(effect: SkyEffect, rainMm: number, snowCm: number): number | null {
+  if ((effect === "rain" || effect === "storm") && rainMm > 0) {
+    return Math.min(1, Math.max(0.15, (rainMm * 4) / 8));
+  }
+  if (effect === "snow" && snowCm > 0) return Math.min(1, Math.max(0.15, (snowCm * 4) / 3));
+  return null;
+}
+
+export async function getSkyNow(): Promise<SkyNow | null> {
+  try {
+    const url = new URL("https://api.open-meteo.com/v1/forecast");
+    url.searchParams.set("latitude", String(BILLING_LAT));
+    url.searchParams.set("longitude", String(BILLING_LON));
+    url.searchParams.set("current", "temperature_2m,weather_code,is_day,precipitation,snowfall");
+    url.searchParams.set("timezone", "Asia/Kolkata");
+
+    // Open-Meteo refreshes "current" every 15 minutes; match that.
+    const res = await fetch(url, { next: { revalidate: 900 } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const code = Number(data.current.weather_code);
+    const isDay = data.current.is_day === 1;
+    const { effect, intensity } = skyFromCode(code, isDay);
+    const measured = levelFromAmount(effect, Number(data.current.precipitation) || 0, Number(data.current.snowfall) || 0);
+
+    return {
+      effect,
+      intensity,
+      level: measured ?? LEVEL[intensity],
+      label: WEATHER_LABELS[code] ?? "—",
+      temperatureC: Math.round(data.current.temperature_2m),
+      isDay,
+      observedAt: String(data.current.time),
+    };
+  } catch {
+    return null;
   }
 }
