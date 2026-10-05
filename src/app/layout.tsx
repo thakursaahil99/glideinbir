@@ -29,7 +29,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://glideinbir.vercel.a
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Glideinbir — Paragliding in Bir Billing | Flights, Courses, Hotels & More",
+    default: "Glideinbir — Paragliding in Bir Billing | Flights, Courses, Hotels and More",
     template: "%s | Glideinbir — Bir Billing Paragliding",
   },
   description:
