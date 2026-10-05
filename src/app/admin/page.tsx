@@ -5,6 +5,7 @@ import { Card, Badge } from "@/components/ui/card";
 import { formatDate, formatINR } from "@/lib/format";
 import { getCurrentUser } from "@/server/auth/guards";
 import { IndexNowButton } from "@/components/admin/indexnow-button";
+import { WeatherControl } from "@/components/admin/weather-control";
 
 async function getStats() {
   const [packages, courses, hotels, bookings, revenue, recentBookings] = await Promise.all([
@@ -68,6 +69,12 @@ export default async function AdminDashboardPage() {
           </Card>
         ))}
       </div>
+
+      {user && ["SUPER_ADMIN", "PARAGLIDING_MANAGER", "CONTENT_MANAGER"].includes(user.role) && (
+        <div className="mt-6">
+          <WeatherControl />
+        </div>
+      )}
 
       <div className="mt-10">
         <h2 className="text-lg font-semibold">Recent bookings</h2>

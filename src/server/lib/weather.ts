@@ -1,3 +1,5 @@
+import { prisma } from "@/server/db/prisma";
+
 // Open-Meteo — free, keyless, no signup required (unlike most weather
 // APIs), which is exactly why it's used here instead of asking for an
 // OpenWeatherMap-style account. Coordinates are Billing's takeoff point.
@@ -63,7 +65,7 @@ export async function getFlyingConditions(): Promise<FlyingConditions | null> {
     url.searchParams.set("current", "temperature_2m,wind_speed_10m,weather_code");
     url.searchParams.set("timezone", "Asia/Kolkata");
 
-    const res = await fetch(url, { next: { revalidate: 900 } }); // cache 15 min
+    const res = await fetch(url, { next: { revalidate: 300 } }); // cache 5 min
     if (!res.ok) return null;
     const data = await res.json();
     const windKmh = Math.round(data.current.wind_speed_10m);
@@ -94,7 +96,7 @@ export type SkyNow = {
   /** 0…1 — how much to draw. From measured rain/snow when there is any, else from the weather code. */
   level: number;
   label: string;
-  temperatureC: number;
+  temperatureC: number | null;
   isDay: boolean;
   observedAt: string;
 };
@@ -103,8 +105,12 @@ const LEVEL: Record<SkyIntensity, number> = { light: 0.3, moderate: 0.6, heavy: 
 
 // WMO code → overlay. Drizzle and freezing rain draw as rain; showers and
 // plain rain scale by the code's own light / moderate / heavy step. Clear
-// skies are sunshine by day and a starry sky by night.
-function skyFromCode(code: number, isDay: boolean): { effect: SkyEffect; intensity: SkyIntensity } {
+// skies are sunshine by day and a starry sky by night — unless the model's
+// own cloud cover says otherwise: it often reports code 0/1 over Bir while
+// cloud_cover is well up, so that number gets the final say on clouds.
+function skyFromCode(code: number, isDay: boolean, cloudCover: number): { effect: SkyEffect; intensity: SkyIntensity } {
+  if (code <= 2 && cloudCover >= 70) return { effect: "clouds", intensity: "heavy" };
+  if (code <= 1 && cloudCover >= 40) return { effect: "clouds", intensity: "light" };
   if (code >= 95) return { effect: "storm", intensity: code === 95 ? "moderate" : "heavy" };
   if ([71, 77, 85].includes(code)) return { effect: "snow", intensity: "light" };
   if (code === 73) return { effect: "snow", intensity: "moderate" };
@@ -130,31 +136,89 @@ function levelFromAmount(effect: SkyEffect, rainMm: number, snowCm: number): num
   return null;
 }
 
-export async function getSkyNow(): Promise<SkyNow | null> {
-  try {
-    const url = new URL("https://api.open-meteo.com/v1/forecast");
-    url.searchParams.set("latitude", String(BILLING_LAT));
-    url.searchParams.set("longitude", String(BILLING_LON));
-    url.searchParams.set("current", "temperature_2m,weather_code,is_day,precipitation,snowfall");
-    url.searchParams.set("timezone", "Asia/Kolkata");
+// --- Manual override --------------------------------------------------------
+// The forecast model can't see the local clouds that build over Bir, so
+// staff on the ground can set what the sky is really doing from the admin
+// dashboard. It expires on its own and the site goes back to live data.
 
-    // Open-Meteo refreshes "current" every 15 minutes; match that.
-    const res = await fetch(url, { next: { revalidate: 900 } });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const code = Number(data.current.weather_code);
-    const isDay = data.current.is_day === 1;
-    const { effect, intensity } = skyFromCode(code, isDay);
-    const measured = levelFromAmount(effect, Number(data.current.precipitation) || 0, Number(data.current.snowfall) || 0);
+export const SKY_OVERRIDE_KEY = "weather_override";
+export const SKY_OVERRIDE_EFFECTS = ["sun", "night", "clouds", "rain", "snow", "storm", "fog"] as const;
+
+export type SkyOverride = {
+  effect: (typeof SKY_OVERRIDE_EFFECTS)[number];
+  intensity: SkyIntensity;
+  until: string; // ISO
+  setBy: string;
+};
+
+const OVERRIDE_LABELS: Record<SkyOverride["effect"], string> = {
+  sun: "Sunny",
+  night: "Clear night",
+  clouds: "Cloudy",
+  rain: "Rain",
+  snow: "Snow",
+  storm: "Thunderstorm",
+  fog: "Foggy",
+};
+
+export async function getSkyOverride(): Promise<SkyOverride | null> {
+  try {
+    const row = await prisma.siteSetting.findUnique({ where: { key: SKY_OVERRIDE_KEY } });
+    const value = row?.value as SkyOverride | null | undefined;
+    if (!value?.until || new Date(value.until).getTime() <= Date.now()) return null;
+    return value;
+  } catch {
+    return null; // DB hiccup — fall back to live data rather than no weather
+  }
+}
+
+async function fetchCurrent(fields: string) {
+  const url = new URL("https://api.open-meteo.com/v1/forecast");
+  url.searchParams.set("latitude", String(BILLING_LAT));
+  url.searchParams.set("longitude", String(BILLING_LON));
+  url.searchParams.set("current", fields);
+  url.searchParams.set("timezone", "Asia/Kolkata");
+  // Open-Meteo refreshes "current" every 15 minutes; checking every 5 means
+  // a new reading reaches the site within ~5 min of being published.
+  const res = await fetch(url, { next: { revalidate: 300 } });
+  if (!res.ok) return null;
+  return (await res.json()).current;
+}
+
+export async function getSkyNow(): Promise<SkyNow | null> {
+  const override = await getSkyOverride();
+  if (override) {
+    const current = await fetchCurrent("temperature_2m,is_day").catch(() => null);
+    return {
+      effect: override.effect,
+      intensity: override.intensity,
+      level: LEVEL[override.intensity],
+      label: OVERRIDE_LABELS[override.effect],
+      temperatureC: current ? Math.round(current.temperature_2m) : null,
+      isDay: current ? current.is_day === 1 : override.effect !== "night",
+      observedAt: new Date().toISOString(),
+    };
+  }
+
+  try {
+    const current = await fetchCurrent("temperature_2m,weather_code,is_day,precipitation,snowfall,cloud_cover");
+    if (!current) return null;
+    const code = Number(current.weather_code);
+    const isDay = current.is_day === 1;
+    const { effect, intensity } = skyFromCode(code, isDay, Number(current.cloud_cover) || 0);
+    const measured = levelFromAmount(effect, Number(current.precipitation) || 0, Number(current.snowfall) || 0);
+    // Cloud cover can turn a "clear" code into clouds — keep the label honest.
+    const label =
+      effect === "clouds" && code <= 2 ? (intensity === "heavy" ? "Overcast" : "Partly cloudy") : (WEATHER_LABELS[code] ?? "—");
 
     return {
       effect,
       intensity,
       level: measured ?? LEVEL[intensity],
-      label: WEATHER_LABELS[code] ?? "—",
-      temperatureC: Math.round(data.current.temperature_2m),
+      label,
+      temperatureC: Math.round(current.temperature_2m),
       isDay,
-      observedAt: String(data.current.time),
+      observedAt: String(current.time),
     };
   } catch {
     return null;

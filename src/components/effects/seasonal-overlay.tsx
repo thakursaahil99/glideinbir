@@ -8,7 +8,8 @@ import { usePrefersReducedMotion } from "./use-reduced-motion";
 // Live weather layer over the whole site: whatever the sky over Bir Billing
 // is doing right now (Open-Meteo via /api/weather) — sunshine, cloud, rain,
 // a thunderstorm, snow, fog or a starry night — drawn lightly on top of
-// every page, refreshed every 15 minutes. How much rain / snow is drawn
+// every page, refreshed every 5 minutes. Staff can override it from the
+// admin dashboard when the forecast misses local cloud. How much rain / snow is drawn
 // follows the measured amount (`level`, 0…1), not just the weather type.
 // Override for testing: ?weather=sun|night|clouds|rain|storm|snow|fog|none
 // (&intensity=light|moderate|heavy or &level=0…1). ?season= still works.
@@ -23,7 +24,7 @@ type Sky = {
 
 const INTENSITY_LEVEL: Record<Intensity, number> = { light: 0.3, moderate: 0.6, heavy: 1 };
 
-const REFRESH_MS = 15 * 60 * 1000;
+const REFRESH_MS = 5 * 60 * 1000;
 const EFFECTS: Effect[] = ["sun", "night", "clouds", "rain", "snow", "storm", "fog", "none"];
 const INTENSITIES: Intensity[] = ["light", "moderate", "heavy"];
 

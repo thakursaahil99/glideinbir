@@ -251,55 +251,57 @@ export default async function HomePage() {
       </div>
 
       {flights.items.length > 0 && (
-        <Container className="band-ocean py-24">
-          <ScrollReveal>
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <SectionHeader eyebrow="Tandem paragliding" icon={Wind} title="Popular flights" tone="paragliding" />
-              <Link href="/paragliding" className="text-sm font-medium text-brand hover:underline">
-                View all flights →
-              </Link>
-            </div>
-          </ScrollReveal>
+        <div className="band-ocean py-24">
+          <Container>
+            <ScrollReveal>
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <SectionHeader eyebrow="Tandem paragliding" icon={Wind} title="Popular flights" tone="paragliding" />
+                <Link href="/paragliding" className="text-sm font-medium text-brand hover:underline">
+                  View all flights →
+                </Link>
+              </div>
+            </ScrollReveal>
 
-          <StaggerGroup className="mt-10 grid gap-8 md:grid-cols-3">
-            {flights.items.map((pkg) => (
-              <StaggerItem key={pkg.id}>
-                <TiltCard maxTilt={6} className="h-full">
-                  <Link href={`/paragliding/${pkg.slug}`} className="group">
-                    <Card className="card-glow-hover h-full overflow-hidden border-t-4 border-t-sky-500">
-                      <div className="relative h-64 w-full">
-                        <Image
-                          src={pkg.media[0]?.url ?? stockPhoto("paragliding", pkg.title)}
-                          alt={pkg.title}
-                          fill
-                          className="object-cover"
-                        />
-                        <CardArrow />
-                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5">
-                          <Badge className="bg-white/20 text-white backdrop-blur">
-                            {pkg.flightType.replace("_", " ")}
-                          </Badge>
+            <StaggerGroup className="mt-10 grid gap-8 md:grid-cols-3">
+              {flights.items.map((pkg) => (
+                <StaggerItem key={pkg.id}>
+                  <TiltCard maxTilt={6} className="h-full">
+                    <Link href={`/paragliding/${pkg.slug}`} className="group">
+                      <Card className="card-glow-hover h-full overflow-hidden border-t-4 border-t-sky-500 bg-paper">
+                        <div className="relative h-64 w-full">
+                          <Image
+                            src={pkg.media[0]?.url ?? stockPhoto("paragliding", pkg.title)}
+                            alt={pkg.title}
+                            fill
+                            className="object-cover"
+                          />
+                          <CardArrow />
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5">
+                            <Badge className="bg-white/20 text-white backdrop-blur">
+                              {pkg.flightType.replace("_", " ")}
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
-                      <div className="p-6">
-                        <h3 className="text-xl font-semibold">{pkg.title}</h3>
-                        <p className="mt-2 text-sm text-muted">
-                          {pkg.shortDescription ?? pkg.description}
-                        </p>
-                        <div className="mt-5 flex items-baseline justify-between border-t border-border pt-4">
-                          <span className="text-2xl font-bold">
-                            <GradientText>{formatINR(pkg.price.toString())}</GradientText>
-                          </span>
-                          <span className="text-sm text-muted">{pkg.durationMinutes} min</span>
+                        <div className="p-6">
+                          <h3 className="text-xl font-semibold">{pkg.title}</h3>
+                          <p className="mt-2 text-sm text-muted">
+                            {pkg.shortDescription ?? pkg.description}
+                          </p>
+                          <div className="mt-5 flex items-baseline justify-between border-t border-border pt-4">
+                            <span className="text-2xl font-bold">
+                              <GradientText>{formatINR(pkg.price.toString())}</GradientText>
+                            </span>
+                            <span className="text-sm text-muted">{pkg.durationMinutes} min</span>
+                          </div>
                         </div>
-                      </div>
-                    </Card>
-                  </Link>
-                </TiltCard>
-              </StaggerItem>
-            ))}
-          </StaggerGroup>
-        </Container>
+                      </Card>
+                    </Link>
+                  </TiltCard>
+                </StaggerItem>
+              ))}
+            </StaggerGroup>
+          </Container>
+        </div>
       )}
 
       <HowItWorks />
@@ -430,49 +432,51 @@ export default async function HomePage() {
       )}
 
       {routes.items.length > 0 && (
-        <Container className="band-ocean py-24">
-          <ScrollReveal>
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <SectionHeader eyebrow="Getting there" icon={Bus} title="Travel" tone="travel" />
-              <Link href="/travel" className="text-sm font-medium text-brand hover:underline">
-                View all routes →
-              </Link>
-            </div>
-          </ScrollReveal>
-
-          <StaggerGroup className="mt-10 grid gap-8 md:grid-cols-3">
-            {routes.items.map((route) => (
-              <StaggerItem key={route.id}>
-                <Link href={`/travel/${route.slug}`} className="group">
-                  <Card className="card-glow-hover h-full overflow-hidden border-t-4 border-t-teal-500">
-                    <div className="relative h-56 w-full">
-                      <Image
-                        src={route.media[0]?.url ?? stockPhoto("travel", route.title)}
-                        alt={route.title}
-                        fill
-                        className="object-cover"
-                      />
-                      <CardArrow />
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5">
-                        <Badge className="bg-white/20 text-white backdrop-blur">{route.mode}</Badge>
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-lg font-semibold">{route.title}</h3>
-                      <p className="mt-1 text-sm text-muted">
-                        {route.fromLocation} → {route.toLocation}
-                      </p>
-                      <div className="mt-5 flex items-baseline justify-between border-t border-border pt-4">
-                        <span className="text-xl font-bold">{formatINR(route.price.toString())}</span>
-                        <span className="text-sm text-muted">{route.durationLabel}</span>
-                      </div>
-                    </div>
-                  </Card>
+        <div className="band-ocean border-y border-border py-24">
+          <Container>
+            <ScrollReveal>
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <SectionHeader eyebrow="Getting there" icon={Bus} title="Travel" tone="travel" />
+                <Link href="/travel" className="text-sm font-medium text-brand hover:underline">
+                  View all routes →
                 </Link>
-              </StaggerItem>
-            ))}
-          </StaggerGroup>
-        </Container>
+              </div>
+            </ScrollReveal>
+
+            <StaggerGroup className="mt-10 grid gap-8 md:grid-cols-3">
+              {routes.items.map((route) => (
+                <StaggerItem key={route.id}>
+                  <Link href={`/travel/${route.slug}`} className="group">
+                    <Card className="card-glow-hover h-full overflow-hidden border-t-4 border-t-teal-500 bg-paper">
+                      <div className="relative h-56 w-full">
+                        <Image
+                          src={route.media[0]?.url ?? stockPhoto("travel", route.title)}
+                          alt={route.title}
+                          fill
+                          className="object-cover"
+                        />
+                        <CardArrow />
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5">
+                          <Badge className="bg-white/20 text-white backdrop-blur">{route.mode}</Badge>
+                        </div>
+                      </div>
+                      <div className="p-6">
+                        <h3 className="text-lg font-semibold">{route.title}</h3>
+                        <p className="mt-1 text-sm text-muted">
+                          {route.fromLocation} → {route.toLocation}
+                        </p>
+                        <div className="mt-5 flex items-baseline justify-between border-t border-border pt-4">
+                          <span className="text-xl font-bold">{formatINR(route.price.toString())}</span>
+                          <span className="text-sm text-muted">{route.durationLabel}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                </StaggerItem>
+              ))}
+            </StaggerGroup>
+          </Container>
+        </div>
       )}
 
       <BirBillingTeaser />
