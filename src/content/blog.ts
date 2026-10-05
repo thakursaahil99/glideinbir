@@ -5,6 +5,8 @@
 // **bold**. Facts here are general and stable — anything that varies by
 // operator/package says so and points at the package page.
 
+import { GUIDE_POSTS } from "./blog-guides";
+
 export type SeedPost = {
   slug: string;
   title: string;
@@ -13,7 +15,7 @@ export type SeedPost = {
   body: string;
 };
 
-export const SEED_POSTS: SeedPost[] = [
+const BASE_POSTS: SeedPost[] = [
   {
     slug: "how-to-reach-bir-billing",
     title: "How to Reach Bir Billing: Bus, Train, Flight and Taxi",
@@ -226,3 +228,6 @@ Many packages include or offer a **GoPro video** filmed by the pilot on a wing-s
 Guided treks, camping and permits (where needed) can go in the same checkout as your flight and stay. Difficulty, duration and what is included are on each activity page.`,
   },
 ];
+
+// Guides live in their own file so this one stays the original articles.
+export const SEED_POSTS: SeedPost[] = [...BASE_POSTS, ...GUIDE_POSTS];

@@ -98,6 +98,10 @@ const organizationJsonLd = {
     name: "Bir Billing, Himachal Pradesh",
   },
   priceRange: "₹₹",
+  sameAs: [
+    "https://www.instagram.com/glide_in_bir_/",
+    "https://www.facebook.com/glide_in_bir_",
+  ],
 };
 
 // Lets Google show a sitelinks search box and ties the site name to the brand.

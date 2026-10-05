@@ -1,19 +1,34 @@
 import { Fragment, type ReactNode } from "react";
+import Link from "next/link";
 
 // Small article renderer for blog bodies. Supports the subset of Markdown
 // our content actually uses: ## / ### headings, - bullet lists, blank-line
-// paragraphs, and **bold** inline. Server component — no client JS.
+// paragraphs, **bold** inline, and [text](/internal-path) links. Server
+// component — no client JS.
+const INLINE_TOKEN = /(\*\*[^*]+\*\*|\[[^\]]+\]\(\/[^)\s]*\))/g;
+const LINK = /^\[([^\]]+)\]\((\/[^)\s]*)\)$/;
+
 function inline(text: string): ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) =>
-    part.startsWith("**") && part.endsWith("**") ? (
-      <strong key={i} className="font-semibold text-ink">
-        {part.slice(2, -2)}
-      </strong>
-    ) : (
-      <Fragment key={i}>{part}</Fragment>
-    ),
-  );
+  return text.split(INLINE_TOKEN).map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={i} className="font-semibold text-ink">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    // Internal links only (must start with "/") so authored or admin
+    // content can't link out to arbitrary sites.
+    const link = LINK.exec(part);
+    if (link?.[2]) {
+      return (
+        <Link key={i} href={link[2]}className="font-medium text-brand underline-offset-2 hover:underline">
+          {link[1]}
+        </Link>
+      );
+    }
+    return <Fragment key={i}>{part}</Fragment>;
+  });
 }
 
 export function ArticleBody({ body }: { body: string }) {
