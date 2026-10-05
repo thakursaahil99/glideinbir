@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/abandoned-bookings",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/auto-blog",
+      "schedule": "0 4 * * 1"
     }
   ]
 }

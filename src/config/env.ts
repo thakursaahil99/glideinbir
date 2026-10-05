@@ -48,6 +48,10 @@ const envSchema = z.object({
   // 401s), no impact on the rest of the app.
   CRON_SECRET: z.string().optional(),
 
+  // /api/cron/auto-blog saves each AI-written guide as a Draft for review.
+  // Set to "true" to publish them straight to the site instead.
+  BLOG_AUTOPUBLISH: z.string().optional(),
+
   // --- Sahu Bhai (admin AI assistant) ---
   // Any OpenAI-compatible chat-completions provider works (Groq, Google
   // Gemini, OpenRouter, Cerebras…). The feature stays completely dormant
