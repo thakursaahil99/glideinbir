@@ -8,7 +8,6 @@ import { courseService, batchService } from "@/server/modules/school/service";
 import { getCurrentUser } from "@/server/auth/guards";
 import { Card, Badge } from "@/components/ui/card";
 import { BookSchoolWidget } from "@/components/site/book-school-widget";
-import { MediaSection } from "@/components/site/media-section";
 import { DetailSplit } from "@/components/site/detail-split";
 import { ReviewsSection } from "@/components/site/reviews-section";
 import { FaqSection } from "@/components/site/faq-section";
@@ -65,7 +64,6 @@ export default async function CourseDetailPage({
       images={galleryImages}
       breadcrumbs={[{ label: "Courses", href: "/courses" }, { label: course.title }]}
       imageAlt={course.title}
-      media={<MediaSection kind="course" name={course.title} tone="school" band="band-aurora" />}
       badge={<Badge tone="brand">{course.level}</Badge>}
       title={course.title}
       subtitle={`${course.location} · ${course.durationDays} days`}

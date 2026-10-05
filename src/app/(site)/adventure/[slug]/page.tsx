@@ -6,7 +6,6 @@ import { itemService, slotService } from "@/server/modules/adventure/service";
 import { getCurrentUser } from "@/server/auth/guards";
 import { Card, Badge } from "@/components/ui/card";
 import { BookAdventureWidget } from "@/components/site/book-adventure-widget";
-import { MediaSection } from "@/components/site/media-section";
 import { DetailSplit } from "@/components/site/detail-split";
 import { formatINR } from "@/lib/format";
 import { GradientText } from "@/components/effects/gradient-text";
@@ -58,7 +57,6 @@ export default async function AdventureDetailPage({
       images={galleryImages}
       breadcrumbs={[{ label: "Adventure", href: "/adventure" }, { label: item.title }]}
       imageAlt={item.title}
-      media={<MediaSection kind="adventure" name={item.title} tone="adventure" band="band-rose" />}
       badge={<Badge tone="brand">{item.category.name}</Badge>}
       title={item.title}
       subtitle={`${item.location} · ${item.durationLabel}`}

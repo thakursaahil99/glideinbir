@@ -5,7 +5,6 @@ import { packageService, slotService } from "@/server/modules/paragliding/servic
 import { getCurrentUser } from "@/server/auth/guards";
 import { Card, Badge } from "@/components/ui/card";
 import { BookParaglidingWidget } from "@/components/site/book-paragliding-widget";
-import { MediaSection } from "@/components/site/media-section";
 import { DetailSplit } from "@/components/site/detail-split";
 import { ReviewsSection } from "@/components/site/reviews-section";
 import { FaqSection } from "@/components/site/faq-section";
@@ -64,7 +63,6 @@ export default async function ParaglidingDetailPage({
       images={galleryImages}
       breadcrumbs={[{ label: "Paragliding", href: "/paragliding" }, { label: pkg.title }]}
       imageAlt={pkg.title}
-      media={<MediaSection kind="paragliding" name={pkg.title} tone="paragliding" band="band-ocean" />}
       badge={<Badge tone="brand">{pkg.flightType.replace("_", " ")}</Badge>}
       title={pkg.title}
       subtitle={`${pkg.location} · ${pkg.durationMinutes} minutes`}

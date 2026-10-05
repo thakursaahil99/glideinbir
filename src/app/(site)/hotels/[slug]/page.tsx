@@ -8,7 +8,6 @@ import { hotelService } from "@/server/modules/hotel/service";
 import { getCurrentUser } from "@/server/auth/guards";
 import { Container, Card, Badge } from "@/components/ui/card";
 import { BookHotelWidget } from "@/components/site/book-hotel-widget";
-import { MediaSection } from "@/components/site/media-section";
 import { DetailSplit } from "@/components/site/detail-split";
 import { ReviewsSection } from "@/components/site/reviews-section";
 import { FaqSection } from "@/components/site/faq-section";
@@ -69,7 +68,6 @@ export default async function HotelDetailPage({
         images={galleryImages}
         breadcrumbs={[{ label: "Hotels", href: "/hotels" }, { label: hotel.name }]}
         imageAlt={hotel.name}
-        media={<MediaSection kind="hotel" name={hotel.name} tone="hotels" band="band-meadow" />}
         title={hotel.name}
         subtitle={`${hotel.address}, ${hotel.city}`}
         sidebar={

@@ -6,7 +6,6 @@ import { routeService, slotService } from "@/server/modules/travel/service";
 import { getCurrentUser } from "@/server/auth/guards";
 import { Card, Badge } from "@/components/ui/card";
 import { BookTravelWidget } from "@/components/site/book-travel-widget";
-import { MediaSection } from "@/components/site/media-section";
 import { DetailSplit } from "@/components/site/detail-split";
 import { formatINR } from "@/lib/format";
 import { GradientText } from "@/components/effects/gradient-text";
@@ -57,7 +56,6 @@ export default async function TravelDetailPage({
       images={galleryImages}
       breadcrumbs={[{ label: "Travel", href: "/travel" }, { label: route.title }]}
       imageAlt={route.title}
-      media={<MediaSection kind="travel" name={route.title} tone="travel" band="band-ocean" />}
       badge={<Badge tone="brand">{route.mode}</Badge>}
       title={route.title}
       subtitle={`${route.fromLocation} → ${route.toLocation} · ${route.vehicleType} · ${route.durationLabel}`}
