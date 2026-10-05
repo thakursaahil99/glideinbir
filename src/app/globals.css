@@ -371,10 +371,16 @@ html { scroll-behavior: smooth; }
     /* svh = the small viewport, which does not change as the phone's address
        bar slides in and out, so the sheet stays put. */
     max-height: calc(100vh - 4rem); max-height: calc(100svh - 4rem);
-    overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
-    transform: translateZ(0); touch-action: pan-y;
+    /* Vertical scroll only: no sideways drag, nothing wider than the sheet. */
+    overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    max-width: 100vw; box-sizing: border-box;
+    transform: translateZ(0);
     border-radius: 1rem 1rem 0 0;
     padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
     box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.45);
   }
+  .admin-main .admin-form-panel[data-sheet="open"],
+  .admin-main .admin-form-panel[data-sheet="open"] * { touch-action: pan-y; overscroll-behavior-x: none; }
+  .admin-main .admin-form-panel[data-sheet="open"] * { min-width: 0; max-width: 100%; box-sizing: border-box; }
+  .admin-main .admin-form-panel[data-sheet="open"] .grid { grid-template-columns: minmax(0, 1fr); }
 }
