@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { AdminSidebar, SidebarContent } from "@/components/admin/sidebar";
 import { AdminTopBar } from "@/components/admin/topbar";
@@ -18,6 +18,7 @@ export function AdminShell({
   children: React.ReactNode;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
   const initial = user.name.trim().charAt(0).toUpperCase();
 
   // Lock body scroll while the drawer is open, and close it on Escape.
@@ -34,6 +35,29 @@ export function AdminShell({
       document.body.style.overflow = prev;
     };
   }, [drawerOpen]);
+
+  // Copy each table's column headings onto its cells as data-label, so the
+  // phone layout in globals.css can show "Status: Active" style cards. Tables
+  // are client-rendered and re-filtered, so keep stamping as rows change.
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!main) return;
+    const stamp = () => {
+      main.querySelectorAll("table").forEach((table) => {
+        const labels = Array.from(table.querySelectorAll("thead th")).map((th) => th.textContent?.trim() ?? "");
+        table.querySelectorAll("tbody tr").forEach((tr) => {
+          Array.from(tr.children).forEach((td, i) => {
+            const label = labels[i] ?? "";
+            if (td.getAttribute("data-label") !== label) td.setAttribute("data-label", label);
+          });
+        });
+      });
+    };
+    stamp();
+    const observer = new MutationObserver(stamp);
+    observer.observe(main, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-orange-50/50 via-surface to-indigo-50/40">
@@ -83,7 +107,7 @@ export function AdminShell({
             <LogoutButton />
           </div>
         </header>
-        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+        <main ref={mainRef} className="admin-main p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );
