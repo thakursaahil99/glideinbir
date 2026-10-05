@@ -45,6 +45,7 @@ import { CardArrow } from "@/components/site/card-arrow";
 import { HowItWorks, BirBillingTeaser, PlanningGuides } from "@/components/site/home-sections";
 import { VideoSection } from "@/components/site/video-section";
 import { HeroMedia } from "@/components/site/hero-media";
+import { MomentsSection } from "@/components/site/moments-section";
 import { stockPhoto } from "@/lib/stock-photos";
 
 const MODULES = [
@@ -77,37 +78,37 @@ const WHY_US = [
     title: "One booking, everything",
     description: "Flights, courses, and hotel rooms in a single checkout — one payment, one confirmation.",
     icon: Layers,
-    color: "text-brand bg-brand/10",
+    color: "text-sky-600 bg-sky-500/10",
   },
   {
     title: "Certified pilots & instructors",
     description: "Every tandem flight and course is run by BPA-certified pilots with years of Bir Billing airtime.",
     icon: BadgeCheck,
-    color: "text-brand bg-brand/10",
+    color: "text-violet-600 bg-violet-500/10",
   },
   {
     title: "Real-time availability",
     description: "Slots, batches, and rooms are locked the moment you pay — no double-bookings, no surprises.",
     icon: CalendarClock,
-    color: "text-brand bg-brand/10",
+    color: "text-emerald-600 bg-emerald-500/10",
   },
   {
     title: "Secure payments",
     description: "Razorpay-backed checkout. Your money is only captured after your booking is confirmed.",
     icon: Lock,
-    color: "text-brand bg-brand/10",
+    color: "text-rose-600 bg-rose-500/10",
   },
   {
     title: "Flexible cancellation",
     description: "Plans change — cancel or reschedule from your account, no phone calls needed.",
     icon: RefreshCw,
-    color: "text-brand bg-brand/10",
+    color: "text-amber-600 bg-amber-500/10",
   },
   {
     title: "Stay where you fly",
     description: "Book a room minutes from the takeoff site, in the same checkout as your flight.",
     icon: MapPin,
-    color: "text-brand bg-brand/10",
+    color: "text-teal-600 bg-teal-500/10",
   },
 ];
 
@@ -250,7 +251,7 @@ export default async function HomePage() {
       </div>
 
       {flights.items.length > 0 && (
-        <Container className="bg-gradient-to-b from-brand/5 to-transparent py-24">
+        <Container className="band-ocean py-24">
           <ScrollReveal>
             <div className="flex flex-wrap items-end justify-between gap-4">
               <SectionHeader eyebrow="Tandem paragliding" icon={Wind} title="Popular flights" tone="paragliding" />
@@ -265,7 +266,7 @@ export default async function HomePage() {
               <StaggerItem key={pkg.id}>
                 <TiltCard maxTilt={6} className="h-full">
                   <Link href={`/paragliding/${pkg.slug}`} className="group">
-                    <Card className="card-glow-hover h-full overflow-hidden">
+                    <Card className="card-glow-hover h-full overflow-hidden border-t-4 border-t-sky-500">
                       <div className="relative h-64 w-full">
                         <Image
                           src={pkg.media[0]?.url ?? stockPhoto("paragliding", pkg.title)}
@@ -303,10 +304,12 @@ export default async function HomePage() {
 
       <HowItWorks />
 
+      <MomentsSection />
+
       <VideoSection videoId={process.env.NEXT_PUBLIC_FLIGHT_VIDEO_ID} />
 
       {courses.items.length > 0 && (
-        <div className="dot-grid-bg border-y border-border bg-surface py-24">
+        <div className="band-aurora border-y border-border py-24">
           <Container>
             <ScrollReveal>
               <div className="flex flex-wrap items-end justify-between gap-4">
@@ -321,7 +324,7 @@ export default async function HomePage() {
               {courses.items.map((course) => (
                 <StaggerItem key={course.id}>
                   <Link href={`/courses/${course.slug}`} className="group">
-                    <Card className="card-glow-hover h-full overflow-hidden bg-paper">
+                    <Card className="card-glow-hover h-full overflow-hidden border-t-4 border-t-violet-500 bg-paper">
                       <div className="relative h-56 w-full">
                         <Image
                           src={course.media[0]?.url ?? stockPhoto("course", course.title)}
@@ -381,7 +384,7 @@ export default async function HomePage() {
       )}
 
       {adventures.items.length > 0 && (
-        <div className="dot-grid-bg border-y border-border bg-surface py-24">
+        <div className="band-meadow border-y border-border py-24">
           <Container>
             <ScrollReveal>
               <div className="flex flex-wrap items-end justify-between gap-4">
@@ -396,7 +399,7 @@ export default async function HomePage() {
               {adventures.items.map((item) => (
                 <StaggerItem key={item.id}>
                   <Link href={`/adventure/${item.slug}`} className="group">
-                    <Card className="card-glow-hover h-full overflow-hidden">
+                    <Card className="card-glow-hover h-full overflow-hidden border-t-4 border-t-rose-500">
                       <div className="relative h-56 w-full">
                         <Image
                           src={item.media[0]?.url ?? stockPhoto("adventure", item.title)}
@@ -427,7 +430,7 @@ export default async function HomePage() {
       )}
 
       {routes.items.length > 0 && (
-        <Container className="bg-gradient-to-b from-brand/5 to-transparent py-24">
+        <Container className="band-ocean py-24">
           <ScrollReveal>
             <div className="flex flex-wrap items-end justify-between gap-4">
               <SectionHeader eyebrow="Getting there" icon={Bus} title="Travel" tone="travel" />
@@ -441,7 +444,7 @@ export default async function HomePage() {
             {routes.items.map((route) => (
               <StaggerItem key={route.id}>
                 <Link href={`/travel/${route.slug}`} className="group">
-                  <Card className="card-glow-hover h-full overflow-hidden">
+                  <Card className="card-glow-hover h-full overflow-hidden border-t-4 border-t-teal-500">
                     <div className="relative h-56 w-full">
                       <Image
                         src={route.media[0]?.url ?? stockPhoto("travel", route.title)}
@@ -476,7 +479,7 @@ export default async function HomePage() {
 
       <PlanningGuides />
 
-      <div className="dot-grid-bg border-y border-border bg-surface py-24">
+      <div className="band-sunset border-y border-border py-24">
         <Container className="grid items-center gap-12 md:grid-cols-2">
           <ScrollReveal>
             <SectionHeader

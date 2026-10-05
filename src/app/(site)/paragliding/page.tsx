@@ -92,7 +92,7 @@ export default async function ParaglidingListPage({
               <StaggerItem key={pkg.id}>
                 <TiltCard maxTilt={5} className="h-full">
                   <Link href={`/paragliding/${pkg.slug}`} className="group">
-                    <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
+                    <Card className="h-full overflow-hidden border-t-4 border-t-sky-500 transition-shadow hover:shadow-lg">
                       <div className="relative h-44 w-full">
                         <Image
                           src={pkg.media[0]?.url ?? stockPhoto("paragliding", pkg.title)}

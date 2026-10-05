@@ -384,3 +384,87 @@ html { scroll-behavior: smooth; }
   .admin-main .admin-form-panel[data-sheet="open"] * { min-width: 0; max-width: 100%; box-sizing: border-box; }
   .admin-main .admin-form-panel[data-sheet="open"] .grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* --- Colourful section bands ---------------------------------------------
+   Soft multi-hue washes (a pastel gradient in two corners over the page
+   surface) so sections stop being plain grey. */
+.band-sunset {
+  background:
+    radial-gradient(55% 70% at 0% 0%, rgb(251 146 60 / 0.16), transparent 62%),
+    radial-gradient(50% 70% at 100% 100%, rgb(244 114 182 / 0.14), transparent 62%),
+    var(--color-surface);
+}
+.band-ocean {
+  background:
+    radial-gradient(55% 70% at 100% 0%, rgb(56 189 248 / 0.18), transparent 62%),
+    radial-gradient(50% 70% at 0% 100%, rgb(45 212 191 / 0.14), transparent 62%),
+    var(--color-surface);
+}
+.band-aurora {
+  background:
+    radial-gradient(55% 70% at 0% 0%, rgb(139 92 246 / 0.15), transparent 62%),
+    radial-gradient(50% 70% at 100% 100%, rgb(16 185 129 / 0.14), transparent 62%),
+    var(--color-surface);
+}
+.band-meadow {
+  background:
+    radial-gradient(55% 70% at 100% 0%, rgb(52 211 153 / 0.16), transparent 62%),
+    radial-gradient(50% 70% at 0% 100%, rgb(251 191 36 / 0.16), transparent 62%),
+    var(--color-surface);
+}
+.band-rose {
+  background:
+    radial-gradient(55% 70% at 0% 100%, rgb(251 113 133 / 0.15), transparent 62%),
+    radial-gradient(50% 70% at 100% 0%, rgb(167 139 250 / 0.14), transparent 62%),
+    var(--color-surface);
+}
+
+/* Horizontal scrollers (reels) without the scrollbar. */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* --- Admin headings: bigger, with a highlighter-marker underline ---------- */
+.admin-main h1 {
+  font-size: 1.875rem;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.admin-main h1 {
+  background-image: linear-gradient(
+    transparent 52%,
+    color-mix(in srgb, var(--color-brand) 30%, transparent) 52%,
+    color-mix(in srgb, var(--color-brand) 30%, transparent) 88%,
+    transparent 88%
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  display: inline;
+  padding: 0 0.2em;
+  margin-left: -0.2em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.admin-main h2,
+.admin-main h3 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  padding-left: 0.65rem;
+  border-left: 4px solid var(--color-brand);
+  border-radius: 2px;
+  line-height: 1.3;
+}
+/* Small card labels (e.g. "Payments") keep their size but get the accent bar. */
+.admin-main h2.text-sm,
+.admin-main h3.text-sm { font-size: 1rem; }
+@media (min-width: 1024px) {
+  .admin-main h1 { font-size: 2.125rem; }
+}
+.admin-main table thead th {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-brand) 7%, var(--color-surface));
+}

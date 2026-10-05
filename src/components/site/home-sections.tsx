@@ -104,7 +104,7 @@ export function PlanningGuides() {
 
 export function BirBillingTeaser() {
   return (
-    <div className="border-y border-border bg-surface">
+    <div className="band-ocean border-y border-border">
       <Container className="py-16">
         <div className="grid items-center gap-10 md:grid-cols-[1.2fr_1fr]">
           <ScrollReveal>

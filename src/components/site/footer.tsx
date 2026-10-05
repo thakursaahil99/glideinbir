@@ -25,6 +25,7 @@ const COLUMNS: { title: string; links: { href: string; label: string; theme?: Mo
     links: [
       { href: "/about", label: "About us" },
       { href: "/bir-billing", label: "Bir Billing guide" },
+      { href: "/gallery", label: "Gallery" },
       { href: "/contact", label: "Contact" },
       { href: "/faq", label: "FAQs" },
       { href: "/blog", label: "Blog" },
@@ -99,8 +100,8 @@ export function SiteFooter() {
                 </a>
               </li>
               <li>
-                <a href="mailto:hello@glideinbir.com" className="flex items-center gap-2 text-muted hover:text-ink">
-                  <Mail className="h-4 w-4 text-brand" /> hello@glideinbir.com
+                <a href="mailto:glideinbir@gmail.com" className="flex items-center gap-2 text-muted hover:text-ink">
+                  <Mail className="h-4 w-4 text-brand" /> glideinbir@gmail.com
                 </a>
               </li>
               <li className="flex items-center gap-2 text-muted">

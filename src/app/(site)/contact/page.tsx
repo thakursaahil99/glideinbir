@@ -22,8 +22,8 @@ const CONTACT_INFO = [
   {
     icon: Mail,
     title: "Email",
-    lines: ["hello@glideinbir.com"],
-    href: "mailto:hello@glideinbir.com",
+    lines: ["glideinbir@gmail.com"],
+    href: "mailto:glideinbir@gmail.com",
   },
   {
     icon: MapPin,

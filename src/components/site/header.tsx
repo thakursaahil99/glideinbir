@@ -17,6 +17,7 @@ const NAV_LINKS: { href: string; label: string; theme?: ModuleKey }[] = [
   { href: "/hotels", label: "Hotels", theme: "hotels" },
   { href: "/adventure", label: "Adventure", theme: "adventure" },
   { href: "/travel", label: "Travel", theme: "travel" },
+  { href: "/gallery", label: "Gallery", theme: "content" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -88,7 +89,7 @@ export function SiteHeader({ user }: { user: { name: string } | null }) {
           scrolled ? "h-14" : "h-16",
         )}
       >
-        <Link href="/" className="group relative text-xl font-bold tracking-tight">
+        <Link href="/" className="group relative whitespace-nowrap text-xl font-bold tracking-tight">
           Glide
           <span className="relative inline-block text-brand transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:rotate-[-6deg]">
             in
@@ -107,6 +108,7 @@ export function SiteHeader({ user }: { user: { name: string } | null }) {
                 onMouseEnter={() => setHoveredHref(link.href)}
                 className={clsx(
                   "relative isolate px-3 py-2 text-sm font-medium transition-colors",
+                  link.href === "/gallery" && "hidden lg:block",
                   active ? theme.text : "text-muted hover:text-ink",
                 )}
               >
@@ -198,13 +200,13 @@ export function SiteHeader({ user }: { user: { name: string } | null }) {
 
           <a
             href="tel:+919805338877"
-            className="hidden items-center gap-1.5 px-2 text-sm font-medium text-muted hover:text-brand lg:flex"
+            className="hidden items-center gap-1.5 whitespace-nowrap px-2 text-sm font-medium text-muted hover:text-brand xl:flex"
           >
             <Phone className="h-3.5 w-3.5" />
             +91 98053 38877
           </a>
 
-          <div className="hidden items-center gap-4 pl-2 md:flex">
+          <div className="hidden items-center gap-4 whitespace-nowrap pl-2 md:flex">
             {user ? (
               <>
                 <Link href="/account/bookings" className="text-sm font-medium hover:text-brand">

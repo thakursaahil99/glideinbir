@@ -47,6 +47,10 @@ export function SectionHeader({
       >
         {title}
       </h2>
+      <div
+        aria-hidden
+        className={clsx("mt-4 h-1 w-16 rounded-full bg-gradient-to-r", theme.gradient, centered && "mx-auto")}
+      />
       {description && (
         <p className={clsx("mt-4 text-lg text-muted", centered ? "mx-auto max-w-xl" : "max-w-xl")}>
           {description}

@@ -76,7 +76,7 @@ export default async function TravelListPage({
             {items.map((route) => (
               <StaggerItem key={route.id}>
                 <Link href={`/travel/${route.slug}`} className="group">
-                  <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
+                  <Card className="h-full overflow-hidden border-t-4 border-t-teal-500 transition-shadow hover:shadow-lg">
                     <div className="relative h-44 w-full">
                       <Image
                         src={route.media[0]?.url ?? stockPhoto("travel", route.title)}

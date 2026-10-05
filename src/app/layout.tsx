@@ -86,7 +86,7 @@ const organizationJsonLd = {
     "Book tandem paragliding flights, paragliding courses, hotels, camping, trekking, and travel in Bir Billing, Himachal Pradesh.",
   url: siteUrl,
   telephone: "+91-98053-38877",
-  email: "hello@glideinbir.com",
+  email: "glideinbir@gmail.com",
   address: {
     "@type": "PostalAddress",
     addressLocality: "Bir",

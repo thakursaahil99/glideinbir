@@ -27,6 +27,7 @@ export function DetailSplit({
   price,
   priceUnit,
   breadcrumbs,
+  media,
 }: {
   images: string[];
   imageAlt: string;
@@ -38,6 +39,8 @@ export function DetailSplit({
   price?: string;
   priceUnit?: string;
   breadcrumbs?: Crumb[];
+  /** Full-width band under the two-column row (photos / videos / reels). */
+  media?: ReactNode;
 }) {
   return (
     <>
@@ -59,6 +62,8 @@ export function DetailSplit({
           </div>
         </div>
       </Container>
+
+      {media}
 
       {price && (
         <>

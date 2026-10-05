@@ -24,7 +24,7 @@ const POOLS = {
   bir: ["bir-aerial", "bir-dhauladhar", "bir-monastery", "bir-tea", "bir-dhauladhar-layers", "bir-barot-uhl", "bir-valley"],
 } as const;
 
-type Pool = keyof typeof POOLS;
+export type Pool = keyof typeof POOLS;
 
 export type StockKind = "paragliding" | "course" | "instructor" | "hotel" | "room" | "adventure" | "travel" | "blog";
 
@@ -64,10 +64,17 @@ function hash(str: string): number {
   return h >>> 0;
 }
 
-function poolFor(kind: StockKind, name: string): readonly string[] {
+/** Which pool (flight, camping, bus…) an item belongs to, from its name. */
+export function poolKeyFor(kind: StockKind, name: string): Pool {
   const match = KEYWORDS.find(([re]) => re.test(name));
-  return POOLS[match ? match[1] : KIND_DEFAULT[kind]];
+  return match ? match[1] : KIND_DEFAULT[kind];
 }
+
+function poolFor(kind: StockKind, name: string): readonly string[] {
+  return POOLS[poolKeyFor(kind, name)];
+}
+
+export { hash as hashName };
 
 /** One placeholder photo that fits the item's name. */
 export function stockPhoto(kind: StockKind, name: string): string {

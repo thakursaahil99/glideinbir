@@ -80,7 +80,7 @@ export default async function AdventureListPage({
             {items.map((item) => (
               <StaggerItem key={item.id}>
                 <Link href={`/adventure/${item.slug}`} className="group">
-                  <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
+                  <Card className="h-full overflow-hidden border-t-4 border-t-rose-500 transition-shadow hover:shadow-lg">
                     <div className="relative h-44 w-full">
                       <Image
                         src={item.media[0]?.url ?? stockPhoto("adventure", item.title)}

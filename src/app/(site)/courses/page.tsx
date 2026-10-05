@@ -52,7 +52,7 @@ export default async function CoursesListPage() {
             {items.map((course) => (
               <StaggerItem key={course.id}>
                 <Link href={`/courses/${course.slug}`} className="group">
-                  <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
+                  <Card className="h-full overflow-hidden border-t-4 border-t-violet-500 transition-shadow hover:shadow-lg">
                     <div className="relative h-44 w-full">
                       <Image
                         src={course.media[0]?.url ?? stockPhoto("course", course.title)}
