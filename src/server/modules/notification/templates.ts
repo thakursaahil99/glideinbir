@@ -56,12 +56,19 @@ export function bookingConfirmedEmail(params: {
   name: string;
   bookingNumber: string;
   totalAmount: string;
+  amountPaid: string;
+  /** Left to pay in Bir; null when the booking is fully paid. */
+  balanceDue: string | null;
   bookingUrl: string;
 }) {
+  const paidLine = params.balanceDue
+    ? `<p>Your booking <strong>${params.bookingNumber}</strong> is confirmed — token of <strong>${params.amountPaid}</strong> received.</p>
+     <p>Booking total: <strong>${params.totalAmount}</strong> · Balance to pay in Bir: <strong>${params.balanceDue}</strong></p>`
+    : `<p>Your booking <strong>${params.bookingNumber}</strong> is confirmed — payment of <strong>${params.amountPaid}</strong> received.</p>`;
   const html = shell(
     "Booking confirmed 🎉",
     `<p>Hi ${params.name},</p>
-     <p>Your booking <strong>${params.bookingNumber}</strong> is confirmed — payment of <strong>${params.totalAmount}</strong> received.</p>
+     ${paidLine}
      ${button(params.bookingUrl, "View booking")}
      <p style="margin-top:24px;color:#78716c;">See you in Bir Billing! Call +91 98053 38877 for anything urgent.</p>`,
   );

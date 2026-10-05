@@ -1,7 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { Container } from "@/components/ui/card";
-import { ParticleField } from "@/components/effects/particle-field";
 import { ShootingStars } from "@/components/effects/shooting-stars";
 import { GradientOrb } from "@/components/effects/gradient-orb";
 import { TextReveal } from "@/components/effects/text-reveal";
@@ -44,14 +43,7 @@ export function ModuleHero({
       <div className="absolute inset-0 bg-gradient-to-tr from-brand/40 via-brand/5 to-transparent mix-blend-soft-light" />
       <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-brand/20 to-transparent" />
 
-      {effect === "stars" && (
-        <>
-          <ParticleField variant="stars" density={70} />
-          <ShootingStars />
-        </>
-      )}
-      {effect === "dust" && <ParticleField variant="dust" density={40} />}
-      {effect === "sparkles" && <ParticleField variant="sparkles" density={30} />}
+      {effect === "stars" && <ShootingStars />}
       {effect === "orbs" && (
         <>
           <GradientOrb className="-top-16 -right-16" color="var(--color-brand)" size={340} />

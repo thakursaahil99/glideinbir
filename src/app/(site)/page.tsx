@@ -8,7 +8,6 @@ import { routeService } from "@/server/modules/travel/service";
 import { LinkButton } from "@/components/ui/button";
 import { Container, Card, Badge } from "@/components/ui/card";
 import { formatINR } from "@/lib/format";
-import { ParticleField } from "@/components/effects/particle-field";
 import { SpotlightCursor } from "@/components/effects/spotlight-cursor";
 import { TextReveal } from "@/components/effects/text-reveal";
 import { MagneticButton } from "@/components/effects/magnetic-button";
@@ -137,7 +136,6 @@ export default async function HomePage() {
             {/* Brand wash — the hero takes on whatever colour the site is tuned to. */}
             <div className="absolute inset-0 bg-gradient-to-tr from-brand/45 via-brand/10 to-transparent mix-blend-soft-light" />
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-brand/25 to-transparent" />
-            <ParticleField variant="dust" density={50} />
             <SpotlightCursor />
 
             <div className="absolute right-6 top-24 z-20 hidden flex-col gap-3 md:flex lg:right-16">

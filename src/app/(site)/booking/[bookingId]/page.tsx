@@ -8,7 +8,7 @@ import { PaymentPanel } from "@/components/site/payment-panel";
 import { BookingCelebration } from "@/components/site/booking-celebration";
 import { LeaveReviewForm } from "@/components/site/leave-review-form";
 import { formatDate, formatINR } from "@/lib/format";
-import { ParticleField } from "@/components/effects/particle-field";
+import { amountPaid, tokenAmount } from "@/lib/booking-token";
 import { HeroSceneLazy } from "@/components/effects/hero-scene-lazy";
 import { ScrollReveal } from "@/components/effects/scroll-reveal";
 import { stockPhoto } from "@/lib/stock-photos";
@@ -59,6 +59,11 @@ export default async function BookingPage({
   const booking = await bookingService.getById(bookingId, user.id, isAdmin).catch(() => null);
   if (!booking) notFound();
 
+  const totalRupees = booking.totalAmount.toNumber();
+  const paidRupees = amountPaid(booking.payments);
+  const dueNow = tokenAmount(totalRupees);
+  // What is still left to pay in Bir once the token (or more) is paid.
+  const balanceRupees = Math.max(0, totalRupees - paidRupees);
   const status = STATUS[booking.status] ?? { label: booking.status, icon: Clock };
   const StatusIcon = status.icon;
 
@@ -155,7 +160,6 @@ export default async function BookingPage({
           className="object-cover opacity-30"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/85 to-ink/50" />
-        <ParticleField variant="dust" density={30} />
         <div className="pointer-events-none absolute -right-10 bottom-0 hidden h-72 w-72 lg:block">
           <HeroSceneLazy variant="icosahedron" />
         </div>
@@ -236,11 +240,29 @@ export default async function BookingPage({
                 <span className="text-2xl font-bold">{formatINR(booking.totalAmount.toString())}</span>
               </div>
 
+              {booking.status === "CONFIRMED" && paidRupees > 0 && (
+                <div className="mt-3 space-y-1 rounded-xl border border-border bg-surface p-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted">{balanceRupees > 0 ? "Token paid online" : "Paid online"}</span>
+                    <span className="font-medium">{formatINR(paidRupees.toString())}</span>
+                  </div>
+                  {balanceRupees > 0 && (
+                    <div className="flex justify-between font-semibold">
+                      <span>Balance to pay in Bir</span>
+                      <span className="text-brand">{formatINR(balanceRupees.toString())}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="mt-6">
                 {booking.status === "PENDING" && (
                   <>
                     <PaymentPanel
                       bookingId={booking.id}
+                      fullLabel={formatINR(totalRupees.toString())}
+                      tokenLabel={dueNow < totalRupees ? formatINR(dueNow.toString()) : undefined}
+                      balanceLabel={dueNow < totalRupees ? formatINR((totalRupees - dueNow).toString()) : undefined}
                       customer={{
                         name: booking.customerName,
                         email: booking.customerEmail,

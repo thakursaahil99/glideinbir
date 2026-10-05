@@ -177,9 +177,9 @@ h1, h2, h3, h4, h5, h6 {
   .float-y { animation: float-y 5s ease-in-out infinite; }
 }
 
+/* Was a dotted background pattern; dots removed site-wide by request. */
 .dot-grid-bg {
-  background-image: radial-gradient(circle, var(--color-border) 1px, transparent 1px);
-  background-size: 28px 28px;
+  background-image: none;
 }
 
 .card-glow-hover {
@@ -314,4 +314,46 @@ html { scroll-behavior: smooth; }
 .text-outline {
   color: transparent;
   -webkit-text-stroke: 1.5px color-mix(in srgb, var(--color-brand) 55%, transparent);
+}
+
+/* Admin tables on phones: each row becomes a stacked card with the column
+   name beside every value (labels are stamped onto <td data-label> by
+   AdminShell from the table's own <thead>). Wider screens keep the table. */
+.admin-main .grid > * { min-width: 0; }
+@media (max-width: 639px) {
+  .admin-main table { min-width: 0 !important; display: block; }
+  .admin-main thead {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .admin-main tbody { display: block; }
+  .admin-main tbody tr { display: block; padding: 0.875rem 1rem; }
+  .admin-main tbody td {
+    display: block; padding: 0.1875rem 0 !important;
+    text-align: right; overflow-wrap: anywhere;
+  }
+  .admin-main tbody td::after { content: ""; display: table; clear: both; }
+  .admin-main tbody td[data-label]:not([data-label=""])::before {
+    content: attr(data-label);
+    float: left; margin-right: 1rem; padding-top: 0.125rem;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+    text-transform: uppercase; text-align: left;
+    color: var(--color-muted);
+  }
+  /* First column is the row's title: left aligned, no label. */
+  .admin-main tbody td:first-child:not([colspan]) {
+    text-align: left; font-weight: 500; font-size: 0.9375rem;
+    padding-bottom: 0.375rem !important;
+  }
+  .admin-main tbody td:first-child:not([colspan])::before { display: none; }
+  /* Unlabelled action column: buttons in a row at the bottom of the card. */
+  .admin-main tbody td[data-label=""]:not([colspan]):not(:first-child) {
+    display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0.25rem;
+    margin-top: 0.5rem; padding-top: 0.5rem !important;
+    border-top: 1px dashed var(--color-border);
+  }
+  .admin-main tbody td[data-label=""]:not(:first-child)::after { display: none; }
+  .admin-main tbody td[data-label=""] > * { margin: 0 !important; }
+  /* Empty / loading rows. */
+  .admin-main tbody td[colspan] { text-align: center; padding: 1.5rem 0 !important; }
 }

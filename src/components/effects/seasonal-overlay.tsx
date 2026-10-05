@@ -199,7 +199,6 @@ type Flake = {
   z: number;
 };
 type Puff = { x: number; y: number; r: number; vx: number; o: number };
-type Mote = { x: number; y: number; r: number; vy: number; vx: number; phase: number };
 type Star = { x: number; y: number; r: number; phase: number; speed: number };
 
 // Imperative canvas loop — kept out of React so a resize or a frame never
@@ -221,7 +220,6 @@ function mountCanvas(canvas: HTMLCanvasElement, effect: Exclude<Effect, "none">,
   let drops: Drop[] = [];
   let flakes: Flake[] = [];
   let puffs: Puff[] = [];
-  let motes: Mote[] = [];
   let stars: Star[] = [];
   // Lightning: brightness of the current flash, and when the next one fires.
   let flash = 0;
@@ -285,16 +283,6 @@ function mountCanvas(canvas: HTMLCanvasElement, effect: Exclude<Effect, "none">,
         vx: rand(0.12, 0.3),
         o: rand(0.07, 0.12) * alpha,
       }));
-    } else if (effect === "sun") {
-      const count = Math.min(60, Math.round(area / 26000));
-      motes = Array.from({ length: count }, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        r: rand(0.8, 2.2),
-        vy: rand(-0.25, -0.06),
-        vx: rand(-0.1, 0.12),
-        phase: Math.random() * Math.PI * 2,
-      }));
     } else if (effect === "night") {
       // Stars only in the upper part of the screen, like a real sky.
       const count = Math.min(140, Math.round(area / 9000));
@@ -328,57 +316,60 @@ function mountCanvas(canvas: HTMLCanvasElement, effect: Exclude<Effect, "none">,
     }
   }
 
+  // Sunlight: soft beams falling diagonally from the top-right corner, the
+  // way light comes through a window — no particles, just light.
+  const BEAMS = [
+    { angle: 2.05, spread: 0.1, phase: 0 },
+    { angle: 2.25, spread: 0.16, phase: 1.3 },
+    { angle: 2.45, spread: 0.08, phase: 2.6 },
+    { angle: 2.62, spread: 0.13, phase: 3.9 },
+    { angle: 2.82, spread: 0.07, phase: 5.2 },
+    { angle: 3.0, spread: 0.11, phase: 0.7 },
+  ];
+
   function drawSun(t: number) {
-    // Sun sits just off the top-right corner.
-    const cx = w * 0.9;
-    const cy = -h * 0.06;
-    const R = Math.max(w, h) * 1.1;
-    const pulse = 1 + Math.sin(t / 2600) * 0.06;
+    const sx = w * 1.02;
+    const sy = -h * 0.08;
+    const len = Math.hypot(w, h) * 1.15;
 
-    const glow = ctx!.createRadialGradient(cx, cy, 0, cx, cy, R * 0.55 * pulse);
-    glow.addColorStop(0, `rgba(255,214,120,${0.34 * alpha})`);
-    glow.addColorStop(0.3, `rgba(255,196,96,${0.12 * alpha})`);
-    glow.addColorStop(1, "rgba(255,196,96,0)");
-    ctx!.fillStyle = glow;
-    ctx!.fillRect(0, 0, w, h);
+    // Warm wash across the top of the page.
+    const wash = ctx!.createLinearGradient(0, 0, 0, h * 0.55);
+    wash.addColorStop(0, `rgba(255,206,120,${0.16 * alpha})`);
+    wash.addColorStop(1, "rgba(255,206,120,0)");
+    ctx!.fillStyle = wash;
+    ctx!.fillRect(0, 0, w, h * 0.55);
 
-    // Slowly turning god-rays, each breathing on its own rhythm.
-    const rayFade = ctx!.createRadialGradient(0, 0, 0, 0, 0, R);
-    rayFade.addColorStop(0, "rgba(255,226,150,1)");
-    rayFade.addColorStop(0.6, "rgba(255,226,150,0.25)");
-    rayFade.addColorStop(1, "rgba(255,226,150,0)");
-    ctx!.save();
-    ctx!.translate(cx, cy);
-    ctx!.rotate(t / 90000);
-    ctx!.fillStyle = rayFade;
-    const RAYS = 16;
-    for (let i = 0; i < RAYS; i++) {
-      const a = (i / RAYS) * Math.PI * 2;
-      const width = 0.05 + (i % 3) * 0.025;
-      ctx!.globalAlpha = (0.05 + 0.04 * Math.sin(t / 1800 + i * 1.7)) * alpha;
+    // Beams: each one sways a little and breathes brighter / dimmer.
+    for (const b of BEAMS) {
+      const a = b.angle + Math.sin(t / 7000 + b.phase) * 0.03;
+      const half = b.spread / 2;
+      const ex1 = sx + Math.cos(a - half) * len;
+      const ey1 = sy + Math.sin(a - half) * len;
+      const ex2 = sx + Math.cos(a + half) * len;
+      const ey2 = sy + Math.sin(a + half) * len;
+      const strength = (0.1 + 0.07 * Math.sin(t / 2400 + b.phase * 1.7)) * alpha;
+
+      const g = ctx!.createLinearGradient(sx, sy, sx + Math.cos(a) * len, sy + Math.sin(a) * len);
+      g.addColorStop(0, `rgba(255,224,150,${strength})`);
+      g.addColorStop(0.45, `rgba(255,214,130,${strength * 0.45})`);
+      g.addColorStop(1, "rgba(255,214,130,0)");
+      ctx!.fillStyle = g;
       ctx!.beginPath();
-      ctx!.moveTo(0, 0);
-      ctx!.arc(0, 0, R, a - width / 2, a + width / 2);
+      ctx!.moveTo(sx, sy);
+      ctx!.lineTo(ex1, ey1);
+      ctx!.lineTo(ex2, ey2);
       ctx!.closePath();
       ctx!.fill();
     }
-    ctx!.restore();
-    ctx!.globalAlpha = 1;
 
-    // Warm dust drifting up through the light, twinkling.
-    for (const m of motes) {
-      m.x += m.vx;
-      m.y += m.vy;
-      if (m.y < -4) {
-        m.y = h + 4;
-        m.x = Math.random() * w;
-      }
-      const tw = 0.35 + 0.35 * Math.sin(t / 700 + m.phase);
-      ctx!.fillStyle = `rgba(255,190,90,${tw * alpha})`;
-      ctx!.beginPath();
-      ctx!.arc(m.x, m.y, m.r, 0, Math.PI * 2);
-      ctx!.fill();
-    }
+    // The sun's own glow in the corner, gently pulsing.
+    const pulse = 1 + Math.sin(t / 3000) * 0.05;
+    const glow = ctx!.createRadialGradient(sx, sy, 0, sx, sy, Math.max(w, h) * 0.45 * pulse);
+    glow.addColorStop(0, `rgba(255,236,170,${0.42 * alpha})`);
+    glow.addColorStop(0.35, `rgba(255,210,120,${0.14 * alpha})`);
+    glow.addColorStop(1, "rgba(255,210,120,0)");
+    ctx!.fillStyle = glow;
+    ctx!.fillRect(0, 0, w, h);
   }
 
   function frame(t: number) {

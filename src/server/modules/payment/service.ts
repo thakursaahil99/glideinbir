@@ -5,6 +5,7 @@ import { confirmBookingAvailability } from "@/server/modules/booking/availabilit
 import { notificationService } from "@/server/modules/notification/service";
 import { bookingConfirmedEmail } from "@/server/modules/notification/templates";
 import { formatINR } from "@/lib/format";
+import { amountToCharge, type PayOption } from "@/lib/booking-token";
 import {
   createRazorpayOrder,
   captureRazorpayPayment,
@@ -34,10 +35,13 @@ async function finalizePayment(
 
     const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
     if (booking) {
+      const balance = Math.max(0, booking.totalAmount.toNumber() - amountRupees);
       const { subject, html } = bookingConfirmedEmail({
         name: booking.customerName,
         bookingNumber: booking.bookingNumber,
         totalAmount: formatINR(booking.totalAmount.toString()),
+        amountPaid: formatINR(amountRupees.toString()),
+        balanceDue: balance > 0 ? formatINR(balance.toString()) : null,
         bookingUrl: `${env.NEXT_PUBLIC_SITE_URL}/booking/${booking.id}`,
       });
       // Don't let a slow/failed email delay the payment response — the
@@ -65,7 +69,7 @@ async function finalizePayment(
 }
 
 export const paymentService = {
-  async createOrderForBooking(bookingId: string, userId: string) {
+  async createOrderForBooking(bookingId: string, userId: string, option: PayOption = "full") {
     const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
     if (!booking) throw new NotFoundError("Booking not found");
     if (booking.userId !== userId) throw new ForbiddenError();
@@ -73,31 +77,35 @@ export const paymentService = {
       throw new ConflictError("This booking is not awaiting payment");
     }
 
+    // Full payment by default; "token" charges only the ₹600 minimum and the
+    // rest is paid in Bir.
+    const payNow = amountToCharge(booking.totalAmount.toNumber(), option);
+
     if (env.PAYMENT_DEMO_MODE) {
       const demoOrderId = `demo_order_${Math.random().toString(36).slice(2, 10)}`;
       await prisma.payment.create({
         data: {
           bookingId: booking.id,
           razorpayOrderId: demoOrderId,
-          amount: booking.totalAmount,
+          amount: payNow,
           status: "CREATED",
         },
       });
       return {
         orderId: demoOrderId,
-        amount: toPaise(booking.totalAmount.toNumber()),
+        amount: toPaise(payNow),
         currency: "INR",
         keyId: env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         demoMode: true as const,
       };
     }
 
-    const order = await createRazorpayOrder(booking.totalAmount.toNumber(), booking.bookingNumber);
+    const order = await createRazorpayOrder(payNow, booking.bookingNumber);
     await prisma.payment.create({
       data: {
         bookingId: booking.id,
         razorpayOrderId: order.id,
-        amount: booking.totalAmount,
+        amount: payNow,
         status: "CREATED",
       },
     });

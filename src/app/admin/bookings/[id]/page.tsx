@@ -5,6 +5,7 @@ import { Card, Container, Badge } from "@/components/ui/card";
 import { BookingActions } from "@/components/admin/booking-actions";
 import { formatDate, formatINR } from "@/lib/format";
 import { statusTone } from "@/lib/status-tone";
+import { amountPaid } from "@/lib/booking-token";
 
 export default async function AdminBookingDetailPage({
   params,
@@ -88,6 +89,20 @@ export default async function AdminBookingDetailPage({
             <span>Total</span>
             <span>{formatINR(booking.totalAmount.toString())}</span>
           </div>
+          {amountPaid(booking.payments) > 0 && (
+            <>
+              <div className="flex justify-between text-muted">
+                <span>Paid online</span>
+                <span>{formatINR(amountPaid(booking.payments).toString())}</span>
+              </div>
+              <div className="flex justify-between font-semibold">
+                <span>Balance to collect in Bir</span>
+                <span>
+                  {formatINR(Math.max(0, booking.totalAmount.toNumber() - amountPaid(booking.payments)).toString())}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       </Card>
 
@@ -97,7 +112,9 @@ export default async function AdminBookingDetailPage({
           <div className="mt-3 space-y-2">
             {booking.payments.map((payment) => (
               <div key={payment.id} className="flex justify-between text-sm">
-                <span className="text-muted">{payment.razorpayOrderId}</span>
+                <span className="text-muted">
+                  {payment.razorpayOrderId} · {formatINR(payment.amount.toString())}
+                </span>
                 <Badge tone={statusTone(payment.status)}>{payment.status}</Badge>
               </div>
             ))}
