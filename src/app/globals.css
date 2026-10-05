@@ -321,6 +321,8 @@ html { scroll-behavior: smooth; }
    AdminShell from the table's own <thead>). Wider screens keep the table. */
 .admin-main .grid > * { min-width: 0; }
 @media (max-width: 639px) {
+  .admin-main { overflow-x: clip; }
+  .admin-main .grid { grid-template-columns: minmax(0, 1fr); }
   .admin-main table { min-width: 0 !important; display: block; }
   .admin-main thead {
     position: absolute; width: 1px; height: 1px; overflow: hidden;
@@ -356,4 +358,19 @@ html { scroll-behavior: smooth; }
   .admin-main tbody td[data-label=""] > * { margin: 0 !important; }
   /* Empty / loading rows. */
   .admin-main tbody td[colspan] { text-align: center; padding: 1.5rem 0 !important; }
+}
+
+/* Add/Edit form panels below lg: hidden until the header's Add button opens
+   them as a bottom sheet (AdminShell toggles data-sheet; the dimmed backdrop
+   is the sheet's own huge box-shadow). */
+@media (max-width: 1023px) {
+  .admin-main .admin-form-panel { display: none; }
+  .admin-main .admin-form-panel[data-sheet="open"] {
+    display: block;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    max-height: calc(100dvh - 4rem); overflow-y: auto; overscroll-behavior: contain;
+    border-radius: 1rem 1rem 0 0;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+    box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.45);
+  }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, Pencil, Plus, X } from "lucide-react";
 import { AdminSidebar, SidebarContent } from "@/components/admin/sidebar";
 import { AdminTopBar } from "@/components/admin/topbar";
 import { LogoutButton } from "@/components/site/logout-button";
@@ -19,6 +19,10 @@ export function AdminShell({
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  const [panelTitle, setPanelTitle] = useState<string | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const wasEditing = useRef(false);
+  const submitState = useRef<{ at: number; sawPending: boolean } | null>(null);
   const initial = user.name.trim().charAt(0).toUpperCase();
 
   // Lock body scroll while the drawer is open, and close it on Escape.
@@ -53,11 +57,79 @@ export function AdminShell({
         });
       });
     };
-    stamp();
-    const observer = new MutationObserver(stamp);
-    observer.observe(main, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    // Add/Edit form panel: below lg the CSS turns it into a bottom sheet that
+    // a header button opens, instead of leaving it under a long table.
+    const narrow = () => window.matchMedia("(max-width: 1023px)").matches;
+    const syncPanel = () => {
+      const panel = main.querySelector<HTMLElement>(".admin-form-panel");
+      if (!panel) {
+        wasEditing.current = false;
+        submitState.current = null;
+        setPanelTitle(null);
+        setSheetOpen(false);
+        return;
+      }
+      const title = panel.querySelector("h3")?.textContent?.trim() ?? "Form";
+      const editing = /^edit/i.test(title);
+      setPanelTitle(title);
+      // Clicking Edit on a row swaps the heading — pop the sheet open for it,
+      // and put it away again once the edit is saved or cancelled.
+      if (editing && !wasEditing.current && narrow()) setSheetOpen(true);
+      if (!editing && wasEditing.current) setSheetOpen(false);
+      wasEditing.current = editing;
+
+      // After a submit: close once saving finishes without an error showing.
+      const submit = submitState.current;
+      if (submit) {
+        const button = panel.querySelector<HTMLButtonElement>('button[type="submit"]');
+        if (button?.disabled) submit.sawPending = true;
+        else if (submit.sawPending) {
+          submitState.current = null;
+          if (!panel.querySelector(".text-red-600")) setSheetOpen(false);
+        } else if (Date.now() - submit.at > 15000) submitState.current = null;
+      }
+    };
+    const onSubmit = (e: Event) => {
+      if ((e.target as HTMLElement).closest(".admin-form-panel")) {
+        submitState.current = { at: Date.now(), sawPending: false };
+      }
+    };
+    const run = () => {
+      stamp();
+      syncPanel();
+    };
+    run();
+    main.addEventListener("submit", onSubmit, true);
+    const observer = new MutationObserver(run);
+    observer.observe(main, { childList: true, subtree: true, characterData: true });
+    return () => {
+      main.removeEventListener("submit", onSubmit, true);
+      observer.disconnect();
+    };
   }, []);
+
+  // Reflect the sheet state onto the panel, lock page scroll while it is up,
+  // and let Escape / a tap on the dimmed backdrop dismiss it.
+  useEffect(() => {
+    const panel = mainRef.current?.querySelector<HTMLElement>(".admin-form-panel");
+    if (panel) panel.dataset.sheet = sheetOpen ? "open" : "closed";
+    if (!sheetOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSheetOpen(false);
+    };
+    const onPointerDown = (e: PointerEvent) => {
+      if (!(e.target as HTMLElement).closest(".admin-form-panel, [data-sheet-ui]")) setSheetOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointerDown);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.body.style.overflow = prev;
+    };
+  }, [sheetOpen, panelTitle]);
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-orange-50/50 via-surface to-indigo-50/40">
@@ -97,6 +169,17 @@ export function AdminShell({
             <AdminTopBar />
           </div>
           <div className="flex shrink-0 items-center gap-3">
+            {panelTitle && (
+              <button
+                type="button"
+                data-sheet-ui
+                onClick={() => setSheetOpen(true)}
+                className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1.5 text-xs font-semibold text-white shadow-sm lg:hidden"
+              >
+                {/^edit/i.test(panelTitle) ? <Pencil className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+                {/^edit/i.test(panelTitle) ? "Edit" : "Add"}
+              </button>
+            )}
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-sm font-semibold text-white">
               {initial}
             </div>
@@ -108,6 +191,17 @@ export function AdminShell({
           </div>
         </header>
         <main ref={mainRef} className="admin-main p-4 sm:p-6 lg:p-8">{children}</main>
+        {sheetOpen && (
+          <button
+            type="button"
+            data-sheet-ui
+            onClick={() => setSheetOpen(false)}
+            aria-label="Close form"
+            className="fixed right-3 top-3 z-[70] rounded-full bg-paper p-2 text-ink shadow-lg lg:hidden"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
     </div>
   );

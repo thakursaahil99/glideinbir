@@ -172,7 +172,7 @@ export default function AdminPackageSlotsPage({ params }: { params: Promise<{ id
         </Card>
         </div>
 
-        <Card className="h-fit p-5">
+        <Card className="admin-form-panel h-fit p-5">
           <h3 className="font-semibold">Add slot</h3>
           <form onSubmit={handleCreate} className="mt-4 space-y-3">
             <div>

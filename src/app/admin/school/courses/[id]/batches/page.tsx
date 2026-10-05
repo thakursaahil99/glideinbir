@@ -178,7 +178,7 @@ export default function AdminCourseBatchesPage({ params }: { params: Promise<{ i
         </Card>
         </div>
 
-        <Card className="h-fit p-5">
+        <Card className="admin-form-panel h-fit p-5">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">{editingId ? "Edit batch" : "Add batch"}</h3>
             {editingId && (

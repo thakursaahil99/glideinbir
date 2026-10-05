@@ -165,7 +165,7 @@ export default function AdminHotelsPage() {
         </Card>
         </div>
 
-        <Card className="h-fit p-5">
+        <Card className="admin-form-panel h-fit p-5">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">{editingId ? "Edit hotel" : "Add new hotel"}</h3>
             {editingId && (
