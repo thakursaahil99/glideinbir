@@ -10,6 +10,7 @@ import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { TiltCard } from "@/components/effects/tilt-card";
 import { ModuleHero } from "@/components/site/module-hero";
 import { ModuleInfo } from "@/components/site/module-info";
+import { ModuleMediaSection } from "@/components/site/module-media-section";
 import { CardArrow } from "@/components/site/card-arrow";
 import { RatingBadge } from "@/components/site/rating-badge";
 import { FlyingConditions } from "@/components/site/flying-conditions";
@@ -126,6 +127,17 @@ export default async function ParaglidingListPage({
           </StaggerGroup>
         )}
       </Container>
+
+      <ModuleMediaSection
+        tags={["flight"]}
+        tone="paragliding"
+        band="band-ocean"
+        eyebrow="Photos & videos"
+        title={
+          <>From the <span className="gradient-text">launch to the landing</span></>
+        }
+        description="Takeoffs at Billing, the glide over the valley and the touchdown in Bir — tap any clip to play with sound."
+      />
 
       <ModuleInfo
         heading="Tandem paragliding in Bir Billing"

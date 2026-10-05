@@ -32,14 +32,17 @@ export function GalleryClient({
   videos,
   reels,
   tagLabels,
+  initialTag = "all",
 }: {
   photos: Photo[];
   videos: MediaVideo[];
   reels: MediaVideo[];
   tagLabels: Record<VideoTag, string>;
+  /** Pre-selected filter, e.g. from /gallery?tag=flight. */
+  initialTag?: VideoTag | "all";
 }) {
   const [tab, setTab] = useState<Tab>("photos");
-  const [tag, setTag] = useState<VideoTag | "all">("all");
+  const [tag, setTag] = useState<VideoTag | "all">(initialTag);
   const [lightbox, setLightbox] = useState<number | null>(null);
   const [viewer, setViewer] = useState<number | null>(null);
 

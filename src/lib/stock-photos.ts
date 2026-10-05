@@ -9,19 +9,20 @@
 const s = (name: string) => `/stock/${name}.webp`;
 
 const POOLS = {
-  flight: ["fly-bir-hp", "fly-best", "fly-tandem", "fly-bir", "fly-bir-billing", "fly-activity", "fly-ready"],
-  school: ["school-pilots", "school-prep", "school-pilot-takeoff", "school-upper-takeoff", "school-under", "fly-ready"],
-  instructor: ["school-pilot-takeoff", "school-pilots", "school-prep", "fly-ready"],
+  flight: ["fly-bir-hp", "fly-best", "fly-tandem", "fly-bir", "fly-bir-billing", "fly-activity", "fly-ready", "fly-capital", "fly-billing-site", "fly-world-cup"],
+  school: ["school-pilots", "school-prep", "school-pilot-takeoff", "school-upper-takeoff", "school-under", "school-takeoff-crew", "school-launch", "fly-ready"],
+  instructor: ["school-pilot-takeoff", "school-pilots", "school-prep", "school-takeoff-crew", "fly-ready"],
   hotel: ["stay-hotels", "stay-cottage-2", "stay-cottage", "stay-suite", "bir-aerial"],
   room: ["stay-room", "stay-suite", "stay-cottage", "stay-hotels", "stay-cottage-2", "stay-machaan"],
   cottage: ["stay-machaan", "stay-cottage", "stay-cottage-2", "stay-suite"],
   camping: ["camp-triund", "camp-himalaya", "camp-triund-ground"],
+  adventure: ["adv-rafting", "adv-bike-uhl"],
   trekking: ["trek-triund-hill", "trek-trail", "trek-ridge", "trek-barot", "bir-barot-uhl"],
   bus: ["ride-volvo", "ride-himsuta", "ride-mcleod"],
   sedan: ["ride-sedan", "ride-taxis", "ride-mcleod"],
   suv: ["ride-suv", "ride-taxis", "ride-mcleod"],
   monsoon: ["bir-valley", "bir-barot-uhl", "trek-ridge"],
-  bir: ["bir-aerial", "bir-dhauladhar", "bir-monastery", "bir-tea", "bir-dhauladhar-layers", "bir-barot-uhl", "bir-valley"],
+  bir: ["bir-aerial", "bir-dhauladhar", "bir-monastery", "bir-tea", "bir-dhauladhar-layers", "bir-barot-uhl", "bir-valley", "bir-flags"],
 } as const;
 
 export type Pool = keyof typeof POOLS;
@@ -45,6 +46,7 @@ const KEYWORDS: [RegExp, Pool][] = [
   [/\bsuv\b|innova|ertiga|tempo/i, "suv"],
   [/taxi|cab|sedan|\bcar\b|reach/i, "sedan"],
   [/\bp[1-4]\b|course|school|training|basics|certif|thermal/i, "school"],
+  [/raft|kayak|bik(e|ing)|cycl|mtb/i, "adventure"],
   [/camp|tent|dome/i, "camping"],
   [/trek|hike|trail|expedition|triund|rajgundha|bhangal/i, "trekking"],
   [/cottage|machaan|glass house|villa/i, "cottage"],

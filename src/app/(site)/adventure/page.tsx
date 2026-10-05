@@ -8,6 +8,7 @@ import { formatINR } from "@/lib/format";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
 import { ModuleInfo } from "@/components/site/module-info";
+import { ModuleMediaSection } from "@/components/site/module-media-section";
 import { CardArrow } from "@/components/site/card-arrow";
 import { stockPhoto } from "@/lib/stock-photos";
 
@@ -108,6 +109,17 @@ export default async function AdventureListPage({
           </StaggerGroup>
         )}
       </Container>
+
+      <ModuleMediaSection
+        tags={["adventure","trekking","camping"]}
+        tone="adventure"
+        band="band-rose"
+        eyebrow="Photos & videos"
+        title={
+          <>Trails, rivers & <span className="gradient-text">camp nights</span></>
+        }
+        description="Treks, biking, rafting and nights under the stars around the Dhauladhar range."
+      />
 
       <ModuleInfo
         heading="Things to do around Bir Billing"

@@ -13,6 +13,7 @@ const POOL_TO_TAG: Record<Pool, VideoTag> = {
   room: "hotel",
   cottage: "hotel",
   camping: "camping",
+  adventure: "adventure",
   trekking: "trekking",
   bus: "travel",
   sedan: "travel",
@@ -73,19 +74,45 @@ const PHOTO_PREFIX_TAG: [string, VideoTag][] = [
   ["stay-", "hotel"],
   ["camp-", "camping"],
   ["trek-", "trekking"],
+  ["adv-", "adventure"],
   ["ride-", "travel"],
   ["bir-", "bir"],
 ];
 
 export const ALL_PHOTOS: { src: string; tag: VideoTag }[] = [
   "fly-bir-hp", "fly-best", "fly-tandem", "fly-bir", "fly-bir-billing", "fly-activity", "fly-ready",
+  "fly-capital", "fly-billing-site", "fly-world-cup",
   "school-pilots", "school-prep", "school-pilot-takeoff", "school-upper-takeoff", "school-under",
-  "bir-aerial", "bir-dhauladhar", "bir-monastery", "bir-tea", "bir-dhauladhar-layers", "bir-barot-uhl", "bir-valley",
+  "school-takeoff-crew", "school-launch",
+  "bir-aerial", "bir-dhauladhar", "bir-monastery", "bir-tea", "bir-dhauladhar-layers", "bir-barot-uhl", "bir-valley", "bir-flags",
   "camp-triund", "camp-himalaya", "camp-triund-ground",
   "trek-triund-hill", "trek-trail", "trek-ridge", "trek-barot",
+  "adv-rafting", "adv-bike-uhl",
   "stay-hotels", "stay-cottage-2", "stay-cottage", "stay-suite", "stay-room", "stay-machaan",
   "ride-volvo", "ride-himsuta", "ride-sedan", "ride-suv", "ride-taxis", "ride-mcleod",
 ].map((name) => ({
   src: `/stock/${name}.webp`,
   tag: PHOTO_PREFIX_TAG.find(([p]) => name.startsWith(p))![1],
 }));
+
+function byTags<T>(list: T[], tags: VideoTag[], tagsOf: (item: T) => VideoTag[], count: number): T[] {
+  // Items for the first tag lead, then the next tag's, then Bir scenery to fill.
+  const order = [...tags, "bir" as VideoTag];
+  const out: T[] = [];
+  for (const tag of order) {
+    for (const item of list) {
+      if (out.length >= count) return out;
+      if (tagsOf(item).includes(tag) && !out.includes(item)) out.push(item);
+    }
+  }
+  return out;
+}
+
+/** Photos, videos and reels for a whole module's list page, by its tags. */
+export function moduleMedia(tags: VideoTag[], counts = { photos: 7, videos: 3, reels: 6 }) {
+  return {
+    photos: byTags(ALL_PHOTOS, tags, (p) => [p.tag], counts.photos).map((p) => p.src),
+    videos: byTags(ALL_VIDEOS, tags, (v) => v.tags, counts.videos),
+    reels: byTags(ALL_REELS, tags, (v) => v.tags, counts.reels),
+  };
+}

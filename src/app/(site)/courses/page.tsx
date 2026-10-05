@@ -7,6 +7,7 @@ import { formatINR } from "@/lib/format";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
 import { ModuleInfo } from "@/components/site/module-info";
+import { ModuleMediaSection } from "@/components/site/module-media-section";
 import { CardArrow } from "@/components/site/card-arrow";
 import { RatingBadge } from "@/components/site/rating-badge";
 import { reviewService } from "@/server/modules/review/service";
@@ -83,6 +84,17 @@ export default async function CoursesListPage() {
           </StaggerGroup>
         )}
       </Container>
+
+      <ModuleMediaSection
+        tags={["school","flight"]}
+        tone="school"
+        band="band-aurora"
+        eyebrow="Photos & videos"
+        title={
+          <>Life at <span className="gradient-text">flying school</span></>
+        }
+        description="Ground handling, first launches and solo glides — what your training days look like."
+      />
 
       <ModuleInfo
         heading="Learning to paraglide in Bir Billing"

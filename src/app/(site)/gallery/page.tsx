@@ -13,7 +13,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/gallery" },
 };
 
-export default function GalleryPage() {
+export default async function GalleryPage({ searchParams }: { searchParams: Promise<{ tag?: string }> }) {
+  const { tag } = await searchParams;
+  const initialTag = tag && tag in TAG_LABEL ? (tag as keyof typeof TAG_LABEL) : "all";
+
   return (
     <div className="band-sunset">
       <Container className="py-14 md:py-20">
@@ -30,7 +33,7 @@ export default function GalleryPage() {
           />
         </ScrollReveal>
         <div className="mt-10">
-          <GalleryClient photos={ALL_PHOTOS} videos={ALL_VIDEOS} reels={ALL_REELS} tagLabels={TAG_LABEL} />
+          <GalleryClient photos={ALL_PHOTOS} videos={ALL_VIDEOS} reels={ALL_REELS} tagLabels={TAG_LABEL} initialTag={initialTag} />
         </div>
         <p className="mt-10 text-xs text-muted">
           Placeholder photos and clips from Wikimedia Commons under free licences — credits are in the

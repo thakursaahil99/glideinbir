@@ -42,5 +42,13 @@ Placeholder photos from Wikimedia Commons, resized to 1400×1000 WebP. Each is u
 | ride-sedan.webp | Biswarup Ganguly | CC BY 3.0 | https://commons.wikimedia.org/wiki/File:Maruti_Suzuki_Dzire_VXi_VVT_(front).JPG |
 | ride-taxis.webp | Gerd Eichmann | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Rohtang_La-04-Taxis-gje.jpg |
 | ride-mcleod.webp | Sitikantha kheti | CC BY 3.0 | https://commons.wikimedia.org/wiki/File:MacLeod_Ganj_Busstop.jpg |
+| adv-rafting.webp | AthulBiju94 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Tourists_Rafting_on_the_Beas_River.jpg |
+| adv-bike-uhl.webp | Tagooty | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Uhl_River_Valley_Kamand_Bike_R16_00245.jpg |
+| fly-world-cup.webp | Wikimate786 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Paragliding_World_Cup_2015_at_nearby_Bir-Billing.jpg |
+| fly-capital.webp | Tanvi.sharmaaa | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Bir_Billing-_Paragliding_Capital_of_India.jpg |
+| fly-billing-site.webp | Kartik mj | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:BIR_BILLING_PARAGLIDING.jpg |
+| school-takeoff-crew.webp | Okorok | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Pilots_on_a_paragliding_takeoff_at_Bir-Billing.JPG |
+| school-launch.webp | Okorok | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Pilot_on_a_paragliding_takeoff_at_Bir-Billing.JPG |
+| bir-flags.webp | Tanvi.sharmaaa | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Tibetan_flags_in_Billing_Paragliding_Site.jpg |
 | hero-bir.webp | (same as bir-aerial) | | |
 | hero-instructors.webp | (same as school-pilots) | | |

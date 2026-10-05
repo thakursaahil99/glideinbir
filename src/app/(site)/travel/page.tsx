@@ -8,6 +8,7 @@ import { formatINR } from "@/lib/format";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
 import { ModuleInfo } from "@/components/site/module-info";
+import { ModuleMediaSection } from "@/components/site/module-media-section";
 import { CardArrow } from "@/components/site/card-arrow";
 import { stockPhoto } from "@/lib/stock-photos";
 
@@ -104,6 +105,17 @@ export default async function TravelListPage({
           </StaggerGroup>
         )}
       </Container>
+
+      <ModuleMediaSection
+        tags={["travel"]}
+        tone="travel"
+        band="band-ocean"
+        eyebrow="Photos & videos"
+        title={
+          <>The road <span className="gradient-text">to the mountains</span></>
+        }
+        description="Volvo buses, taxis and the hill roads that bring you to Bir."
+      />
 
       <ModuleInfo
         heading="Getting to Bir Billing"

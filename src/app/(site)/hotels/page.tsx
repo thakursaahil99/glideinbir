@@ -6,6 +6,7 @@ import { Card, Container } from "@/components/ui/card";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { ModuleHero } from "@/components/site/module-hero";
 import { ModuleInfo } from "@/components/site/module-info";
+import { ModuleMediaSection } from "@/components/site/module-media-section";
 import { CardArrow } from "@/components/site/card-arrow";
 import { RatingBadge } from "@/components/site/rating-badge";
 import { reviewService } from "@/server/modules/review/service";
@@ -72,6 +73,17 @@ export default async function HotelsListPage() {
           </StaggerGroup>
         )}
       </Container>
+
+      <ModuleMediaSection
+        tags={["hotel","camping"]}
+        tone="hotels"
+        band="band-meadow"
+        eyebrow="Photos & videos"
+        title={
+          <>Cottages, camps & <span className="gradient-text">mountain views</span></>
+        }
+        description="Wooden cottages, cosy rooms, campfires and the villages around Bir."
+      />
 
       <ModuleInfo
         heading="Where to stay in Bir Billing"
