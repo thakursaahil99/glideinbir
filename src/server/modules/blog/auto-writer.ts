@@ -7,9 +7,17 @@ import { chatCompletion, isSahuBhaiConfigured } from "@/server/modules/assistant
 import { blogService } from "./service";
 import { extractJson, validateGenerated } from "./auto-writer-format";
 
-// Weekly job: Sahu Bhai's LLM writes one new Bir Billing guide and saves it
-// as a Draft (or publishes it when BLOG_AUTOPUBLISH=true). It shows up in
-// Admin → Blog like any other post.
+// Sahu Bhai's LLM writes one new Bir Billing guide and saves it as a Draft
+// (or publishes it when BLOG_AUTOPUBLISH=true). It shows up in Admin → Blog
+// like any other post.
+//
+// The cron fires daily but a post is only written when the last successful
+// one is at least MIN_GAP_DAYS old. A run that fails (free-tier rate limit,
+// provider outage) doesn't record anything, so the next day's run retries.
+
+const LAST_RUN_KEY = "autoBlog.lastCreatedAt";
+const MIN_GAP_DAYS = 6;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 type Topic = { slug: string; title: string; angle: string };
 
@@ -86,6 +94,12 @@ export type AutoBlogResult =
 export async function writeNextBlogPost(): Promise<AutoBlogResult> {
   if (!isSahuBhaiConfigured()) return { status: "skipped", reason: "Sahu Bhai LLM key is not configured" };
 
+  const last = await prisma.siteSetting.findUnique({ where: { key: LAST_RUN_KEY } });
+  const lastAt = typeof last?.value === "string" ? Date.parse(last.value) : NaN;
+  if (!Number.isNaN(lastAt) && Date.now() - lastAt < MIN_GAP_DAYS * DAY_MS) {
+    return { status: "skipped", reason: "A post was already written this week" };
+  }
+
   const used = await usedSlugs();
   const titles = [...SEED_POSTS.map((p) => p.title), ...(await prisma.blogPost.findMany({ select: { title: true } })).map((p) => p.title)];
 
@@ -113,6 +127,12 @@ export async function writeNextBlogPost(): Promise<AutoBlogResult> {
   const post = validateGenerated(extractJson(reply.content ?? ""), allowed);
   const published = env.BLOG_AUTOPUBLISH === "true";
   const created = await blogService.create({ ...post, slug: topic.slug, isActive: published });
+  const now = new Date().toISOString();
+  await prisma.siteSetting.upsert({
+    where: { key: LAST_RUN_KEY },
+    create: { key: LAST_RUN_KEY, value: now },
+    update: { value: now },
+  });
   logger.info("Auto blog: post written", { slug: created.slug, published });
   return { status: "created", slug: created.slug, published };
 }

@@ -7,8 +7,9 @@ import { writeNextBlogPost } from "@/server/modules/blog/auto-writer";
 // The LLM call can take a while on a free-tier provider.
 export const maxDuration = 60;
 
-// Runs weekly (see vercel.json). Sahu Bhai writes one new Bir Billing guide
-// and saves it as a Draft in Admin → Blog (or publishes it directly when
+// Runs daily (see vercel.json) but writes at most one post every ~6 days, and
+// simply tries again the next day if the LLM was rate-limited. Sahu Bhai saves
+// the guide as a Draft in Admin → Blog (or publishes it directly when
 // BLOG_AUTOPUBLISH=true). Same CRON_SECRET check as the other cron routes.
 export const GET = withErrorHandling(async (request: NextRequest) => {
   if (!env.CRON_SECRET || request.headers.get("authorization") !== `Bearer ${env.CRON_SECRET}`) {
