@@ -7,7 +7,7 @@ import { usePrefersReducedMotion } from "./use-reduced-motion";
 
 // Live weather layer over the whole site: whatever the sky over Bir Billing
 // is doing right now (Open-Meteo via /api/weather) — sunshine, cloud, rain,
-// a thunderstorm, snow, fog or a starry night — drawn lightly on top of
+// a thunderstorm, snow, fog or a moonlit night — drawn lightly on top of
 // every page, refreshed every 5 minutes. Staff can override it from the
 // admin dashboard when the forecast misses local cloud. How much rain / snow is drawn
 // follows the measured amount (`level`, 0…1), not just the weather type.
@@ -200,7 +200,6 @@ type Flake = {
   z: number;
 };
 type Puff = { x: number; y: number; r: number; vx: number; o: number };
-type Star = { x: number; y: number; r: number; phase: number; speed: number };
 
 // Imperative canvas loop — kept out of React so a resize or a frame never
 // triggers a re-render. Returns a cleanup fn.
@@ -221,7 +220,6 @@ function mountCanvas(canvas: HTMLCanvasElement, effect: Exclude<Effect, "none">,
   let drops: Drop[] = [];
   let flakes: Flake[] = [];
   let puffs: Puff[] = [];
-  let stars: Star[] = [];
   // Lightning: brightness of the current flash, and when the next one fires.
   let flash = 0;
   let nextFlash = performance.now() + 3000;
@@ -283,16 +281,6 @@ function mountCanvas(canvas: HTMLCanvasElement, effect: Exclude<Effect, "none">,
         r: rand(0.14, 0.26) * big,
         vx: rand(0.12, 0.3),
         o: rand(0.07, 0.12) * alpha,
-      }));
-    } else if (effect === "night") {
-      // Stars only in the upper part of the screen, like a real sky.
-      const count = Math.min(140, Math.round(area / 9000));
-      stars = Array.from({ length: count }, () => ({
-        x: Math.random() * w,
-        y: Math.pow(Math.random(), 1.6) * h * 0.6,
-        r: rand(0.7, 2.1),
-        phase: Math.random() * Math.PI * 2,
-        speed: rand(600, 1800),
       }));
     }
   }
@@ -472,8 +460,8 @@ function mountCanvas(canvas: HTMLCanvasElement, effect: Exclude<Effect, "none">,
     if (effect === "sun") drawSun(t);
 
     if (effect === "night") {
-      // Deep-blue sky fading down the page, a moon glow top-right, and
-      // twinkling stars (a warm core + glow so they read on white sections too).
+      // Deep-blue sky fading down the page and a moon glow top-right — no
+      // stars: dots over the page read as clutter, not sky.
       const sky = ctx!.createLinearGradient(0, 0, 0, h * 0.7);
       sky.addColorStop(0, `rgba(18,28,64,${0.3 * alpha})`);
       sky.addColorStop(1, "rgba(18,28,64,0)");
@@ -488,18 +476,6 @@ function mountCanvas(canvas: HTMLCanvasElement, effect: Exclude<Effect, "none">,
       moon.addColorStop(1, "rgba(190,205,250,0)");
       ctx!.fillStyle = moon;
       ctx!.fillRect(0, 0, w, h);
-
-      for (const st of stars) {
-        const tw = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t / st.speed + st.phase));
-        ctx!.fillStyle = `rgba(255,200,110,${0.3 * tw})`;
-        ctx!.beginPath();
-        ctx!.arc(st.x, st.y, st.r + 2.2, 0, Math.PI * 2);
-        ctx!.fill();
-        ctx!.fillStyle = `rgba(255,226,150,${tw})`;
-        ctx!.beginPath();
-        ctx!.arc(st.x, st.y, st.r, 0, Math.PI * 2);
-        ctx!.fill();
-      }
     }
   }
 
