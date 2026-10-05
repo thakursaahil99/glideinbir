@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { JsonLd, breadcrumbJsonLd, productJsonLd } from "@/components/site/json-ld";
+import { SITE_URL, absoluteUrl, pageOpenGraph } from "@/lib/seo";
 import { itemService, slotService } from "@/server/modules/adventure/service";
 import { getCurrentUser } from "@/server/auth/guards";
 import { Card, Badge } from "@/components/ui/card";
 import { BookAdventureWidget } from "@/components/site/book-adventure-widget";
+import { MediaSection } from "@/components/site/media-section";
 import { DetailSplit } from "@/components/site/detail-split";
 import { formatINR } from "@/lib/format";
 import { GradientText } from "@/components/effects/gradient-text";
-import { withStockGallery } from "@/lib/stock-photos";
+import { stockPhoto, withStockGallery } from "@/lib/stock-photos";
 
 export async function generateMetadata({
   params,
@@ -22,6 +25,12 @@ export async function generateMetadata({
       description:
         item.shortDescription ?? `${item.title} in ${item.location}, Bir Billing. ${item.description.slice(0, 140)}`,
       alternates: { canonical: `/adventure/${slug}` },
+      openGraph: pageOpenGraph({
+        title: item.title,
+        description: item.shortDescription ?? item.description.slice(0, 155),
+        path: `/adventure/${slug}`,
+        image: item.media[0]?.url ?? stockPhoto("adventure", item.title),
+      }),
     };
   } catch {
     return { title: "Adventure" };
@@ -49,6 +58,7 @@ export default async function AdventureDetailPage({
       images={galleryImages}
       breadcrumbs={[{ label: "Adventure", href: "/adventure" }, { label: item.title }]}
       imageAlt={item.title}
+      media={<MediaSection kind="adventure" name={item.title} tone="adventure" band="band-rose" />}
       badge={<Badge tone="brand">{item.category.name}</Badge>}
       title={item.title}
       subtitle={`${item.location} · ${item.durationLabel}`}
@@ -79,6 +89,19 @@ export default async function AdventureDetailPage({
       }
     >
       <p className="whitespace-pre-line text-ink">{item.description}</p>
+      <JsonLd
+        data={[
+          productJsonLd({
+            url: absoluteUrl(`/adventure/${slug}`),
+            name: item.title,
+            description: item.shortDescription ?? item.description.slice(0, 300),
+            images: galleryImages.map(absoluteUrl),
+            price: item.price.toNumber(),
+            category: "Adventure",
+          }),
+          breadcrumbJsonLd(SITE_URL, [{ name: "Home", path: "/" }, { name: "Adventure", path: "/adventure" }, { name: item.title, path: `/adventure/${slug}` }]),
+        ]}
+      />
     </DetailSplit>
   );
 }

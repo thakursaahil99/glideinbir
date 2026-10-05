@@ -1,10 +1,14 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { JsonLd, breadcrumbJsonLd, courseJsonLd } from "@/components/site/json-ld";
+import { SITE_URL, absoluteUrl, pageOpenGraph } from "@/lib/seo";
+import { reviewService } from "@/server/modules/review/service";
 import { courseService, batchService } from "@/server/modules/school/service";
 import { getCurrentUser } from "@/server/auth/guards";
 import { Card, Badge } from "@/components/ui/card";
 import { BookSchoolWidget } from "@/components/site/book-school-widget";
+import { MediaSection } from "@/components/site/media-section";
 import { DetailSplit } from "@/components/site/detail-split";
 import { ReviewsSection } from "@/components/site/reviews-section";
 import { FaqSection } from "@/components/site/faq-section";
@@ -12,7 +16,7 @@ import { SectionSkeleton } from "@/components/site/section-skeleton";
 import { formatINR } from "@/lib/format";
 import { StaggerGroup, StaggerItem } from "@/components/effects/scroll-reveal";
 import { GradientText } from "@/components/effects/gradient-text";
-import { withStockGallery } from "@/lib/stock-photos";
+import { stockPhoto, withStockGallery } from "@/lib/stock-photos";
 
 export async function generateMetadata({
   params,
@@ -26,6 +30,12 @@ export async function generateMetadata({
       title: `${course.title} — Paragliding Course, Bir Billing`,
       description: `${course.title} — a paragliding course at Bir Billing. ${course.description.slice(0, 140)}`,
       alternates: { canonical: `/courses/${slug}` },
+      openGraph: pageOpenGraph({
+        title: course.title,
+        description: `${course.title} — a paragliding course at Bir Billing. ${course.description.slice(0, 120)}`,
+        path: `/courses/${slug}`,
+        image: course.media[0]?.url ?? stockPhoto("course", course.title),
+      }),
     };
   } catch {
     return { title: "Paragliding Course" };
@@ -48,12 +58,14 @@ export default async function CourseDetailPage({
   const syllabus = course.syllabus as { title: string; description: string }[];
 
   const galleryImages = withStockGallery(course.media.map((m) => m.url), "course", course.title);
+  const rating = await reviewService.listApproved("SCHOOL", course.id).catch(() => null);
 
   return (
     <DetailSplit
       images={galleryImages}
       breadcrumbs={[{ label: "Courses", href: "/courses" }, { label: course.title }]}
       imageAlt={course.title}
+      media={<MediaSection kind="course" name={course.title} tone="school" band="band-aurora" />}
       badge={<Badge tone="brand">{course.level}</Badge>}
       title={course.title}
       subtitle={`${course.location} · ${course.durationDays} days`}
@@ -112,6 +124,20 @@ export default async function CourseDetailPage({
       <Suspense fallback={<SectionSkeleton />}>
         <ReviewsSection targetType="SCHOOL" targetId={course.id} />
       </Suspense>
+      <JsonLd
+        data={[
+          courseJsonLd({
+            url: absoluteUrl(`/courses/${slug}`),
+            name: course.title,
+            description: course.description.slice(0, 300),
+            images: galleryImages.map(absoluteUrl),
+            fee: course.fee.toNumber(),
+            durationDays: course.durationDays,
+            rating,
+          }),
+          breadcrumbJsonLd(SITE_URL, [{ name: "Home", path: "/" }, { name: "Courses", path: "/courses" }, { name: course.title, path: `/courses/${slug}` }]),
+        ]}
+      />
     </DetailSplit>
   );
 }

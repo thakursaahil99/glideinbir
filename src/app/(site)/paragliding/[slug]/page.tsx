@@ -5,13 +5,17 @@ import { packageService, slotService } from "@/server/modules/paragliding/servic
 import { getCurrentUser } from "@/server/auth/guards";
 import { Card, Badge } from "@/components/ui/card";
 import { BookParaglidingWidget } from "@/components/site/book-paragliding-widget";
+import { MediaSection } from "@/components/site/media-section";
 import { DetailSplit } from "@/components/site/detail-split";
 import { ReviewsSection } from "@/components/site/reviews-section";
 import { FaqSection } from "@/components/site/faq-section";
 import { SectionSkeleton } from "@/components/site/section-skeleton";
+import { JsonLd, breadcrumbJsonLd, productJsonLd } from "@/components/site/json-ld";
+import { SITE_URL, absoluteUrl, pageOpenGraph } from "@/lib/seo";
+import { reviewService } from "@/server/modules/review/service";
 import { formatINR } from "@/lib/format";
 import { GradientText } from "@/components/effects/gradient-text";
-import { withStockGallery } from "@/lib/stock-photos";
+import { stockPhoto, withStockGallery } from "@/lib/stock-photos";
 
 export async function generateMetadata({
   params,
@@ -26,6 +30,12 @@ export async function generateMetadata({
       description:
         pkg.shortDescription ?? `${pkg.title} in Bir Billing, Himachal Pradesh. ${pkg.description.slice(0, 140)}`,
       alternates: { canonical: `/paragliding/${slug}` },
+      openGraph: pageOpenGraph({
+        title: pkg.title,
+        description: pkg.shortDescription ?? pkg.description.slice(0, 155),
+        path: `/paragliding/${slug}`,
+        image: pkg.media[0]?.url ?? stockPhoto("paragliding", pkg.title),
+      }),
     };
   } catch {
     return { title: "Paragliding" };
@@ -47,12 +57,14 @@ export default async function ParaglidingDetailPage({
   if (!pkg) notFound();
 
   const galleryImages = withStockGallery(pkg.media.map((m) => m.url), "paragliding", pkg.title);
+  const rating = await reviewService.listApproved("PARAGLIDING", pkg.id).catch(() => null);
 
   return (
     <DetailSplit
       images={galleryImages}
       breadcrumbs={[{ label: "Paragliding", href: "/paragliding" }, { label: pkg.title }]}
       imageAlt={pkg.title}
+      media={<MediaSection kind="paragliding" name={pkg.title} tone="paragliding" band="band-ocean" />}
       badge={<Badge tone="brand">{pkg.flightType.replace("_", " ")}</Badge>}
       title={pkg.title}
       subtitle={`${pkg.location} · ${pkg.durationMinutes} minutes`}
@@ -97,6 +109,20 @@ export default async function ParaglidingDetailPage({
       <Suspense fallback={<SectionSkeleton />}>
         <ReviewsSection targetType="PARAGLIDING" targetId={pkg.id} />
       </Suspense>
+      <JsonLd
+        data={[
+          productJsonLd({
+            url: absoluteUrl(`/paragliding/${slug}`),
+            name: pkg.title,
+            description: pkg.shortDescription ?? pkg.description.slice(0, 300),
+            images: galleryImages.map(absoluteUrl),
+            price: pkg.price.toNumber(),
+            category: "Paragliding",
+            rating,
+          }),
+          breadcrumbJsonLd(SITE_URL, [{ name: "Home", path: "/" }, { name: "Paragliding", path: "/paragliding" }, { name: pkg.title, path: `/paragliding/${slug}` }]),
+        ]}
+      />
     </DetailSplit>
   );
 }

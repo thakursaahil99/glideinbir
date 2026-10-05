@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { JsonLd, breadcrumbJsonLd, productJsonLd } from "@/components/site/json-ld";
+import { SITE_URL, absoluteUrl, pageOpenGraph } from "@/lib/seo";
 import { routeService, slotService } from "@/server/modules/travel/service";
 import { getCurrentUser } from "@/server/auth/guards";
 import { Card, Badge } from "@/components/ui/card";
 import { BookTravelWidget } from "@/components/site/book-travel-widget";
+import { MediaSection } from "@/components/site/media-section";
 import { DetailSplit } from "@/components/site/detail-split";
 import { formatINR } from "@/lib/format";
 import { GradientText } from "@/components/effects/gradient-text";
-import { withStockGallery } from "@/lib/stock-photos";
+import { stockPhoto, withStockGallery } from "@/lib/stock-photos";
 
 export async function generateMetadata({
   params,
@@ -21,6 +24,12 @@ export async function generateMetadata({
       title: `${route.title} — Travel to Bir Billing`,
       description: `${route.title}: ${route.fromLocation} to ${route.toLocation}. ${route.description.slice(0, 140)}`,
       alternates: { canonical: `/travel/${slug}` },
+      openGraph: pageOpenGraph({
+        title: route.title,
+        description: `${route.title}: ${route.fromLocation} to ${route.toLocation}. ${route.description.slice(0, 120)}`,
+        path: `/travel/${slug}`,
+        image: route.media[0]?.url ?? stockPhoto("travel", route.title),
+      }),
     };
   } catch {
     return { title: "Travel" };
@@ -48,6 +57,7 @@ export default async function TravelDetailPage({
       images={galleryImages}
       breadcrumbs={[{ label: "Travel", href: "/travel" }, { label: route.title }]}
       imageAlt={route.title}
+      media={<MediaSection kind="travel" name={route.title} tone="travel" band="band-ocean" />}
       badge={<Badge tone="brand">{route.mode}</Badge>}
       title={route.title}
       subtitle={`${route.fromLocation} → ${route.toLocation} · ${route.vehicleType} · ${route.durationLabel}`}
@@ -78,6 +88,19 @@ export default async function TravelDetailPage({
       }
     >
       <p className="whitespace-pre-line text-ink">{route.description}</p>
+      <JsonLd
+        data={[
+          productJsonLd({
+            url: absoluteUrl(`/travel/${slug}`),
+            name: route.title,
+            description: `${route.fromLocation} to ${route.toLocation}. ${route.description.slice(0, 250)}`,
+            images: galleryImages.map(absoluteUrl),
+            price: route.price.toNumber(),
+            category: "Travel",
+          }),
+          breadcrumbJsonLd(SITE_URL, [{ name: "Home", path: "/" }, { name: "Travel", path: "/travel" }, { name: route.title, path: `/travel/${slug}` }]),
+        ]}
+      />
     </DetailSplit>
   );
 }

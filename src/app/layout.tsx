@@ -54,6 +54,8 @@ export const metadata: Metadata = {
   authors: [{ name: "Glideinbir" }],
   creator: "Glideinbir",
   robots: { index: true, follow: true },
+  // Google Search Console HTML-tag verification; set GOOGLE_SITE_VERIFICATION in Vercel.
+  verification: { google: process.env.GOOGLE_SITE_VERIFICATION },
   alternates: { canonical: "/" },
   // Makes the site installable as the "Sahu Bhai" app (start_url /sahu).
   manifest: "/manifest.webmanifest",
@@ -98,6 +100,21 @@ const organizationJsonLd = {
   priceRange: "₹₹",
 };
 
+// Lets Google show a sitelinks search box and ties the site name to the brand.
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Glideinbir",
+  alternateName: ["Glide in Bir", "Glideinbir Bir Billing Paragliding"],
+  url: siteUrl,
+  inLanguage: "en-IN",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: { "@type": "EntryPoint", urlTemplate: `${siteUrl}/search?q={search_term_string}` },
+    "query-input": "required name=search_term_string",
+  },
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
@@ -117,6 +134,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
         <ToastProvider>{children}</ToastProvider>
         <PwaRegister />

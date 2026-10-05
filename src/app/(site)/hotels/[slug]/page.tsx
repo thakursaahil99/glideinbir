@@ -1,10 +1,14 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { JsonLd, breadcrumbJsonLd, hotelJsonLd } from "@/components/site/json-ld";
+import { SITE_URL, absoluteUrl, pageOpenGraph } from "@/lib/seo";
+import { reviewService } from "@/server/modules/review/service";
 import { hotelService } from "@/server/modules/hotel/service";
 import { getCurrentUser } from "@/server/auth/guards";
 import { Container, Card, Badge } from "@/components/ui/card";
 import { BookHotelWidget } from "@/components/site/book-hotel-widget";
+import { MediaSection } from "@/components/site/media-section";
 import { DetailSplit } from "@/components/site/detail-split";
 import { ReviewsSection } from "@/components/site/reviews-section";
 import { FaqSection } from "@/components/site/faq-section";
@@ -27,6 +31,12 @@ export async function generateMetadata({
       title: `${hotel.name} — Hotel in Bir Billing`,
       description: `${hotel.name} in ${hotel.city}, Bir Billing. ${hotel.description.slice(0, 140)}`,
       alternates: { canonical: `/hotels/${slug}` },
+      openGraph: pageOpenGraph({
+        title: hotel.name,
+        description: `${hotel.name} in ${hotel.city}, Bir Billing. ${hotel.description.slice(0, 120)}`,
+        path: `/hotels/${slug}`,
+        image: hotel.media[0]?.url ?? stockPhoto("hotel", hotel.name),
+      }),
     };
   } catch {
     return { title: "Hotels" };
@@ -47,6 +57,7 @@ export default async function HotelDetailPage({
   if (!hotel) notFound();
 
   const galleryImages = withStockGallery(hotel.media.map((m) => m.url), "hotel", hotel.name);
+  const rating = await reviewService.listApproved("HOTEL", hotel.id).catch(() => null);
   const cheapestRoom =
     hotel.rooms.length > 0
       ? hotel.rooms.reduce((min, r) => (r.pricePerNight.lt(min.pricePerNight) ? r : min))
@@ -58,6 +69,7 @@ export default async function HotelDetailPage({
         images={galleryImages}
         breadcrumbs={[{ label: "Hotels", href: "/hotels" }, { label: hotel.name }]}
         imageAlt={hotel.name}
+        media={<MediaSection kind="hotel" name={hotel.name} tone="hotels" band="band-meadow" />}
         title={hotel.name}
         subtitle={`${hotel.address}, ${hotel.city}`}
         sidebar={
@@ -89,6 +101,26 @@ export default async function HotelDetailPage({
       >
         <p className="whitespace-pre-line text-ink">{hotel.description}</p>
       </DetailSplit>
+
+      <JsonLd
+        data={[
+          hotelJsonLd({
+            url: absoluteUrl(`/hotels/${slug}`),
+            name: hotel.name,
+            description: hotel.description.slice(0, 300),
+            images: galleryImages.map(absoluteUrl),
+            address: hotel.address,
+            city: hotel.city,
+            latitude: hotel.latitude?.toNumber(),
+            longitude: hotel.longitude?.toNumber(),
+            checkInTime: hotel.checkInTime,
+            checkOutTime: hotel.checkOutTime,
+            cheapestPrice: cheapestRoom?.pricePerNight.toNumber(),
+            rating,
+          }),
+          breadcrumbJsonLd(SITE_URL, [{ name: "Home", path: "/" }, { name: "Hotels", path: "/hotels" }, { name: hotel.name, path: `/hotels/${slug}` }]),
+        ]}
+      />
 
       <Container className="pb-16">
         <ScrollReveal>
