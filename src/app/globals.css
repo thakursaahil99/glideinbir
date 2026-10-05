@@ -368,7 +368,11 @@ html { scroll-behavior: smooth; }
   .admin-main .admin-form-panel[data-sheet="open"] {
     display: block;
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
-    max-height: calc(100dvh - 4rem); overflow-y: auto; overscroll-behavior: contain;
+    /* svh = the small viewport, which does not change as the phone's address
+       bar slides in and out, so the sheet stays put. */
+    max-height: calc(100vh - 4rem); max-height: calc(100svh - 4rem);
+    overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    transform: translateZ(0); touch-action: pan-y;
     border-radius: 1rem 1rem 0 0;
     padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
     box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.45);

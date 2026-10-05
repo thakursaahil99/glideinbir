@@ -122,12 +122,30 @@ export function AdminShell({
     };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onPointerDown);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // Pin the page in place while the sheet is up. `overflow: hidden` alone
+    // doesn't stop iOS from scrolling the page behind a fixed sheet (which
+    // makes the sheet jump around), so freeze <body> at the current scroll
+    // position and put it back exactly on close.
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const prev = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("pointerdown", onPointerDown);
-      document.body.style.overflow = prev;
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.width = prev.width;
+      body.style.overflow = prev.overflow;
+      window.scrollTo(0, scrollY);
     };
   }, [sheetOpen, panelTitle]);
 
