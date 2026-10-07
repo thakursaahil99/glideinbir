@@ -172,12 +172,13 @@ export async function getSkyOverride(): Promise<SkyOverride | null> {
   }
 }
 
-async function fetchCurrent(fields: string) {
+async function fetchCurrent(fields: string, model?: string) {
   const url = new URL("https://api.open-meteo.com/v1/forecast");
   url.searchParams.set("latitude", String(BILLING_LAT));
   url.searchParams.set("longitude", String(BILLING_LON));
   url.searchParams.set("current", fields);
   url.searchParams.set("timezone", "Asia/Kolkata");
+  if (model) url.searchParams.set("models", model);
   // Open-Meteo refreshes "current" every 15 minutes; checking every 5 means
   // a new reading reaches the site within ~5 min of being published.
   const res = await fetch(url, { next: { revalidate: 300 } });
@@ -201,26 +202,152 @@ export async function getSkyNow(): Promise<SkyNow | null> {
   }
 
   try {
-    const current = await fetchCurrent("temperature_2m,weather_code,is_day,precipitation,snowfall,cloud_cover");
-    if (!current) return null;
-    const code = Number(current.weather_code);
-    const isDay = current.is_day === 1;
-    const { effect, intensity } = skyFromCode(code, isDay, Number(current.cloud_cover) || 0);
-    const measured = levelFromAmount(effect, Number(current.precipitation) || 0, Number(current.snowfall) || 0);
-    // Cloud cover can turn a "clear" code into clouds — keep the label honest.
-    const label =
-      effect === "clouds" && code <= 2 ? (intensity === "heavy" ? "Overcast" : "Partly cloudy") : (WEATHER_LABELS[code] ?? "—");
+    const fields = "temperature_2m,weather_code,is_day,precipitation,snowfall,cloud_cover";
+    const [base, metar, ...models] = await Promise.all([
+      fetchCurrent(fields),
+      fetchMetar(),
+      ...MODELS.map((m) => fetchCurrent(fields, m).catch(() => null)),
+    ]);
+    if (!base) return null;
+    const toReading = (c: Record<string, unknown>): SkyReading => ({
+      code: Number(c.weather_code),
+      cloudCover: Number(c.cloud_cover) || 0,
+      precipitation: Number(c.precipitation) || 0,
+      snowfall: Number(c.snowfall) || 0,
+    });
+    const readings = models.filter((c) => c && c.weather_code != null).map(toReading);
+    const isDay = base.is_day === 1;
+    const sky = consensusSky(readings.length ? readings : [toReading(base)], isDay, metar);
 
     return {
-      effect,
-      intensity,
-      level: measured ?? LEVEL[intensity],
-      label,
-      temperatureC: Math.round(current.temperature_2m),
+      ...sky,
+      temperatureC: Math.round(base.temperature_2m),
       isDay,
-      observedAt: String(current.time),
+      observedAt: String(base.time),
     };
   } catch {
     return null;
   }
+}
+
+// --- Consensus of several models + a real observation ----------------------
+// No single forecast model gets Bir right: on 7 Oct 2026, with rain falling
+// in Bir, Open-Meteo's default "best_match" said "Clear sky, 11% cloud" while
+// UKMO had a thunderstorm, Météo-France drizzle and GFS showers. So the site
+// asks several global models and takes a vote, and adds the nearest real
+// observation (the METAR from Kangra airport, ~40 km away) as one more vote.
+
+const MODELS = [
+  "ecmwf_ifs025",
+  "gfs_seamless",
+  "icon_seamless",
+  "ukmo_seamless",
+  "meteofrance_seamless",
+  "gem_seamless",
+] as const;
+
+export type SkyReading = { code: number; cloudCover: number; precipitation: number; snowfall: number };
+export type MetarReading = { wet: boolean; thunder: boolean; snow: boolean; cloudCover: number };
+
+const INTENSITY_RANK: SkyIntensity[] = ["light", "moderate", "heavy"];
+
+function median(xs: number[]): number {
+  if (xs.length === 0) return 0;
+  const s = [...xs].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid]! : (s[mid - 1]! + s[mid]!) / 2;
+}
+
+const CONSENSUS_LABELS: Record<string, string> = {
+  "rain:light": "Light rain",
+  "rain:moderate": "Rain",
+  "rain:heavy": "Heavy rain",
+  "snow:light": "Light snow",
+  "snow:moderate": "Snow",
+  "snow:heavy": "Heavy snow",
+  "storm:light": "Thunderstorm",
+  "storm:moderate": "Thunderstorm",
+  "storm:heavy": "Thunderstorm",
+};
+
+export function consensusSky(
+  readings: SkyReading[],
+  isDay: boolean,
+  metar: MetarReading | null,
+): { effect: SkyEffect; intensity: SkyIntensity; level: number; label: string } {
+  // Cloud cover is judged on the median below, not per model.
+  const votes = readings.map((r) => ({ ...r, ...skyFromCode(r.code, isDay, 0) }));
+  const wet = votes.filter((v) => v.effect === "rain" || v.effect === "storm" || v.effect === "snow");
+  const cloud = median([...readings.map((r) => r.cloudCover), ...(metar ? [metar.cloudCover] : [])]);
+
+  const wetVotes = wet.length + (metar?.wet ? 1 : 0);
+  // Two wet votes under a mostly cloudy sky, or three on their own.
+  if (wetVotes >= 3 || (wetVotes >= 2 && cloud >= 50)) {
+    const stormVotes = wet.filter((v) => v.effect === "storm").length + (metar?.thunder ? 1 : 0);
+    const snowVotes = wet.filter((v) => v.effect === "snow").length + (metar?.snow ? 1 : 0);
+    const effect: SkyEffect = stormVotes >= 2 ? "storm" : snowVotes > wetVotes / 2 ? "snow" : "rain";
+    const ranks = wet.map((v) => INTENSITY_RANK.indexOf(v.intensity));
+    const intensity = INTENSITY_RANK[Math.floor(median(ranks.length ? ranks : [0]))] ?? "light";
+    const measured = levelFromAmount(
+      effect,
+      median(wet.map((v) => v.precipitation)),
+      median(wet.map((v) => v.snowfall)),
+    );
+    return {
+      effect,
+      intensity,
+      // Models spread rain thin over their grid, so the median amount runs
+      // low — never draw less than the agreed intensity.
+      level: Math.max(measured ?? 0, LEVEL[intensity]),
+      label: CONSENSUS_LABELS[`${effect}:${intensity}`] ?? "Rain",
+    };
+  }
+
+  if (votes.filter((v) => v.effect === "fog").length >= 2) {
+    return { effect: "fog", intensity: "moderate", level: LEVEL.moderate, label: "Foggy" };
+  }
+  if (cloud >= 70) return { effect: "clouds", intensity: "heavy", level: LEVEL.heavy, label: "Overcast" };
+  if (cloud >= 40) return { effect: "clouds", intensity: "light", level: LEVEL.light, label: "Partly cloudy" };
+  const intensity: SkyIntensity = cloud < 15 ? "heavy" : "moderate";
+  return {
+    effect: isDay ? "sun" : "night",
+    intensity,
+    level: LEVEL[intensity],
+    label: isDay ? (cloud < 15 ? "Clear sky" : "Mostly clear") : "Clear night",
+  };
+}
+
+const METAR_COVER: Record<string, number> = { SKC: 0, CLR: 0, NSC: 0, CAVOK: 0, FEW: 20, SCT: 45, BKN: 75, OVC: 100 };
+
+// Present-weather groups in a raw METAR: rain, drizzle, snow, hail, or a
+// thunderstorm / showers (also "in the vicinity", VC — in the hills a
+// shower near Kangra usually means one over Bir too).
+const METAR_WET = /\s[-+]?(VC)?(TS|SH)?(RA|DZ|SN|GR|GS|PL)\b|\s[-+]?(VC)?(TS|SH)\b/;
+
+// Latest Kangra airport (VIGG) observation, ignored once it is over 90
+// minutes old. aviationweather.gov is free and needs no key.
+async function fetchMetar(): Promise<MetarReading | null> {
+  try {
+    const res = await fetch("https://aviationweather.gov/api/data/metar?ids=VIGG&format=json", {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return null;
+    const [obs] = (await res.json()) as { obsTime: number; rawOb: string; cover?: string }[];
+    if (!obs || Date.now() / 1000 - obs.obsTime > 90 * 60) return null;
+    return parseMetar(obs.rawOb, obs.cover);
+  } catch {
+    return null;
+  }
+}
+
+export function parseMetar(rawOb: string, cover?: string): MetarReading {
+  // Only the weather groups — everything before the first cloud or
+  // temperature group — so a "TEMPO ... TSRA" forecast tail doesn't count.
+  const wx = rawOb.split(/\s(?:FEW|SCT|BKN|OVC|SKC|CLR|NSC|CAVOK|VV)|\s\d{2}\/\d{2}\s|\sTEMPO|\sBECMG|\sNOSIG/)[0] ?? "";
+  return {
+    wet: METAR_WET.test(wx),
+    thunder: /\s[-+]?(VC)?TS/.test(wx),
+    snow: /\s[-+]?(SH)?SN\b/.test(wx),
+    cloudCover: METAR_COVER[cover ?? ""] ?? 0,
+  };
 }
